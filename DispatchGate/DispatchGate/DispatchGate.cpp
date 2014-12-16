@@ -37,7 +37,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		if (DoInitialWinSocket())
 		{
 			G_CurrentExeFileName = argv[0];
-			G_CurrentExeDir = "E:\\MyProject\\C++Project\\MyIocpProject\\DispatchGate\\Debug";
+			G_CurrentExeDir = "E:\\MyProject\\C++Project\\CCIocpProject\\DispatchGate\\Debug";
 
 			ServiceManagerFunc = (TServiceManagerFunc)GetProcAddress(hWindowsServiceDll, "DoApplicationRun");
 			if (ServiceManagerFunc != nullptr)
