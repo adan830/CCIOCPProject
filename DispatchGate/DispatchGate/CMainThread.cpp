@@ -85,7 +85,6 @@ void CMainThread::DoExecute()
 				
 				pG_CenterSocket->DoHeartBeat();
 				pG_PigSocket->DoHeartBeat();	
-				Log("DispatchGate execute.");
 			}
 		}
 		catch (...)

@@ -605,15 +605,20 @@ void CDBServerSocket::LoadServerConfig()
 				Log("AreaConfig.json is Reloaded.", lmtMessage);
 			m_iConfigFileAge = iAge;
 
+			//c++解析utf-8的json文件乱码？？？？
+			//c++解析utf-8的json文件乱码？？？？
+			//c++解析utf-8的json文件乱码？？？？
+			//c++解析utf-8的json文件乱码？？？？
 			ifstream configFile;
 			configFile.open(sFileName);
-			std::string sJosnStr;
-			configFile >> sJosnStr;
+			std::string sJsonStr;
+			configFile >> sJsonStr;
 			configFile.close();
 
+			sJsonStr = "[{\"AreaID\":1,\"AreaName\":\"神技测试服\",\"ServerID\":1,\"ServerIP\":\"192.168.1.2\"}]";
 			Json::Reader reader;
 			Json::Value root;
-			if (reader.parse(sJosnStr, root))
+			if (reader.parse(sJsonStr, root))
 			{
 				if (root.isArray())
 				{

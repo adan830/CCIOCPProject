@@ -139,7 +139,7 @@ void CDGClient::OpenWindow(TClientWindowType wtype, int iParam, const std::strin
 		((PClientWindowRec)pData)->WinType = wtype;
 		((PClientWindowRec)pData)->Param = iParam;
 		if (iStrLen > 0)
-			memcpy((void*)pData[sizeof(TClientWindowRec)], msg.c_str(), iStrLen + 1);
+			memcpy(pData + sizeof(TClientWindowRec), msg.c_str(), iStrLen + 1);
 		SendToClientPeer(SCM_OPEN_WINDOW, pData, iDataLen);
 		free(pData);
 	}
@@ -212,7 +212,7 @@ void CDGClient::SendToClientPeer(unsigned short usIdent, void* pData, unsigned s
 		((PClientSocketHead)pBuf)->ulIdx = 0;
 		if (usDataLen > 0)
 		{
-			memcpy((void*)pBuf[sizeof(TClientSocketHead)], pData, usDataLen);
+			memcpy(pBuf + sizeof(TClientSocketHead), pData, usDataLen);
 		}		
 		SendBuf(pBuf, usBufLen);
 		free(pBuf);
