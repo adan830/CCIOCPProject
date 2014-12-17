@@ -345,7 +345,7 @@ namespace CC_UTILS{
 
 	void CLogSocket::OnSocketConnect(void* Sender)
 	{
-		if ("" == m_sServiceName)
+		if ("" != m_sServiceName)
 		{
 			if (m_bListView)
 				RegisterServerEx();

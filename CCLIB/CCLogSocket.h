@@ -52,7 +52,7 @@ namespace CC_UTILS{
 	typedef struct _TRegisterInfo
 	{
 		char szServiceName[SERVICE_NAME_LENGTH + 1];
-		char szIPAddress[IP_ADDRESS_MAX_LEN + 1];
+		char szIPAddress[SERVICE_NAME_LENGTH + 1];      //IP_ADDRESS_MAX_LEN + 1比较好，但和LogMoniterServer统一
 		char szVersion[LABEL_CAPTION_LENGTH + 1];
 	}TRegisterInfo, *PRegisterInfo;
 
