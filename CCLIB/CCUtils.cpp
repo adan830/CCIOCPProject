@@ -106,7 +106,6 @@ namespace CC_UTILS{
 
 	bool _TBufferStream::Write(const char* pBuf, const int iCount)
 	{
-		bool retflag = false;
 		int iNeedLength = m_iMemoryPosition + iCount;
 		if (iNeedLength > m_iMemorySize)
 		{
@@ -119,25 +118,20 @@ namespace CC_UTILS{
 				//这段代码的健壮性还需要进一步研究！！！！！！！！！
 				pTempMem = realloc(m_pMemory, m_iMemorySize);
 				if (nullptr != pTempMem)
-				{
 					m_pMemory = pTempMem;
-					retflag = true;
-				}
+				else
+					return false;
 			}
 			else
 			{
 				m_pMemory = pTempMem;
-				retflag = true;
 			}
 		}
 
-		if (retflag)
-		{
-			char* pTemp = (char*)m_pMemory + m_iMemoryPosition;
-			memcpy(pTemp, pBuf, iCount);
-			m_iMemoryPosition = m_iMemoryPosition + iCount;
-		}
-		return retflag;
+		char* pTemp = (char*)m_pMemory + m_iMemoryPosition;
+		memcpy(pTemp, pBuf, iCount);
+		m_iMemoryPosition = m_iMemoryPosition + iCount;
+		return true;
 	}
 
 	bool _TBufferStream::Reset(int iUsedLength)

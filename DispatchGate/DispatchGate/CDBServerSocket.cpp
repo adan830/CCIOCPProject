@@ -101,7 +101,7 @@ void CDBConnector::AddIpRuleNode(const std::string& sIP, TIpType ipType)
 
 		if ("" == sTempIP)
 			return;
-		if (sTempIP.at(sTempIP.length()) != '.')
+		if (sTempIP.at(sTempIP.length()-1) != '.')
 			sTempIP = sTempIP + '.';
 
 		std::lock_guard<std::mutex> guard(m_IPRuleLockCS);

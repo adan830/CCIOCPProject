@@ -164,7 +164,7 @@ namespace CC_UTILS{
 
 	void CIntegerHash::First()
 	{
-		m_pFirstListNode = m_pCurrentQueueNode;
+		m_pCurrentQueueNode = m_pFirstListNode;
 	}
 
 	bool CIntegerHash::Eof()
@@ -365,7 +365,7 @@ namespace CC_UTILS{
 
 	void CStringHash::First()
 	{
-		m_pFirstListNode = m_pCurrentQueueNode;
+		m_pCurrentQueueNode = m_pFirstListNode;
 	}
 
 	bool CStringHash::Eof()

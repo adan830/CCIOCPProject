@@ -6,6 +6,9 @@
 #ifndef __CC_PROTOCOL_CLIENT_H__
 #define __CC_PROTOCOL_CLIENT_H__
 
+//这里使用1字节对齐
+#pragma pack(1)
+
 // Client与服务器间的通讯头
 typedef struct _TClientSocketHead
 {
