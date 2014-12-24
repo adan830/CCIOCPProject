@@ -304,7 +304,7 @@ void CClientServerSocket::SMSelectServer(int iSocketHandle, char* pBuf, unsigned
 			}
 			else
 			{
-				pClient->SendToClientPeer(CM_SELECT_SERVER, pBuf, usBufLen);
+				pClient->SendToClientPeer(SCM_SELECT_SERVER, pBuf, usBufLen);
 			}
 		}
 	}

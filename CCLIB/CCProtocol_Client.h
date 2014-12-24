@@ -113,7 +113,7 @@ typedef struct _TCMSelectServer
 // CM_CLOSE_WINDOW¡¢SCM_OPEN_WINDOW¡¢SCM_CLOSE_WINDOW
 typedef struct _TClientWindowRec
 {
-	TClientWindowType WinType;
+	unsigned char WinType;
 	int Param;
 	unsigned long TransID;          // ÊÂÎñID
 	//buf:ÌáÊ¾ÐÅÏ¢×Ö·û´®
@@ -126,6 +126,8 @@ typedef struct _TNextGateInfo
 	int iGateAddr;
 	int iGatePort;
 }TNextGateInfo, *PNextGateInfo;
+
+#pragma pack()
 
 
 
@@ -168,6 +170,7 @@ const int CM_PWDPROTECT_CHG = 4120;                          //¶þ¼¶ÃÜÂë±£»¤×´Ì¬Ç
 const int SCM_OPEN_WINDOW = 14;                             // ¿ªÆô´°¿Ú
 const int SCM_CLOSE_WINDOW = 15;                            // ·þÎñ¶ËÇëÇó¹Ø±Õ´°¿Ú
 const int SCM_RESSERVER_INFO = 18;                          // ×ÊÔ´·þÎñÆ÷µÄIP
+const int SCM_SELECT_SERVER = 5011;                         // Ñ¡Çø
 
 
 

@@ -85,7 +85,7 @@ void CSubIOCPWorker :: DoExecute()
 		}
 		catch(...)
 		{
-			//SendDebugString('CSubIOCPWorker :: Execute Exception');
+			SendDebugString("CSubIOCPWorker :: Execute Exception");
 		}
 	}
 }
@@ -509,7 +509,10 @@ void CClientConnector :: DoActive(unsigned long ulTick)
 	{
 		m_ulLastSendTick = ulTick;
 		{
-			std::lock_guard<std::mutex> guard(m_LockCS);
+			//------------------------------------------
+			//------------------------------------------
+			//std::lock_guard<std::mutex> guard(m_LockCS);
+			//------------------Òý·¢Òì³£-------------------
 			if (!m_bSending)
 				PrepareSend(0, 0);
 		}
@@ -718,7 +721,7 @@ void CIOCPServerSocketManager :: DoExecute()
 		}
 		catch(...)
 		{
-			//SendDebugString('TTcpServerSocket.Execute Exception');
+			SendDebugString("TTcpServerSocket.Execute Exception");
 		}
 		WaitForSingleObject(m_Event, 1);
 	}
