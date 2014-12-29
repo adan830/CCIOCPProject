@@ -238,10 +238,6 @@ void CDBConnector::ReceiveConfig(int iParam, const char* pBuf, unsigned short us
 	{
 	case 1:													//未开服提示 
 		if ((pBuf != nullptr) && (usBufLen > 0))
-			//--------------------------------------
-			//--------------------------------------
-			//--------------------------------------
-			//这里的长度需要注意！！！
 			m_sDenyHint.assign(pBuf, usBufLen);
 		break;
 	case 2:													//禁止IP列表
@@ -458,15 +454,11 @@ void CDBServerSocket::SendPigMsg(char* pBuf, unsigned short usBufLen)
 		pCurr = pCurr + sizeof(TPigMsgData);
 		if (pMsgData->usAreaLen > 0)
 		{			
-			//----------------------------------
-			//-----这里的赋值，字符串的结束符问题
 			sAreaList.assign(pCurr, pMsgData->usAreaLen);
 		}
 		pCurr = pCurr + pMsgData->usAreaLen;
 		if (pMsgData->usMsgLen > 0)
 		{
-			//----------------------------------
-			//-----这里的赋值，字符串的结束符问题
 			sMsg.assign(pCurr, pMsgData->usMsgLen);
 		}
 		if ((sAreaList.compare("") == 0) || (sMsg.compare("") == 0))
@@ -605,17 +597,19 @@ void CDBServerSocket::LoadServerConfig()
 				Log("AreaConfig.json is Reloaded.", lmtMessage);
 			m_iConfigFileAge = iAge;
 
-			//c++解析utf-8的json文件乱码？？？？
-			//c++解析utf-8的json文件乱码？？？？
-			//c++解析utf-8的json文件乱码？？？？
-			//c++解析utf-8的json文件乱码？？？？
+			//c++解析utf-8的json文件乱码，还是需要ascii
 			ifstream configFile;
-			configFile.open(sFileName);
 			std::string sJsonStr;
-			configFile >> sJsonStr;
+			std::string sTemp;
+			configFile.open(sFileName);
+			while (!configFile.eof())
+			{
+				configFile >> sTemp;
+				sJsonStr.append(sTemp);
+			}
 			configFile.close();
 
-			sJsonStr = "[{\"AreaID\":1,\"AreaName\":\"神技测试服\",\"ServerID\":1,\"ServerIP\":\"192.168.1.2\"}]";
+			//sJsonStr = "[{\"AreaID\":1,\"AreaName\":\"神技测试服\",\"ServerID\":1,\"ServerIP\":\"192.168.1.2\"}]";
 			Json::Reader reader;
 			Json::Value root;
 			if (reader.parse(sJsonStr, root))
@@ -724,10 +718,5 @@ void CDBServerSocket::RemoveServerInfo(void* pValue, const std::string &sKey)
 {
 	delete (PServerConfigInfo)pValue;
 }
-
-//-------------------------------------------------
-//-------------------------------------------------
-//-------------------------------------------------
-//procedure EnumAreaConfig(ElName: string; Elem: TlkJSONbase;data: pointer; var Continue: Boolean);
 
 /************************End Of CDBServerSocket******************************************/

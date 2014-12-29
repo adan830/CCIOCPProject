@@ -330,7 +330,7 @@ void CClientServerSocket::CheckIpConfig(unsigned long ulTick)
 	if ((0 == m_ulLastCheckTick) || (ulTick - m_ulLastCheckTick >= 20 * 1000))
 	{
 		m_ulLastCheckTick = ulTick;
-		std::string sIPConfigFileName(G_CurrentExeDir + "config.ini");
+		std::string sIPConfigFileName(G_CurrentExeDir + "ipaddress.txt");
 		int iAge = GetFileAge(sIPConfigFileName);
 
 		if ((iAge != -1) && (iAge != m_iIPConfigFileAge))
@@ -346,44 +346,44 @@ void CClientServerSocket::CheckIpConfig(unsigned long ulTick)
 
 void CClientServerSocket::LoadIpConfigFile(const std::string& sFileName)
 {
-	/*
-var
-  i                 : integer;
-  tmpList           : TStringList;
-  key, value        : ansistring;
-begin
-  tmpList := TStringList.Create;
-  tmpList.Delimiter := '=';
-  tmpList.LoadFromFile(FileName);
-  FDefaultRule := itAllow;
-  Clear;                                                    // 清除原有的规则
-  for i := 0 to tmpList.Count - 1 do
-  begin
-    key := Trim(tmpList.Names[i]);
-    value := Trim(tmpList.ValueFromIndex[i]);
-    if CompareText(key, 'WarWarning') = 0 then
-    begin
-      FWar_Warning := Value;
-    end
-    else if CompareText(key, 'GameMaster') = 0 then
-    begin
-      AddIpRuleNode(Value, itMaster);
-    end
-    else if CompareText(key, 'Deny') = 0 then
-    begin
-      if CompareText(value, 'All') = 0 then
-        FDefaultRule := itDeny
-      else
-        AddIpRuleNode(Value, itDeny);
-    end
-    else if CompareText(key, 'Allow') = 0 then
-    begin
-      AddIpRuleNode(Value, itAllow);
-    end;
-  end;
-  tmpList.Free;
-end;
-	*/
+	m_DefaultRule = itAllow;
+	Clear();
+	ifstream configFile;
+	std::string sTemp;
+	std::string sKey;
+	std::string sValue;
+	int iPos;
+	configFile.open(sFileName);
+	while (!configFile.eof())
+	{
+		configFile >> sTemp;
+		iPos = sTemp.find('=');
+		if (iPos != string::npos)
+		{
+			sKey = sTemp.substr(0, iPos - 1);
+			sValue = sTemp.substr(iPos + 1, sTemp.length());
+			if (0 == sKey.compare("WarWarning"))
+			{
+				m_sWarWarning = sValue;
+			}
+			else if (0 == sKey.compare("GameMaster"))
+			{
+				AddIpRuleNode(sValue, itMaster);
+			}
+			else if (0 == sKey.compare("Deny"))
+			{				
+				if (0 == sValue.compare("All"))
+					m_DefaultRule = itDeny;
+				else
+					AddIpRuleNode(sValue, itDeny);
+			}
+			else if (0 == sKey.compare("Allow"))
+			{
+				AddIpRuleNode(sValue, itAllow);
+			}
+		}
+	}
+	configFile.close();
 }
 
 void CClientServerSocket::Clear()
