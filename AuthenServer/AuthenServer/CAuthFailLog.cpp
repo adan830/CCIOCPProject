@@ -10,8 +10,16 @@ using namespace CC_UTILS;
 CAuthFailFileLog* pG_AuthFailLog;
 
 /************************Start Of CAuthFailFileLog**************************************************/
-CAuthFailFileLog::CAuthFailFileLog()
+CAuthFailFileLog::CAuthFailFileLog() : m_ulLastWriteTick(0)
 {
+
+	/*
+	char* m_pCache;
+	int m_iCacheLen;
+	std::string m_sPath;
+	unsigned long m_ulLastWriteTick;
+	int m_iLastDay;
+	*/
 
 }
 
