@@ -8,19 +8,20 @@
 using namespace CC_UTILS;
 
 CAuthFailFileLog* pG_AuthFailLog;
+const int MAX_FILE_CACHE_SIZE = 8 * 1024;
 
 /************************Start Of CAuthFailFileLog**************************************************/
-CAuthFailFileLog::CAuthFailFileLog() : m_ulLastWriteTick(0)
+CAuthFailFileLog::CAuthFailFileLog() : m_ulLastWriteTick(0), m_iCacheLen(0)
 {
-
+	m_sPath = G_CurrentExeDir + "logs\\AuthFailLog\\";
+	m_pCache = (char*)malloc(MAX_FILE_CACHE_SIZE);
 	/*
-	char* m_pCache;
-	int m_iCacheLen;
-	std::string m_sPath;
-	unsigned long m_ulLastWriteTick;
-	int m_iLastDay;
-	*/
-
+  m_LastDay := Trunc(Now());
+  try
+    ForceDirectories(m_Path);
+  except
+  end;
+  */
 }
 
 CAuthFailFileLog::~CAuthFailFileLog()
