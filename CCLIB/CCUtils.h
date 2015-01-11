@@ -69,6 +69,12 @@ namespace CC_UTILS{
 
 	//字符串转整数，带默认值，不抛出异常
 	int StrToIntDef(const std::string& sTemp, const int iDef);
+
+	//返回当前对应的天数数字
+	int GetTodayNum();
+
+	//循环创建目录
+	int ForceCreateDirectories(std::string& sDir);
 }
 
 #endif //__CC_UTILS_H__

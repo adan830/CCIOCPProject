@@ -4,6 +4,8 @@
 **************************************************************************************/
 
 #include "CCUtils.h"
+#include <io.h>
+#include <direct.h>
 #include <Windows.h>
 #pragma comment(lib, "version.lib")
 
@@ -244,5 +246,44 @@ namespace CC_UTILS{
 			iRetValue = iDef;
 		}
 		return iRetValue;
+	}
+
+	int GetTodayNum()
+	{
+		return 0;
+	}
+
+	int ForceCreateDirectories(std::string& sDir)
+	{
+		char* pszDir = const_cast<char*>(sDir.c_str());
+		int iLen = strlen(pszDir);
+
+		//在末尾加/  
+		if (pszDir[iLen - 1] != '\\' && pszDir[iLen - 1] != '/')
+		{
+			pszDir[iLen] = '/';
+			pszDir[iLen + 1] = '\0';
+		}
+
+		// 创建目录  
+		for (int i = 0; i <= iLen; i++)
+		{
+			if (pszDir[i] == '\\' || pszDir[i] == '/')
+			{
+				pszDir[i] = '\0';
+
+				//如果不存在,创建  
+				int iRet = _access(pszDir, 0);
+				if (iRet != 0)
+				{
+					iRet = _mkdir(pszDir);
+					if (iRet != 0)
+						return -1;
+				}
+				//支持linux,将所有\换成/  
+				pszDir[i] = '/';
+			}
+		}
+		return 0;
 	}
 }

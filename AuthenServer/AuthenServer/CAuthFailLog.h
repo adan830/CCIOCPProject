@@ -27,6 +27,7 @@ private:
 	std::string m_sPath;
 	unsigned long m_ulLastWriteTick;
 	int m_iLastDay;
+	std::mutex m_WriteCacheCS;
 };
 
 extern CAuthFailFileLog* pG_AuthFailLog;
