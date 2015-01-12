@@ -29,30 +29,35 @@ public:
 	CDBConnector();
 	virtual ~CDBConnector();
 	int GetServerID();
-	int GetPlayerCount();
-	std::string& GetServerName();
-	std::string& GetDenyHint();
-	TIpType GetDefaultRule();
-	void SetServerName(const std::string& sName);
-	void SendToClientPeer(unsigned short usIdent, int iParam, void* pBuf, unsigned short usBufLen);
-	void AddIpRuleNode(const std::string& sIP, TIpType ipType);
-	bool CheckClientIP(const std::string& sIP);
+	int GetHumanCount();
+	void SendBuffer(unsigned short usIdent, int iParam, char* pBuf, unsigned short usBufLen);
+	void SendBuffer(unsigned short usIdent, int iParam, const std::string &str);
 protected:
+	virtual void Execute(unsigned long ulTick);
 	virtual void SocketRead(const char* pBuf, int iCount);
 	virtual void ProcessReceiveMsg(PServerSocketHeader pHeader, char* pData, int iDataLen);
 private:
-	void SendHeartBeat(int iCount);                // 心跳返回
-	void RegisterDBServer(int iServerID);          // 注册DBServer
-	void ClearIPRule(TIpType ipType);
-	void ReceiveConfig(int iParam, const char* pBuf, unsigned short usBufLen);
+	/*
+	procedure InitDynCode;
+	procedure MsgProcess(wIdent: Word; nParam: integer; PData: PAnsiChar; wBehindLen: Word);
+	procedure Msg_Ping(Count: integer);
+	procedure Msg_RegisterServer(ServerID: Integer);
+	procedure Msg_UserAuthenRequest(Param: integer; Buf: PAnsiChar; BufLen: Word); // step:1
+	procedure Msg_NewAccountRequest(Param: integer; Buf: PAnsiChar; BufLen: Word);
+	procedure Msg_DBResponse(Ident, Param: integer; Buf: PAnsiChar; BufLen: Word);
+	procedure Msg_SafeCardAuthen(Param: integer; Buf: PAnsiChar; BufLen: Word);
+	procedure SQLWorkCallBack(Cmd, Param: integer; const str: ansistring);
+	procedure OnAuthenFail(SessionID: Integer; nRetCode: Integer; sMsg: AnsiString; AuthType, AuthenApp: Integer);
+	*/
 private:
 	int m_iServerID;                //服务器实际区号
-	int m_iPlayerCount;             //DB上的玩家数量
-	TIpType m_DefaultRule;          
-	std::string m_sDenyHint;			   //连接服务器后的默认提示
-	std::string m_sServerName;             //服务器区名
-	std::mutex m_IPRuleLockCS;			   //iprule链表的临界区操作使用的互斥锁
-	std::list<PIpRuleNode> m_IPRuleList;   //iprule链表
+	int m_iHumanCount;              //玩家数量
+	bool m_bCheckCredit;			//检测充值
+	bool m_bCheckItem;				//检测送道具
+	//-----------------------------------
+	//-----------------------------------
+	//-----------------------------------
+	//FEnCode, FDeCode: TCodingProc;
 };
 
 /**

@@ -74,24 +74,28 @@ void CAuthFailFileLog::WriteCache()
 		if (_access(m_sPath.c_str(), 0) == -1)
 			CC_UTILS::ForceCreateDirectories(m_sPath);
 
-		//FormatDateTime('yyyymmdd', Now())
-		std::string sFileName = m_sPath + "" + ".txt";
+		char tmp[16];
+		time_t now_time = time(NULL);
+		strftime(tmp, sizeof(tmp), "%Y%m%d", localtime(&now_time));
+		std::string sTemp(tmp);
+		std::string sFileName = m_sPath + sTemp + ".txt";
+
 		{
 			std::lock_guard<std::mutex> guard(m_WriteCacheCS);
 			std::fstream file(sFileName, std::ios::in | std::ios::ate);
 			try
 			{
 				if (file.is_open())
-				{
 					file.write(m_pCache, m_iCacheLen);
-					file.close();
-				}	
+
+				file.close();
 			}
 			catch (...)
 			{
 				file.close();
 			}		
 		}
+
 		m_iCacheLen = 0;
 		m_ulLastWriteTick = GetTickCount();
 	}

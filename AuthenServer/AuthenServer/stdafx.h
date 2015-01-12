@@ -19,6 +19,7 @@
 #include <list>
 #include <fstream>
 #include <io.h>
+#include <time.h>
 
 #include "CCUtils.h"
 #include "CCTcpSocketCommon.h"
