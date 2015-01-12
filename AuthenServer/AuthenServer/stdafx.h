@@ -17,6 +17,7 @@
 #include <iostream>
 #include <vector>
 #include <list>
+#include <fstream>
 #include <io.h>
 
 #include "CCUtils.h"

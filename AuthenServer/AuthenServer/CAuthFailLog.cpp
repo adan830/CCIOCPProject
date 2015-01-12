@@ -78,26 +78,19 @@ void CAuthFailFileLog::WriteCache()
 		std::string sFileName = m_sPath + "" + ".txt";
 		{
 			std::lock_guard<std::mutex> guard(m_WriteCacheCS);
-
-			/*
-      if FileExists(FileName) then
-        fiHandle := FileOpen(FileName, fmOpenWrite)
-      else
-        fiHandle := FileCreate(FileName);
-      if fiHandle > 0 then
-      begin
-        try
-          if FileSeek(fiHandle, 0, FILE_END) <> -1 then
-          begin
-            FileWrite(fiHandle, m_Cache^, m_CacheLen);
-          end;
-        finally
-          FileClose(fiHandle);
-        end;
-      end;
-			*/
-
-			
+			std::fstream file(sFileName, std::ios::in | std::ios::ate);
+			try
+			{
+				if (file.is_open())
+				{
+					file.write(m_pCache, m_iCacheLen);
+					file.close();
+				}	
+			}
+			catch (...)
+			{
+				file.close();
+			}		
 		}
 		m_iCacheLen = 0;
 		m_ulLastWriteTick = GetTickCount();

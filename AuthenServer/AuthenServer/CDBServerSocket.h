@@ -1,13 +1,11 @@
 /**************************************************************************************
 @author: 陈昌
-@content: Dispatch对DB服务器连接的监听socket管理
+@content: AuthenServer对DB服务器连接的监听socket管理
 **************************************************************************************/
 #ifndef __CC_DB_SERVER_SOCKET_H__
 #define __CC_DB_SERVER_SOCKET_H__
 
 #include "CCTcpServerSocket.h"
-#include "CClientServerSocket.h"
-#include "CPigClientSocket.h"
 
 //dispatch上使用的服务器区组配置
 typedef struct _TServerConfigInfo
@@ -16,11 +14,13 @@ typedef struct _TServerConfigInfo
 	std::string sServerName;
 	int iRealServerID;
 	std::string sServerIP;
+	bool bDenyRecharge;
+	bool bDenyGiveItem;
 }TServerConfigInfo, *PServerConfigInfo;
 
 /**
 *
-* DispatchGate监听的单个DBServer的连接对象
+* AuthenServer监听的单个DBServer的连接对象
 *
 */
 class CDBConnector : public CClientConnector
@@ -57,7 +57,7 @@ private:
 
 /**
 *
-* DispatchGate对DBServer的监听管理器
+* AuthenServer对DBServer的监听管理器
 *
 */
 class CDBServerSocket : public CIOCPServerSocketManager
