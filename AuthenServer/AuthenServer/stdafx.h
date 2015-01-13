@@ -22,6 +22,7 @@
 #include <time.h>
 
 #include "CCUtils.h"
+#include "CCHashClass.h"
 #include "CCTcpSocketCommon.h"
 #include "CCTcpServerSocket.h"
 #include "CCTcpClientSocket.h"

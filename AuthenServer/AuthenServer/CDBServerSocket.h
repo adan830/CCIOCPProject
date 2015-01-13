@@ -37,18 +37,15 @@ protected:
 	virtual void SocketRead(const char* pBuf, int iCount);
 	virtual void ProcessReceiveMsg(PServerSocketHeader pHeader, char* pData, int iDataLen);
 private:
-	/*
-	procedure InitDynCode;
-	procedure MsgProcess(wIdent: Word; nParam: integer; PData: PAnsiChar; wBehindLen: Word);
-	procedure Msg_Ping(Count: integer);
-	procedure Msg_RegisterServer(ServerID: Integer);
-	procedure Msg_UserAuthenRequest(Param: integer; Buf: PAnsiChar; BufLen: Word); // step:1
-	procedure Msg_NewAccountRequest(Param: integer; Buf: PAnsiChar; BufLen: Word);
-	procedure Msg_DBResponse(Ident, Param: integer; Buf: PAnsiChar; BufLen: Word);
-	procedure Msg_SafeCardAuthen(Param: integer; Buf: PAnsiChar; BufLen: Word);
-	procedure SQLWorkCallBack(Cmd, Param: integer; const str: ansistring);
-	procedure OnAuthenFail(SessionID: Integer; nRetCode: Integer; sMsg: AnsiString; AuthType, AuthenApp: Integer);
-	*/
+	void InitDynCode();
+	void Msg_Ping(int iCount);
+	void Msg_RegisterServer(int iServerID);
+	void Msg_UserAuthenRequest(int iParam, char* pBuf, unsigned short usBufLen);
+	void Msg_NewAccountRequest(int iParam, char* pBuf, unsigned short usBufLen);
+	void Msg_DBResponse(int iIdent, int iParam, char* pBuf, unsigned short usBufLen);
+	void Msg_SafeCardAuthen(int iParam, char* pBuf, unsigned short usBufLen);
+	void SQLWorkCallBack(int iCmd, int iParam, const std::string &str);
+	void OnAuthenFail(int iSessionID, int iRetCode,  std::string &sMsg, int iAuthType, int iAuthenApp);
 private:
 	int m_iServerID;                //服务器实际区号
 	int m_iHumanCount;              //玩家数量
@@ -68,37 +65,54 @@ private:
 class CDBServerSocket : public CIOCPServerSocketManager
 {
 public:
-	CDBServerSocket(const std::string& sName);
+	CDBServerSocket(const std::string &sServerName);
 	virtual ~CDBServerSocket();
-	void LoadConfig(CWgtIniFile* pIniFileParser);
-	int SelectServer(CDGClient* pClient);
-	void SendSelectServer(CDGClient* pClient);
-	void SendServerInfoToPig(CPigClientSocket* pPigClient);
-	void SendPigMsg(char* pBuf, unsigned short usBufLen);
-	int GetPlayerTotalCount();
-	void ShowDBMsg(int iServerID, int iCol, const std::string &msg);
-	bool RegisterDBServer(const std::string &sAddress, int iServerID, CDBConnector* pDBServer);
+	/*
+	//merge in
+	procedure OnCreate; override;
+	procedure OnDestroy; override;
+	*/
+	void SQLJobResponse(int iCmd, int iHandle, int iParam, int iRes, const std::string &str);
+	void InCreditNow();
+	void InSendItemNow();
+	void BroadCastKickOutNow(const std::string &sAccount, int iParam);
 protected:
-	virtual void DoActive();
+	void DoActive();
 private:
-	bool OnCheckIPAddress(const std::string& sIP);
-	CClientConnector* OnCreateDBSocket(const std::string& sIP);
-	void OnSocketError(void* Sender, int& iErrorCode);
-	void OnDBConnect(void* Sender);
-	void OnDBDisconnect(void* Sender);
-	void OnSetListView(void* Sender);
-
+	bool OnChildNotify(int iServerID, PGameChildInfo p);
+	void ProcResponseMsg();
+	void Clear();
 	void LoadServerConfig();
+	void OnSetListView(void* Sender);
+	void OnLogSocketDisConnect(void* Sender);
+	void AddRechargeQueryJob(int iServerID, int iSocketHandle);
+	void AddQueryGiveItemJob(int iServerID, int iSocketHandle);
+	void RemoveServerConfig(void* pValue, const std::string &sKey);
+	bool CheckConnectIP(const std::string &sConnectIP);
+	void LoadConfig();
+	void SocketError(void* Sender, int iErrorCode);
+	CClientConnector CreateCustomSocket(const std::string &sIP);
+	void DBConnect(void* Sender);
+	void DBDisConnect(void* Sender);
+	bool RegisterDBServer(CDBConnector* Socket, int iServerID);
 	std::string OnLineDBServer(int iServerID);
-	void RemoveServerInfo(void* pValue, const std::string &sKey);
+	void ShowDBMsg(int iServerID, int iCol, const std::string &sMsg);
+	void RechargeFail(const std::string &sOrderID);
 private:
-	std::string m_sAllowDBServerIP;				// 允许的IP
-	int m_iSessionID;           
 	std::string m_sServerName;
-	int m_iConfigFileAge;
+	CC_UTILS::CStringHash m_ServerHash;
+	//--------------std::vector<> m_ServerIDList;
+	unsigned long m_ulLastQueryRechargeTick, m_ulQueryRechargeInterval;
+	unsigned long m_ulLastQueryItemTick, m_ulQueryItemInterval;
 	unsigned long m_ulLastCheckTick;
+	int m_iConfigFileAge;
+	int m_iGameID;
+	std::string m_sAllowDBServerIPs;
 	CC_UTILS::CLogSocket* m_pLogSocket;			// 连接日志服务的端口
-	CC_UTILS::CStringHash m_ServerHash;         // 区组列表 
+	/*
+	FCS: TRTLCriticalSection;
+	FFirst, FLast: PJSONJobNode;
+	*/
 };
 
 extern CDBServerSocket* pG_DBSocket;
