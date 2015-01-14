@@ -30,8 +30,8 @@ public:
 	virtual ~CDBConnector();
 	int GetServerID();
 	int GetHumanCount();
-	void SendBuffer(unsigned short usIdent, int iParam, char* pBuf, unsigned short usBufLen);
-	void SendBuffer(unsigned short usIdent, int iParam, const std::string &str);
+	void SendToClientPeer(unsigned short usIdent, int iParam, char* pBuf, unsigned short usBufLen);
+	void SendToClientPeer(unsigned short usIdent, int iParam, const std::string &str);
 protected:
 	virtual void Execute(unsigned long ulTick);
 	virtual void SocketRead(const char* pBuf, int iCount);
