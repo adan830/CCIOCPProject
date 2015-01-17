@@ -26,7 +26,7 @@
 #include "CCTcpClientSocket.h"
 #include "CCProtocol_Server.h"
 #include "CCProtocol_Client.h"
-#include "CGlobal.h"
+#include "CDGGlobal.h"
 #include "CCGameCommon.h"
 #include "CCIniFileParser.h"
 #include "json\json.h"

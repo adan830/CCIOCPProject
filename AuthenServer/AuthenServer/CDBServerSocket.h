@@ -5,6 +5,7 @@
 #ifndef __CC_DB_SERVER_SOCKET_H__
 #define __CC_DB_SERVER_SOCKET_H__
 
+#include "stdafx.h"
 #include "CCTcpServerSocket.h"
 
 //dispatch上使用的服务器区组配置
@@ -45,16 +46,14 @@ private:
 	void Msg_DBResponse(int iIdent, int iParam, char* pBuf, unsigned short usBufLen);
 	void Msg_SafeCardAuthen(int iParam, char* pBuf, unsigned short usBufLen);
 	void SQLWorkCallBack(int iCmd, int iParam, const std::string &str);
-	void OnAuthenFail(int iSessionID, int iRetCode,  std::string &sMsg, int iAuthType, int iAuthenApp);
+	void OnAuthenFail(int iSessionID, int iRetCode, const std::string &sMsg, int iAuthType, int iAuthenApp);
 private:
-	int m_iServerID;                //服务器实际区号
-	int m_iHumanCount;              //玩家数量
-	bool m_bCheckCredit;			//检测充值
-	bool m_bCheckItem;				//检测送道具
-	//-----------------------------------
-	//-----------------------------------
-	//-----------------------------------
-	//FEnCode, FDeCode: TCodingProc;
+	int m_iServerID;					//服务器实际区号
+	int m_iHumanCount;					//玩家数量
+	bool m_bCheckCredit;				//检测充值
+	bool m_bCheckItem;					//检测送道具
+	CC_UTILS::PCodingFunc m_EnCodeFunc; //加密函数
+	CC_UTILS::PCodingFunc m_DeCodeFunc; //解密函数
 };
 
 /**
@@ -113,6 +112,7 @@ private:
 	FCS: TRTLCriticalSection;
 	FFirst, FLast: PJSONJobNode;
 	*/
+	friend class CDBConnector;
 };
 
 extern CDBServerSocket* pG_DBSocket;

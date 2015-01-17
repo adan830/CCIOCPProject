@@ -80,6 +80,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CASGlobal.h" />
     <ClInclude Include="CAuthFailLog.h" />
     <ClInclude Include="CDBServerSocket.h" />
     <ClInclude Include="CMainThread.h" />
@@ -102,10 +103,14 @@
     <ClCompile Include="..\..\CCLIB\CCLogSocket.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\CCLIB\CCServerEnDeCode.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\CCLIB\CCUtils.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="AuthenServer.cpp" />
+    <ClCompile Include="CASGlobal.cpp" />
     <ClCompile Include="CAuthFailLog.cpp" />
     <ClCompile Include="CDBServerSocket.cpp" />
     <ClCompile Include="CMainThread.cpp" />

@@ -27,5 +27,8 @@
 #include "CCTcpServerSocket.h"
 #include "CCTcpClientSocket.h"
 #include "CCIniFileParser.h"
+#include "CASGlobal.h"
+#include "CCProtocol_Server.h"
+#include "CCServerEnDeCode.h"
 #include "CCLogSocket.h"
 #include "CMainThread.h"

@@ -62,6 +62,19 @@ typedef struct _TPigMsgData
 	unsigned short usMsgLen;
 }TPigMsgData, *PPigMsgData;
 
+// ·À³ÁÃÔµÄÓÃ»§ĞÅÏ¢
+typedef struct _TGameChildLogin
+{
+	char szCard_ID[ACTOR_NAME_MAX_LEN];  //Éí·İÖ¤
+	char szRoleName[ACTOR_NAME_MAX_LEN];  //½ÇÉ«Ãû
+}TGameChildLogin, *PGameChildLogin;
+
+// ·À³ÁÃÔ£¬»ØÓ¦ÔÚÏßÊ±³¤
+typedef struct _TGameChildInfo
+{
+	TGameChildLogin Child;
+	int iOnLineSecond;
+}TGameChildInfo, *PGameChildInfo;
 
 const int SS_SEGMENTATION_SIGN = 0XFFEEDDCC;                        // ·şÎñÆ÷Ö®¼äÍ¨ĞÅĞ­ÒéÆğÊ¼±êÖ¾
 
@@ -69,8 +82,19 @@ const int SS_SEGMENTATION_SIGN = 0XFFEEDDCC;                        // ·şÎñÆ÷Ö®¼
 const int SM_REGISTER = 0x1000;			                            // ×¢²á·şÎñÆ÷
 const int SM_UNREGISTER = 0x1001;							        // ×¢Ïú·şÎñÆ÷
 const int SM_PING = 0x1002;								            // ĞÄÌø¼ì²â
-
+const int SM_USER_AUTHEN_REQ = 0x1003;                              // ÇëÇóÈÏÖ¤
+const int SM_USER_AUTHEN_RES = 0x1004;                              // ÈÏÖ¤·µ»Ø
 const int SM_SERVER_CONFIG = 0x1005;                                // ÅäÖÃĞÅÏ¢
+const int SM_USER_REGIST_REQ = 0x1008;                              // ÓÃ»§×¢²á
+
+const int SM_RECHARGE_DB_ACK = 0x1013;								// db·µ»Ø¸øÈÏÖ¤·şÎñÆ÷³äÖµ½á¹û
+const int SM_CHILD_LOGON = 0x1016;									// ·À³ÁÃÔ£¬ÉÏÏß
+const int SM_CHILD_LOGOUT = 0x1017;									// ·À³ÁÃÔ£¬ÏÂÏß
+const int SM_SAFECARD_AUTHEN_REQ = 0x1019;							// ÃÜ±£¿¨ÈÏÖ¤
+const int SM_SAFECARD_AUTHEN_RES = 0x1020;                          // ÃÜ±£¿¨ÈÏÖ¤·µ»Ø
+
+const int SM_ENCODE_BUFFER = 0x1101;                                // Æô¶¯¼ÓÃÜ
+const int SM_DECODE_BUFFER = 0x1102;                                // ½âÃÜ
 
 const int SM_SELECT_SERVER = 0x2001;                                // Ñ¡·şÇëÇó
 const int SM_PLAYER_CONNECT = 0x2002;                               // Íæ¼ÒÁ¬½Ó
@@ -78,6 +102,8 @@ const int SM_PLAYER_DISCONNECT = 0x2003;                            // Íæ¼Ò¶ÏÏß
 const int SM_PLAYER_MSG = 0x2004;                                   // Íæ¼ÒµÄÏûÏ¢
 const int SM_MULPLAYER_MSG = 0x2005;                                // Èº·¢µÄÏûÏ¢
 
+const int SM_GIVEITEM_DB_ACK = 0x2046;								// db·µ»Ø¸øÈÏÖ¤·şÎñÆ÷ËÍµÀ¾ß½á¹û
+const int SM_REFRESH_RECHARGE = 0x2056;								// Í¨ÖªÈÏÖ¤·şÎñÁ¢¼´²éÑ¯³äÖµ
 
 //PigServerÏà¹ØĞ­Òé
 const int SM_PIG_MSG = 0x3001;		     						    //ÖĞ×ªPigÏûÏ¢

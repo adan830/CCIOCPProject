@@ -27,9 +27,6 @@
     <ClInclude Include="CMainThread.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="CGlobal.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="CClientServerSocket.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -40,6 +37,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="CDBServerSocket.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CDGGlobal.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -60,9 +60,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\..\CCLIB\CCUtils.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="CGlobal.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="CClientServerSocket.cpp">
@@ -87,6 +84,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\..\CCLIB\jsoncpp\jsoncpp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CDGGlobal.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

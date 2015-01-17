@@ -33,6 +33,9 @@
     <ClInclude Include="CDBServerSocket.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="CASGlobal.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -66,6 +69,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\..\CCLIB\CCHashClass.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CASGlobal.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\CCLIB\CCServerEnDeCode.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

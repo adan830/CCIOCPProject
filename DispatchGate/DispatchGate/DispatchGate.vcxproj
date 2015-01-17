@@ -84,7 +84,7 @@
     <ClInclude Include="CCenterClientSocket.h" />
     <ClInclude Include="CClientServerSocket.h" />
     <ClInclude Include="CDBServerSocket.h" />
-    <ClInclude Include="CGlobal.h" />
+    <ClInclude Include="CDGGlobal.h" />
     <ClInclude Include="CMainThread.h" />
     <ClInclude Include="CPigClientSocket.h" />
     <ClInclude Include="stdafx.h" />
@@ -115,7 +115,7 @@
     <ClCompile Include="CCenterClientSocket.cpp" />
     <ClCompile Include="CClientServerSocket.cpp" />
     <ClCompile Include="CDBServerSocket.cpp" />
-    <ClCompile Include="CGlobal.cpp" />
+    <ClCompile Include="CDGGlobal.cpp" />
     <ClCompile Include="CMainThread.cpp" />
     <ClCompile Include="CPigClientSocket.cpp" />
     <ClCompile Include="DispatchGate.cpp" />
