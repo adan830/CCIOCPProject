@@ -109,6 +109,9 @@
     <ClCompile Include="..\..\CCLIB\CCUtils.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\CCLIB\jsoncpp\jsoncpp.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="AuthenServer.cpp" />
     <ClCompile Include="CASGlobal.cpp" />
     <ClCompile Include="CAuthFailLog.cpp" />

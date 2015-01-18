@@ -204,7 +204,46 @@ void CDBConnector::Msg_DBResponse(int iIdent, int iParam, char* pBuf, unsigned s
 
 void CDBConnector::Msg_SafeCardAuthen(int iParam, char* pBuf, unsigned short usBufLen)
 {
-
+	/*
+var
+  js                : TlkJSONobject;
+  CardNo, IP, s     : AnsiString;
+begin
+  js := TlkJSON.ParseText(Buf) as TlkJSONobject;
+  if Assigned(js) then
+  begin
+	  try
+		CardNo := js.getStringFromName('SafeCardNo');
+		IP := js.getStringFromName('ClientIP');
+		if G_AuthenSecure.LimitOfSafeCard(CardNo, IP) then
+		begin
+		  js.Add('Result', 7);                                  // 1小时内的失败次数过多
+		  js.Add('Message', MSG_SAFECARD_SECURE_FAILED);
+		end
+		else
+		begin
+		  if G_SQLInterFace.AddJob(SM_SAFECARD_AUTHEN_REQ, SocketHandle, Param, Buf) then
+			Exit;
+		  js.Add('Result', 9);                                  // 队列满，失败返回
+		  js.Add('Message', MSG_SERVER_BUSY);
+		end;
+	  finally
+		s := tlkjson.GenerateText(js);
+		js.Free;
+	  end;
+	  SQLWorkCallBack(SM_SAFECARD_AUTHEN_RES, Param, s);
+  end;
+end;
+	*/
+	Json::Reader reader;
+	Json::Value root;
+	//------------------------
+	//------------------------
+	//---------这样转换的安全性，是否加长度
+	std::string jsonStr(pBuf);
+	if (reader.parse(jsonStr, root))
+	{
+	}
 }
 
 void CDBConnector::SQLWorkCallBack(int iCmd, int iParam, const std::string &str)
@@ -214,6 +253,20 @@ void CDBConnector::SQLWorkCallBack(int iCmd, int iParam, const std::string &str)
 
 void CDBConnector::OnAuthenFail(int iSessionID, int iRetCode, const std::string &sMsg, int iAuthType, int iAuthenApp)
 {
+	//--------------------------
+	//--------------------------
+	//----这里的json组包是否ok？
+	//--------------------------
+	//--------------------------
+	Json::Value root;
+	root["Result"] = iRetCode;
+	root["Message"] = sMsg;
+	root["AuthType"] = iAuthType;
+	root["AuthenApp"] = iAuthenApp;
+
+	Json::FastWriter writer;
+	std::string str = writer.write(root);
+	SQLWorkCallBack(SM_USER_AUTHEN_RES, iSessionID, str);
 }
 
 /************************End Of CDBConnector******************************************/

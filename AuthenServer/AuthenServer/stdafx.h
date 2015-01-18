@@ -31,4 +31,5 @@
 #include "CCProtocol_Server.h"
 #include "CCServerEnDeCode.h"
 #include "CCLogSocket.h"
+#include "json\json.h"
 #include "CMainThread.h"

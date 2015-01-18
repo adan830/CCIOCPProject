@@ -77,5 +77,8 @@
     <ClCompile Include="..\..\CCLIB\CCServerEnDeCode.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\CCLIB\jsoncpp\jsoncpp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
