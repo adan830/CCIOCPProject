@@ -194,27 +194,75 @@ void CDBConnector::Msg_UserAuthenRequest(int iParam, char* pBuf, unsigned short 
 
 void CDBConnector::Msg_NewAccountRequest(int iParam, char* pBuf, unsigned short usBufLen)
 {
-
+	/*
+var
+  js                : TlkJSONobject;
+  Str, IP, ResultStr: ansistring;
+begin
+  SetString(Str, Buf, BufLen);
+  js := TlkJSON.ParseText(Str) as TlkJSONobject;
+  if Assigned(js) then
+  begin
+    try
+      IP := js.getStringFromName('ClientIP');
+      if G_AuthenSecure.LimitOfRegister(IP) then            // 判断同IP注册数量限制
+      begin
+        js.Add('Result', 8);                                // 注册失败，稍候再试
+        js.Add('Message', MSG_REGISTER_SECURE_FAILED);
+        ResultStr := TlkJSON.GenerateText(js);
+        SQLWorkCallBack(SM_USER_REGIST_RES, Param, ResultStr);
+      end
+      else if not G_SQLInterFace.AddJob(SM_USER_REGIST_REQ, SocketHandle, Param, Str) then
+      begin
+        js.Add('Result', 9);                                // 队列满，失败返回
+        js.Add('Message', MSG_SERVER_BUSY);
+        ResultStr := TlkJSON.GenerateText(js);
+        SQLWorkCallBack(SM_USER_REGIST_RES, Param, ResultStr);
+      end;
+    finally
+      js.Free;
+    end;
+  end
+  else
+    Log('不能识别的注册信息：' + Str);
+end;
+	*/
 }
 
 void CDBConnector::Msg_DBResponse(int iIdent, int iParam, char* pBuf, unsigned short usBufLen)
 {
-
+	//------------------------
+	//------------------------
+	//---------这样转换是否正确
+	std::string str(pBuf, usBufLen);
+	switch (iIdent)
+	{
+	case SM_RECHARGE_DB_ACK:
+		//G_RechargeManager.AddJob(Ident, SocketHandle, Param, str, True);
+		break;
+	case SM_GIVEITEM_DB_ACK:
+		//G_GiveItemManager.AddJob(Ident, SocketHandle, Param, str, True);
+		break;
+	default:
+		Log("Msg_DBResponse 未知协议：" + std::to_string(iIdent), lmtWarning);
+		break;
+	}
 }
 
 void CDBConnector::Msg_SafeCardAuthen(int iParam, char* pBuf, unsigned short usBufLen)
 {
-	/*
-var
-  js                : TlkJSONobject;
-  CardNo, IP, s     : AnsiString;
-begin
-  js := TlkJSON.ParseText(Buf) as TlkJSONobject;
-  if Assigned(js) then
-  begin
-	  try
-		CardNo := js.getStringFromName('SafeCardNo');
-		IP := js.getStringFromName('ClientIP');
+	Json::Reader reader;
+	Json::FastWriter writer;
+	Json::Value root;
+	//------------------------
+	//------------------------
+	//---------这样转换是否正确
+	std::string jsonStr(pBuf);
+	if (reader.parse(jsonStr, root))
+	{
+		std::string sCardNo = root.get("SafeCardNo", "").asString();
+		std::string sIP = root.get("ClientIP", "").asString();
+		/*
 		if G_AuthenSecure.LimitOfSafeCard(CardNo, IP) then
 		begin
 		  js.Add('Result', 7);                                  // 1小时内的失败次数过多
@@ -227,22 +275,9 @@ begin
 		  js.Add('Result', 9);                                  // 队列满，失败返回
 		  js.Add('Message', MSG_SERVER_BUSY);
 		end;
-	  finally
-		s := tlkjson.GenerateText(js);
-		js.Free;
-	  end;
-	  SQLWorkCallBack(SM_SAFECARD_AUTHEN_RES, Param, s);
-  end;
-end;
-	*/
-	Json::Reader reader;
-	Json::Value root;
-	//------------------------
-	//------------------------
-	//---------这样转换的安全性，是否加长度
-	std::string jsonStr(pBuf);
-	if (reader.parse(jsonStr, root))
-	{
+		*/
+		std::string str = writer.write(root);
+		SQLWorkCallBack(SM_SAFECARD_AUTHEN_RES, iParam, str);
 	}
 }
 
