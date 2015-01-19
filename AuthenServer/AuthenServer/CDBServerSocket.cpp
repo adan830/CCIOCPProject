@@ -194,39 +194,37 @@ void CDBConnector::Msg_UserAuthenRequest(int iParam, char* pBuf, unsigned short 
 
 void CDBConnector::Msg_NewAccountRequest(int iParam, char* pBuf, unsigned short usBufLen)
 {
-	/*
-var
-  js                : TlkJSONobject;
-  Str, IP, ResultStr: ansistring;
-begin
-  SetString(Str, Buf, BufLen);
-  js := TlkJSON.ParseText(Str) as TlkJSONobject;
-  if Assigned(js) then
-  begin
-    try
-      IP := js.getStringFromName('ClientIP');
-      if G_AuthenSecure.LimitOfRegister(IP) then            // 判断同IP注册数量限制
-      begin
-        js.Add('Result', 8);                                // 注册失败，稍候再试
-        js.Add('Message', MSG_REGISTER_SECURE_FAILED);
-        ResultStr := TlkJSON.GenerateText(js);
-        SQLWorkCallBack(SM_USER_REGIST_RES, Param, ResultStr);
-      end
-      else if not G_SQLInterFace.AddJob(SM_USER_REGIST_REQ, SocketHandle, Param, Str) then
-      begin
-        js.Add('Result', 9);                                // 队列满，失败返回
-        js.Add('Message', MSG_SERVER_BUSY);
-        ResultStr := TlkJSON.GenerateText(js);
-        SQLWorkCallBack(SM_USER_REGIST_RES, Param, ResultStr);
-      end;
-    finally
-      js.Free;
-    end;
-  end
-  else
-    Log('不能识别的注册信息：' + Str);
-end;
-	*/
+	Json::Reader reader;
+	Json::FastWriter writer;
+	Json::Value root;
+	//------------------------
+	//------------------------
+	//---------这样转换是否正确
+	std::string str(pBuf, usBufLen);
+	if (reader.parse(str, root))
+	{
+		std::string sIP = root.get("ClientIP", "").asString();
+		/*
+		if G_AuthenSecure.LimitOfRegister(IP) then            // 判断同IP注册数量限制
+		begin
+			js.Add('Result', 8);                                // 注册失败，稍候再试
+			js.Add('Message', MSG_REGISTER_SECURE_FAILED);
+			ResultStr := TlkJSON.GenerateText(js);
+			SQLWorkCallBack(SM_USER_REGIST_RES, iParam, ResultStr);
+		end
+		else if not G_SQLInterFace.AddJob(SM_USER_REGIST_REQ, SocketHandle, Param, Str) then
+		begin
+			js.Add('Result', 9);                                // 队列满，失败返回
+			js.Add('Message', MSG_SERVER_BUSY);
+			ResultStr := TlkJSON.GenerateText(js);
+			SQLWorkCallBack(SM_USER_REGIST_RES, iParam, ResultStr);
+		end;
+		*/
+	}
+	else
+	{
+		Log("不能识别的注册信息：" + str);
+	}	
 }
 
 void CDBConnector::Msg_DBResponse(int iIdent, int iParam, char* pBuf, unsigned short usBufLen)
@@ -257,7 +255,7 @@ void CDBConnector::Msg_SafeCardAuthen(int iParam, char* pBuf, unsigned short usB
 	//------------------------
 	//------------------------
 	//---------这样转换是否正确
-	std::string jsonStr(pBuf);
+	std::string jsonStr(pBuf, usBufLen);
 	if (reader.parse(jsonStr, root))
 	{
 		std::string sCardNo = root.get("SafeCardNo", "").asString();
