@@ -62,6 +62,8 @@ end;
 		}
 	}
 
+	void _EnCode_End_(){}
+
 	void DeCode(PBYTE pb, unsigned short len)
 	{
 		BYTE a, b, c, d;
@@ -76,6 +78,8 @@ end;
 			++pb;
 		}
 	}
+
+	void _DeCode_End_(){}
 
 	void Initialize_Code()
 	{

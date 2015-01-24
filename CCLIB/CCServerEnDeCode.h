@@ -35,8 +35,12 @@ namespace CC_UTILS{
 	//加密buffer
 	void EnCode(PBYTE pb, unsigned short len);
 
+	void _EnCode_End_();
+
 	//解密buffer
 	void DeCode(PBYTE pb, unsigned short len);
+
+	void _DeCode_End_();
 
 	const int MAX_BUFFER_TYPE = 256;
 	//保存加解密的buffer

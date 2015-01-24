@@ -76,6 +76,17 @@ typedef struct _TGameChildInfo
 	int iOnLineSecond;
 }TGameChildInfo, *PGameChildInfo;
 
+typedef struct _TJsonJobNode
+{
+	int iCmd;
+	int iHandle;
+	int iParam;
+	int iRes;
+	unsigned long ulAddTick;
+	std::string sJsonText;
+	PJsonJobNode pNext;
+}TJsonJobNode, *PJsonJobNode;
+
 const int SS_SEGMENTATION_SIGN = 0XFFEEDDCC;                        // 服务器之间通信协议起始标志
 
 // 服务器间协议

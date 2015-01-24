@@ -112,6 +112,8 @@ private:
 	FCS: TRTLCriticalSection;
 	FFirst, FLast: PJSONJobNode;
 	*/
+	PJsonJobNode m_FirstNode;
+	PJsonJobNode m_LastNode;
 	friend class CDBConnector;
 };
 

@@ -204,56 +204,52 @@ void CDBConnector::Msg_UserAuthenRequest(int iParam, char* pBuf, unsigned short 
 		std::string str(pBuf, usBufLen);
 		if (reader.parse(str, root))
 		{
-			/*
-      try
-        Auth_Type := GetStringValue(js.Field['AuthType']);
-        iAuthType := StrToIntDef(Auth_Type, 0);
-        iAuthenApp := StrToIntDef(GetStringValue(js.Field['AuthenApp']), 0);
-        case iAuthType of
-          0:
-            begin
-              Auth_ID := js.getStringFromName('AuthenID');
-              if {$IFDEF TEST}2 > 1{$ELSE}VerifyPassport(Auth_ID){$ENDIF} then
-              begin
-                Auth_IP := js.getStringFromName('ClientIP');
-                Mac := js.getStringFromName('Mac');
-                AreaID := GetStringValue(js.Field['AreaID']);
-                Pwd := GetStringValue(js.Field['Pwd']);
-                if G_AuthenSecure.LimitOfLogin(Auth_ID, Auth_IP, Mac) then
-                begin
-                  iRetCode := 7;
-                  Msg := MSG_LOGIN_SECURE_FAILED;           // 1小时内的失败次数过多
-                  G_AuthFailLog.WriteLog(Format('%s,%s,%s,%s,%s,%s,%d'#13#10, [FormatDateTime('yyyy-mm-dd hh:nn:ss', Now()), AreaID, Auth_ID, Auth_IP, Mac, Pwd, iRetCode]));
-                end
-                else
-                begin
-                  if G_SQLInterFace.AddJob(SM_USER_AUTHEN_REQ, SocketHandle, Param, Str) then
-                  begin
-                    iRetCode := 1;
-                    Exit;                                   // 加入队列成功，暂时无出错返回
-                  end
-                  else
-                  begin
-                    iRetCode := 9;
-                    Msg := MSG_SERVER_BUSY;
-                  end;
-                end;
-              end
-              else
-              begin
-                iRetCode := 11;
-                Msg := MSG_AUTHEN_ERROR;
-              end;
-            end;
-        else
-          iRetCode := 8;
-          Msg := '认证类型错误:' + Auth_Type;
-        end;
-      finally
-        js.Free;
-      end;
-			*/
-
+			iAuthType = root.get("AuthType", 0).asInt();
+			iAuthenApp = root.get("AuthenApp", 0).asInt();
+			std::string sAuthID;
+			switch (iAuthType)
+			{
+			case 0:
+				sAuthID = root.get("AuthenID", "").asString();
+				if (VerifyPassport(sAuthID))
+				{
+					std::string sAuthIP = root.get("ClientIP", "").asString();
+					std::string sMac = root.get("Mac", "").asString();
+					std::string sAreaID = root.get("AreaID", "").asString();
+					std::string sPwd = root.get("Pwd", "").asString();
+					/*
+					if G_AuthenSecure.LimitOfLogin(Auth_ID, Auth_IP, Mac) then
+					begin
+					  iRetCode := 7;
+					  Msg := MSG_LOGIN_SECURE_FAILED;           // 1小时内的失败次数过多
+					  G_AuthFailLog.WriteLog(Format('%s,%s,%s,%s,%s,%s,%d'#13#10, [FormatDateTime('yyyy-mm-dd hh:nn:ss', Now()), AreaID, Auth_ID, Auth_IP, Mac, Pwd, iRetCode]));
+					end
+					else
+					begin
+					  if G_SQLInterFace.AddJob(SM_USER_AUTHEN_REQ, SocketHandle, Param, Str) then
+					  begin
+						iRetCode := 1;
+						Exit;                                   // 加入队列成功，暂时无出错返回
+					  end
+					  else
+					  begin
+						iRetCode := 9;
+						Msg := MSG_SERVER_BUSY;
+					  end;
+					end;
+					*/
+				}
+				else
+				{
+					iRetCode = 9;
+					sMsg = MSG_AUTHEN_ERROR;
+				}
+				break;
+			default:
+				iRetCode = 8;
+				sMsg = "认证类型错误:" + std::to_string(iAuthType);
+				break;
+			}
 		}
 		else
 		{
@@ -261,7 +257,6 @@ void CDBConnector::Msg_UserAuthenRequest(int iParam, char* pBuf, unsigned short 
 			iRetCode = 12;
 			sMsg = MSG_AUTHEN_ERROR;
 		}
-
 	}
 	catch (...)
 	{
@@ -388,5 +383,87 @@ void CDBConnector::OnAuthenFail(int iSessionID, int iRetCode, const std::string 
 
 
 /************************Start Of CDBServerSocket******************************************/
+
+CDBServerSocket::CDBServerSocket(const std::string &sServerName)
+{
+
+}
+
+CDBServerSocket::~CDBServerSocket()
+{
+
+}
+
+void CDBServerSocket::SQLJobResponse(int iCmd, int iHandle, int iParam, int iRes, const std::string &str)
+{}
+
+void CDBServerSocket::InCreditNow()
+{}
+
+void CDBServerSocket::InSendItemNow()
+{}
+
+void CDBServerSocket::BroadCastKickOutNow(const std::string &sAccount, int iParam)
+{}
+
+void CDBServerSocket::DoActive()
+{}
+
+bool CDBServerSocket::OnChildNotify(int iServerID, PGameChildInfo p)
+{}
+
+void CDBServerSocket::ProcResponseMsg()
+{}
+
+void CDBServerSocket::Clear()
+{}
+
+void CDBServerSocket::LoadServerConfig()
+{}
+
+void CDBServerSocket::OnSetListView(void* Sender)
+{}
+
+void CDBServerSocket::OnLogSocketDisConnect(void* Sender)
+{}
+
+void CDBServerSocket::AddRechargeQueryJob(int iServerID, int iSocketHandle)
+{}
+
+void CDBServerSocket::AddQueryGiveItemJob(int iServerID, int iSocketHandle)
+{}
+
+void CDBServerSocket::RemoveServerConfig(void* pValue, const std::string &sKey)
+{}
+
+bool CDBServerSocket::CheckConnectIP(const std::string &sConnectIP)
+{}
+
+void CDBServerSocket::LoadConfig()
+{}
+
+void CDBServerSocket::SocketError(void* Sender, int iErrorCode)
+{}
+
+CClientConnector CDBServerSocket::CreateCustomSocket(const std::string &sIP)
+{}
+
+void CDBServerSocket::DBConnect(void* Sender)
+{}
+
+void CDBServerSocket::DBDisConnect(void* Sender)
+{}
+
+bool CDBServerSocket::RegisterDBServer(CDBConnector* Socket, int iServerID)
+{}
+
+std::string CDBServerSocket::OnLineDBServer(int iServerID)
+{}
+
+void CDBServerSocket::ShowDBMsg(int iServerID, int iCol, const std::string &sMsg)
+{}
+
+void CDBServerSocket::RechargeFail(const std::string &sOrderID)
+{}
 
 /************************End Of CDBServerSocket******************************************/
