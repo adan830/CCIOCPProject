@@ -19,6 +19,7 @@ CMainThread::CMainThread(const std::string &sServerName) : m_ulSlowRunTick(0), m
 
 	G_SQLInterFace := TSQLDBInterface.Create;
 	G_ServerSocket := TServerSocket.Create(ServerName);
+	G_ChildManager := TChildManager.Create(OnChildNotify);
 	G_IWebSocket := TIWebSocket.Create;
 	G_RechargeManager := TRechargeManager.Create;
 	G_ReportManager := TReportManager.Create;
@@ -32,6 +33,7 @@ CMainThread::~CMainThread()
 {
 	WaitThreadExecuteOver();
 	/*
+	FreeAndnil(G_ChildManager);
 	FreeObject(G_ServerSocket);
 	FreeObject(G_SQLInterFace);
 	FreeObject(G_RechargeManager);

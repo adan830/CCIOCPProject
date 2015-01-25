@@ -9,6 +9,9 @@ using namespace CC_UTILS;
 
 CDBServerSocket* pG_DBSocket;
 
+const int DEFAULT_QUERY_DELAY = 20 * 1000;                          // 10 * 60 * 1000;
+const int QUICK_QUERY_DELAY = 5 * 1000;
+
 /************************Start Of CDBConnector******************************************/
 CDBConnector::CDBConnector() :m_iServerID(0), m_iHumanCount(0), m_bCheckCredit(false), m_bCheckItem(false), m_EnCodeFunc(nullptr), m_DeCodeFunc(nullptr)
 {}
@@ -381,30 +384,96 @@ void CDBConnector::OnAuthenFail(int iSessionID, int iRetCode, const std::string 
 
 
 
-
 /************************Start Of CDBServerSocket******************************************/
 
-CDBServerSocket::CDBServerSocket(const std::string &sServerName)
+CDBServerSocket::CDBServerSocket(const std::string &sServerName) :m_sServerName("#" + sServerName + "#"), m_ServerHash(511), m_ulLastQueryRechargeTick(0),
+m_ulQueryRechargeInterval(0), m_ulLastQueryItemTick(0), m_ulQueryItemInterval(0), m_ulLastCheckTick(0), m_iConfigFileAge(0), m_iGameID(0), m_sAllowDBServerIPs(""),
+m_pLogSocket(nullptr), m_FirstNode(nullptr), m_LastNode(nullptr)
 {
+	SetMaxCorpseTime(60 * 1000);
+	m_ServerHash.m_RemoveEvent = std::bind(&CDBServerSocket::RemoveServerConfig, this, std::placeholders::_1, std::placeholders::_2);
 
+	m_OnCreateClient = std::bind(&CDBServerSocket::OnCreateDBSocket, this, std::placeholders::_1);
+	m_OnClientError = std::bind(&CDBServerSocket::OnSocketError, this, std::placeholders::_1, std::placeholders::_2);
+	m_OnConnect = std::bind(&CDBServerSocket::OnDBConnect, this, std::placeholders::_1);
+	m_OnDisConnect = std::bind(&CDBServerSocket::OnDBDisconnect, this, std::placeholders::_1);
+	m_OnCheckAddress = std::bind(&CDBServerSocket::OnCheckIPAddress, this, std::placeholders::_1);
+	LoadConfig();
 }
 
 CDBServerSocket::~CDBServerSocket()
 {
-
+	m_ServerHash.m_RemoveEvent = nullptr;
+	if (m_pLogSocket != nullptr)
+		delete m_pLogSocket;
+	Clear();
 }
 
 void CDBServerSocket::SQLJobResponse(int iCmd, int iHandle, int iParam, int iRes, const std::string &str)
-{}
+{
+	PJsonJobNode pNode = new TJsonJobNode;
+	pNode->iCmd = iCmd;
+	pNode->iHandle = iHandle;
+	pNode->iParam = iParam;
+	pNode->iRes = iRes;
+	pNode->sJsonText = str;
+	pNode->pNext = nullptr;
+	{
+		std::lock_guard<std::mutex> guard(m_LockJsonNodeCS);
+		if (m_LastNode != nullptr)
+			m_LastNode->pNext = pNode;
+		else
+			m_FirstNode = pNode;
+		m_LastNode = pNode;
+	}	
+}
 
 void CDBServerSocket::InCreditNow()
-{}
+{
+	m_ulQueryRechargeInterval = QUICK_QUERY_DELAY;
+}
 
 void CDBServerSocket::InSendItemNow()
-{}
+{
+	m_ulQueryItemInterval = QUICK_QUERY_DELAY;
+}
 
 void CDBServerSocket::BroadCastKickOutNow(const std::string &sAccount, int iParam)
-{}
+{
+	/*
+var
+  i, AccountLen     : integer;
+  Sock              : TDBServer;
+  szBuf             : array[0..50] of AnsiChar;
+begin
+  if not Terminated then
+  begin
+    AccountLen := Length(Account);
+    if AccountLen > 32 then
+      AccountLen := 32;
+    StrPLCopy(szBuf, Account, 32);
+    inc(AccountLen);
+    Lock;
+    try
+      for i := 0 to ActiveConnects.Count - 1 do
+      begin
+        Sock := ActiveConnects[i];
+        Sock.SendBuffer(SM_KICKOUT_ACCOUNT, 0, szBuf, AccountLen);
+      end;
+    finally
+      UnLock;
+    end;
+    G_IWebSocket.SendToServer(SM_KICKOUT_NOW, nParam, '1', 1);
+  end;
+end;
+	*/
+	if (!IsTerminated())
+	{
+		int iAccountLen = sAccount.length();
+		if (iAccountLen > 32)
+			iAccountLen = 32;
+	}
+}
 
 void CDBServerSocket::DoActive()
 {}

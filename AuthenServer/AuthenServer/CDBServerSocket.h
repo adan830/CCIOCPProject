@@ -87,12 +87,12 @@ private:
 	void AddRechargeQueryJob(int iServerID, int iSocketHandle);
 	void AddQueryGiveItemJob(int iServerID, int iSocketHandle);
 	void RemoveServerConfig(void* pValue, const std::string &sKey);
-	bool CheckConnectIP(const std::string &sConnectIP);
 	void LoadConfig();
-	void SocketError(void* Sender, int iErrorCode);
-	CClientConnector CreateCustomSocket(const std::string &sIP);
-	void DBConnect(void* Sender);
-	void DBDisConnect(void* Sender);
+	bool OnCheckIPAddress(const std::string &sConnectIP);
+	void OnSocketError(void* Sender, int iErrorCode);
+	CClientConnector OnCreateDBSocket(const std::string &sIP);
+	void OnDBConnect(void* Sender);
+	void OnDBDisconnect(void* Sender);
 	bool RegisterDBServer(CDBConnector* Socket, int iServerID);
 	std::string OnLineDBServer(int iServerID);
 	void ShowDBMsg(int iServerID, int iCol, const std::string &sMsg);
@@ -100,7 +100,7 @@ private:
 private:
 	std::string m_sServerName;
 	CC_UTILS::CStringHash m_ServerHash;
-	//--------------std::vector<> m_ServerIDList;
+	std::list<int> m_ServerIDList;				
 	unsigned long m_ulLastQueryRechargeTick, m_ulQueryRechargeInterval;
 	unsigned long m_ulLastQueryItemTick, m_ulQueryItemInterval;
 	unsigned long m_ulLastCheckTick;
@@ -108,10 +108,7 @@ private:
 	int m_iGameID;
 	std::string m_sAllowDBServerIPs;
 	CC_UTILS::CLogSocket* m_pLogSocket;			// 连接日志服务的端口
-	/*
-	FCS: TRTLCriticalSection;
-	FFirst, FLast: PJSONJobNode;
-	*/
+	std::mutex m_LockJsonNodeCS;	     	    //处理json链表的临界区操作使用的互斥锁
 	PJsonJobNode m_FirstNode;
 	PJsonJobNode m_LastNode;
 	friend class CDBConnector;
