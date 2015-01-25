@@ -505,22 +505,22 @@ void CDBServerSocket::AddQueryGiveItemJob(int iServerID, int iSocketHandle)
 void CDBServerSocket::RemoveServerConfig(void* pValue, const std::string &sKey)
 {}
 
-bool CDBServerSocket::CheckConnectIP(const std::string &sConnectIP)
+bool CDBServerSocket::OnCheckIPAddress(const std::string &sConnectIP)
 {}
 
 void CDBServerSocket::LoadConfig()
 {}
 
-void CDBServerSocket::SocketError(void* Sender, int iErrorCode)
+void CDBServerSocket::OnSocketError(void* Sender, int iErrorCode)
 {}
 
-CClientConnector CDBServerSocket::CreateCustomSocket(const std::string &sIP)
+CClientConnector CDBServerSocket::OnCreateDBSocket(const std::string &sIP)
 {}
 
-void CDBServerSocket::DBConnect(void* Sender)
+void CDBServerSocket::OnDBConnect(void* Sender)
 {}
 
-void CDBServerSocket::DBDisConnect(void* Sender)
+void CDBServerSocket::OnDBDisconnect(void* Sender)
 {}
 
 bool CDBServerSocket::RegisterDBServer(CDBConnector* Socket, int iServerID)
