@@ -84,7 +84,7 @@ typedef struct _TJsonJobNode
 	int iRes;
 	unsigned long ulAddTick;
 	std::string sJsonText;
-	PJsonJobNode pNext;
+	_TJsonJobNode* pNext;
 }TJsonJobNode, *PJsonJobNode;
 
 const int SS_SEGMENTATION_SIGN = 0XFFEEDDCC;                        // 服务器之间通信协议起始标志
@@ -97,8 +97,11 @@ const int SM_USER_AUTHEN_REQ = 0x1003;                              // 请求认证
 const int SM_USER_AUTHEN_RES = 0x1004;                              // 认证返回
 const int SM_SERVER_CONFIG = 0x1005;                                // 配置信息
 const int SM_USER_REGIST_REQ = 0x1008;                              // 用户注册
+const int SM_KICKOUT_ACCOUNT = 0x1010;                              // 踢掉账号
+const int SM_RECHARGE_AREA_QUERY = 0x1011;                          // 按虚拟区号自动轮询充值信息
 
 const int SM_RECHARGE_DB_ACK = 0x1013;								// db返回给认证服务器充值结果
+const int SM_CHILD_ONLINE_TIME = 0x1015;                            // 防沉迷，在线的时间
 const int SM_CHILD_LOGON = 0x1016;									// 防沉迷，上线
 const int SM_CHILD_LOGOUT = 0x1017;									// 防沉迷，下线
 const int SM_SAFECARD_AUTHEN_REQ = 0x1019;							// 密保卡认证
@@ -113,12 +116,16 @@ const int SM_PLAYER_DISCONNECT = 0x2003;                            // 玩家断线
 const int SM_PLAYER_MSG = 0x2004;                                   // 玩家的消息
 const int SM_MULPLAYER_MSG = 0x2005;                                // 群发的消息
 
+const int SM_GIVEITEM_QUERY = 0x2044;                               // 按照虚拟区号自动轮询推送道具信息
 const int SM_GIVEITEM_DB_ACK = 0x2046;								// db返回给认证服务器送道具结果
 const int SM_REFRESH_RECHARGE = 0x2056;								// 通知认证服务立即查询充值
 
 //PigServer相关协议
 const int SM_PIG_MSG = 0x3001;		     						    //中转Pig消息
 const int SM_PIG_QUERY_AREA = 0x3002;                               //查询区组信息
+
+//游戏ID
+const int G_GAME_ID = 1;                                    
 
 // 默认的侦听端口
 const int DEFAULT_AuthenServer_PORT = 2300;                         // AuthenServer <- DB

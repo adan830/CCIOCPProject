@@ -345,6 +345,8 @@ namespace CC_UTILS{
 
 	void CLogSocket::OnSocketConnect(void* Sender)
 	{
+		if (m_OnConnectEvent != nullptr)
+			m_OnConnectEvent(Sender);
 		if ("" != m_sServiceName)
 		{
 			if (m_bListView)
@@ -357,6 +359,8 @@ namespace CC_UTILS{
 
 	void CLogSocket::OnSocketDisconnect(void* Sender)
 	{
+		if (m_OnDisConnectEvent != nullptr)
+			m_OnDisConnectEvent(Sender);
 	}
 
 	void CLogSocket::OnSocketRead(void* Sender, const char* pBuf, unsigned short usBufLen)

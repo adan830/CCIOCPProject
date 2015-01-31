@@ -541,6 +541,7 @@ void CDBServerSocket::OnDBDisconnect(void* Sender)
 
 void CDBServerSocket::OnSetListView(void* Sender)
 {
+	Log("与 MonitorServer 连接成功");
 	PServerConfigInfo pInfo = nullptr;
 	std::string sTemp;
 	TListViewInfo lvInfo;
@@ -612,7 +613,6 @@ void CDBServerSocket::LoadServerConfig()
 			{
 				if (root.isArray())
 				{
-					delete m_pLogSocket;
 					m_ServerHash.Clear();
 					{
 						std::string sAreaName;
@@ -638,13 +638,17 @@ void CDBServerSocket::LoadServerConfig()
 								Log("区名重复: " + sAreaName, lmtError);
 							}
 						}
-					}					
-					m_pLogSocket = new CC_UTILS::CLogSocket(m_sServerName, true);
-					m_pLogSocket->InitialWorkThread();
-					//-------------------------------------
-					//-------------------------------------
-					//-------------------------------------
-					//FLogSocket.OnConnect := OnSetListView;
+					}
+					if (nullptr == m_pLogSocket)
+					{
+						m_pLogSocket = new CC_UTILS::CLogSocket(m_sServerName, true);
+						m_pLogSocket->m_OnConnectEvent = std::bind(&CDBServerSocket::OnSetListView, this, std::placeholders::_1);
+						m_pLogSocket->InitialWorkThread();
+						//-------------------------------------
+						//-------------------------------------
+						//-------------------------------------
+						//FLogSocket.OnConnect := OnSetListView;
+					}
 				}
 			}	
 		}

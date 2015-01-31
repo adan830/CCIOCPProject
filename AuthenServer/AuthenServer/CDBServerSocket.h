@@ -54,6 +54,7 @@ private:
 	bool m_bCheckItem;					//检测送道具
 	CC_UTILS::PCodingFunc m_EnCodeFunc; //加密函数
 	CC_UTILS::PCodingFunc m_DeCodeFunc; //解密函数
+	friend class CDBServerSocket;
 };
 
 /**
@@ -89,8 +90,8 @@ private:
 	void RemoveServerConfig(void* pValue, const std::string &sKey);
 	void LoadConfig();
 	bool OnCheckIPAddress(const std::string &sConnectIP);
-	void OnSocketError(void* Sender, int iErrorCode);
-	CClientConnector OnCreateDBSocket(const std::string &sIP);
+	void OnSocketError(void* Sender, int& iErrorCode);
+	CClientConnector* OnCreateDBSocket(const std::string &sIP);
 	void OnDBConnect(void* Sender);
 	void OnDBDisconnect(void* Sender);
 	bool RegisterDBServer(CDBConnector* Socket, int iServerID);
@@ -99,8 +100,7 @@ private:
 	void RechargeFail(const std::string &sOrderID);
 private:
 	std::string m_sServerName;
-	CC_UTILS::CStringHash m_ServerHash;
-	std::list<int> m_ServerIDList;				
+	CC_UTILS::CStringHash m_ServerHash;			
 	unsigned long m_ulLastQueryRechargeTick, m_ulQueryRechargeInterval;
 	unsigned long m_ulLastQueryItemTick, m_ulQueryItemInterval;
 	unsigned long m_ulLastCheckTick;

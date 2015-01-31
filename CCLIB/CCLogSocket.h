@@ -152,7 +152,9 @@ namespace CC_UTILS{
 		void SendTracerData(const std::string &sRoleName, const char* pBuf, unsigned short usBufLen);		
 		void SetServiceName(const std::string &sName);
 		std::string GetServiceName();
-	protected:
+	public:
+		TNotifyEvent m_OnConnectEvent;
+		TNotifyEvent m_OnDisConnectEvent;
 	private:
 		void ClearWaitBuffers();
 		void SendHeartBeat();

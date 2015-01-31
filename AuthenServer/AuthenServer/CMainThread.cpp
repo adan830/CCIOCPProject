@@ -4,6 +4,7 @@
 **************************************************************************************/
 #include "stdafx.h"
 #include "CMainThread.h"
+#include "CDBServerSocket.h"
 
 using namespace CC_UTILS;
 
@@ -50,9 +51,7 @@ void CMainThread::DoExecute()
 {
 	m_pLogSocket->InitialWorkThread();
 	Log("AuthenServer Æô¶¯.");
-	//-------------------
-	//-------------------
-	//G_ServerSocket.Open;
+	pG_DBSocket->Open();
 	unsigned long ulTick;
 	while (!IsTerminated())
 	{

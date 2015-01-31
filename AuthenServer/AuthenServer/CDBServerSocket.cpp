@@ -440,99 +440,442 @@ void CDBServerSocket::InSendItemNow()
 
 void CDBServerSocket::BroadCastKickOutNow(const std::string &sAccount, int iParam)
 {
-	/*
-var
-  i, AccountLen     : integer;
-  Sock              : TDBServer;
-  szBuf             : array[0..50] of AnsiChar;
-begin
-  if not Terminated then
-  begin
-    AccountLen := Length(Account);
-    if AccountLen > 32 then
-      AccountLen := 32;
-    StrPLCopy(szBuf, Account, 32);
-    inc(AccountLen);
-    Lock;
-    try
-      for i := 0 to ActiveConnects.Count - 1 do
-      begin
-        Sock := ActiveConnects[i];
-        Sock.SendBuffer(SM_KICKOUT_ACCOUNT, 0, szBuf, AccountLen);
-      end;
-    finally
-      UnLock;
-    end;
-    G_IWebSocket.SendToServer(SM_KICKOUT_NOW, nParam, '1', 1);
-  end;
-end;
-	*/
 	if (!IsTerminated())
 	{
-		int iAccountLen = sAccount.length();
-		if (iAccountLen > 32)
-			iAccountLen = 32;
+		std::string sSendAccount(sAccount, 0, 32);
+		{
+			std::lock_guard<std::mutex> guard(m_LockCS);
+			std::list<void*>::iterator vIter;
+			for (vIter = m_ActiveConnects.begin(); vIter != m_ActiveConnects.end(); ++vIter)
+				((CDBConnector*)(*vIter))->SendToClientPeer(SM_KICKOUT_ACCOUNT, 0, sSendAccount);				
+		}
+		//----------------------------------
+		//----------------------------------
+		//----------------------------------
+		//G_IWebSocket.SendToServer(SM_KICKOUT_NOW, nParam, '1', 1);
 	}
 }
 
 void CDBServerSocket::DoActive()
-{}
+{
+	LoadServerConfig();
+	ProcResponseMsg();
+	unsigned long tick = GetTickCount();
+	//-----------------------------
+	//-----------------------------
+	//-----------------------------
+	//if Assigned(G_RechargeManager) and G_RechargeManager.Enabled then
+	if (true)
+	{
+		if (tick - m_ulLastQueryRechargeTick >= m_ulQueryRechargeInterval)
+		{
+			m_ulLastQueryRechargeTick = tick;
+			m_ulQueryRechargeInterval = DEFAULT_QUERY_DELAY;
+			{
+				std::lock_guard<std::mutex> guard(m_LockCS);
+				std::list<void*>::iterator vIter;
+				for (vIter = m_ActiveConnects.begin(); vIter != m_ActiveConnects.end(); ++vIter)
+					((CDBConnector*)(*vIter))->m_bCheckCredit = true;
+			}
+		}
+	}
+	//------------------------------------
+	//------------------------------------
+	//------------------------------------
+	//if Assigned(G_GiveItemManager) and G_GiveItemManager.Enabled then
+	if (true)
+	{
+		if (tick - m_ulLastQueryItemTick >= m_ulQueryItemInterval)
+		{
+			m_ulLastQueryItemTick = tick;
+			m_ulQueryItemInterval = DEFAULT_QUERY_DELAY;
+			{
+				std::lock_guard<std::mutex> guard(m_LockCS);
+				std::list<void*>::iterator vIter;
+				for (vIter = m_ActiveConnects.begin(); vIter != m_ActiveConnects.end(); ++vIter)
+					((CDBConnector*)(*vIter))->m_bCheckItem = true;
+			}
+		}
+	}
+}
 
 bool CDBServerSocket::OnChildNotify(int iServerID, PGameChildInfo p)
-{}
+{
+	if (!IsTerminated())
+	{
+		std::lock_guard<std::mutex> guard(m_LockCS);
+		std::list<void*>::iterator vIter;
+		CDBConnector* pDBSock = nullptr;
+		for (vIter = m_ActiveConnects.begin(); vIter != m_ActiveConnects.end(); ++vIter)
+		{
+			pDBSock = (CDBConnector*)*vIter;
+			if ((pDBSock != nullptr) && (pDBSock->m_iServerID == iServerID))
+			{
+				pDBSock->SendToClientPeer(SM_CHILD_ONLINE_TIME, 0, (char*)p, sizeof(TGameChildInfo));
+				break;
+			}
+		}
+	}
+}
 
 void CDBServerSocket::ProcResponseMsg()
-{}
+{
+
+}
 
 void CDBServerSocket::Clear()
-{}
+{
+	PJsonJobNode pNode = nullptr;
+	std::lock_guard<std::mutex> guard(m_LockJsonNodeCS);
+	while (m_FirstNode != nullptr)
+	{
+		pNode = m_FirstNode;
+		m_FirstNode = pNode->pNext;
+		delete(pNode);		 
+	}
+	m_FirstNode = nullptr;
+	m_LastNode = nullptr;
+}
 
 void CDBServerSocket::LoadServerConfig()
-{}
+{
+	unsigned long ulTick = GetTickCount();
+	if ((0 == m_ulLastCheckTick) || (ulTick - m_ulLastCheckTick >= 5000))
+	{
+		m_ulLastCheckTick = ulTick;
+		std::string sFileName(G_CurrentExeDir + "AreaConfig.json");
+		int iAge = GetFileAge(sFileName);
+		if ((iAge != -1) && (iAge != m_iConfigFileAge))
+		{
+			if (m_iConfigFileAge > 0)
+				Log("AreaConfig.json is Reloaded.", lmtMessage);
+			m_iConfigFileAge = iAge;
+
+			//c++解析utf-8的json文件乱码，还是需要ascii
+			ifstream configFile;
+			std::string sJsonStr;
+			std::string sTemp;
+			configFile.open(sFileName);
+			while (!configFile.eof())
+			{
+				configFile >> sTemp;
+				sJsonStr.append(sTemp);
+			}
+			configFile.close();
+
+			//sJsonStr = "[{\"AreaID\":1,\"AreaName\":\"神技测试服\",\"ServerID\":1,\"ServerIP\":\"192.168.1.2\"}]";
+			Json::Reader reader;
+			Json::Value root;
+			if (reader.parse(sJsonStr, root))
+			{
+				if (root.isArray())
+				{
+					m_ServerHash.Clear();
+					{
+						std::string sAreaName;
+						PServerConfigInfo pInfo;
+						Json::Value item;
+						std::lock_guard<std::mutex> guard(m_LockCS);
+						for (int i = 0; i < root.size(); i++)
+						{
+							item = root.get(i, 0);
+							sAreaName = item.get("AreaName", "").asString();
+							if (m_ServerHash.ValueOf(sAreaName) == nullptr)
+							{
+								pInfo = new TServerConfigInfo;
+								pInfo->sServerName = sAreaName;
+								pInfo->iMaskServerID = item.get("AreaID", 0).asInt();
+								pInfo->iRealServerID = item.get("ServerID", 0).asInt();
+								pInfo->sServerIP = item.get("ServerIP", "").asString();
+								pInfo->bDenyRecharge = (item.get("DenyRecharge", "").asString().compare("true") == 0);
+								pInfo->bDenyGiveItem = (item.get("DenyGiveItem", "").asString().compare("true") == 0);								
+								m_ServerHash.Add(sAreaName, pInfo);
+								m_sAllowDBServerIPs.append(pInfo->sServerIP + "|");
+								if (m_pLogSocket != nullptr)
+								{
+									std::string sStatus;
+									if (pInfo->bDenyRecharge)
+										sStatus = "充值关";
+									else
+										sStatus = "充值开";
+									if (pInfo->bDenyGiveItem)
+										sStatus = sTemp + "|道具关";
+									else
+										sStatus = sTemp + "|道具开";
+
+									ShowDBMsg(pInfo->iRealServerID, 5, sStatus);
+								}
+							}
+							else
+								Log("区名重复: " + sAreaName, lmtError);
+						}
+					}
+					if (nullptr == m_pLogSocket)
+					{
+						m_pLogSocket = new CC_UTILS::CLogSocket(m_sServerName, true);
+						m_pLogSocket->m_OnConnectEvent = std::bind(&CDBServerSocket::OnSetListView, this, std::placeholders::_1);
+						m_pLogSocket->m_OnDisConnectEvent = std::bind(&CDBServerSocket::OnLogSocketDisConnect, this, std::placeholders::_1);
+						m_pLogSocket->InitialWorkThread();
+					}
+				}
+			}
+		}
+	}
+}
 
 void CDBServerSocket::OnSetListView(void* Sender)
-{}
+{
+	Log("与 MonitorServer 连接成功");
+	PServerConfigInfo pInfo = nullptr;
+	std::string sTemp;
+	TListViewInfo lvInfo;
+	memset(&lvInfo, 0, sizeof(TListViewInfo));
+	{
+		std::lock_guard<std::mutex> guard(m_LockCS);
+		m_ServerHash.First();
+		while (!m_ServerHash.Eof())
+		{
+			pInfo = (PServerConfigInfo)m_ServerHash.GetNextNode();
+			sTemp = std::to_string(pInfo->iMaskServerID);
+			memcpy_s(lvInfo[0], sizeof(TShortValue), sTemp.c_str(), sTemp.length() + 1);
+			sTemp = pInfo->sServerName;
+			memcpy_s(lvInfo[1], sizeof(TShortValue), sTemp.c_str(), sTemp.length() + 1);
+			sTemp = std::to_string(pInfo->iRealServerID);
+			memcpy_s(lvInfo[2], sizeof(TShortValue), sTemp.c_str(), sTemp.length() + 1);
+			sTemp = OnLineDBServer(pInfo->iRealServerID);
+			memcpy_s(lvInfo[3], sizeof(TShortValue), sTemp.c_str(), sTemp.length() + 1);
+			sTemp = "--";
+			memcpy_s(lvInfo[4], sizeof(TShortValue), sTemp.c_str(), sTemp.length() + 1);
+
+			std::string sStatus;
+			if (pInfo->bDenyRecharge)
+				sTemp = "充值关";
+			else
+				sTemp = "充值开";
+			if (pInfo->bDenyGiveItem)
+				sTemp = sTemp + "|道具关";
+			else
+				sTemp = sTemp + "|道具开";
+			memcpy_s(lvInfo[5], sizeof(TShortValue), sTemp.c_str(), sTemp.length() + 1);
+
+			if (m_pLogSocket != nullptr)
+				m_pLogSocket->AddListView(&lvInfo);
+		}
+	}
+	sTemp = "区号";
+	memcpy_s(lvInfo[0], sizeof(TShortValue), sTemp.c_str(), sTemp.length() + 1);
+	sTemp = "     区名     ";
+	memcpy_s(lvInfo[1], sizeof(TShortValue), sTemp.c_str(), sTemp.length() + 1);
+	sTemp = "服务器编号";
+	memcpy_s(lvInfo[2], sizeof(TShortValue), sTemp.c_str(), sTemp.length() + 1);
+	sTemp = "    连接地址    ";
+	memcpy_s(lvInfo[3], sizeof(TShortValue), sTemp.c_str(), sTemp.length() + 1);
+	sTemp = "  人数  ";
+	memcpy_s(lvInfo[4], sizeof(TShortValue), sTemp.c_str(), sTemp.length() + 1);
+	sTemp = "  状态  ";
+	memcpy_s(lvInfo[5], sizeof(TShortValue), sTemp.c_str(), sTemp.length() + 1);
+	if (m_pLogSocket != nullptr)
+		m_pLogSocket->SetListViewColumns(&lvInfo);
+}
 
 void CDBServerSocket::OnLogSocketDisConnect(void* Sender)
-{}
+{
+	Log("与MonitoServer断开连接");
+}
 
 void CDBServerSocket::AddRechargeQueryJob(int iServerID, int iSocketHandle)
-{}
+{
+	PServerConfigInfo pInfo = nullptr;
+	std::lock_guard<std::mutex> guard(m_LockCS);
+	m_ServerHash.First();
+	while (!m_ServerHash.Eof())
+	{
+		pInfo = (PServerConfigInfo)m_ServerHash.GetNextNode();
+		if ((pInfo->iRealServerID == iServerID) && (!pInfo->bDenyRecharge))
+		{
+			//--------------------------
+			//--------------------------
+			//----这里的json组包是否ok？
+			//--------------------------
+			//--------------------------
+			Json::Value root;
+			root["GameId"] = m_iGameID;
+			root["AreaId"] = pInfo->iMaskServerID;
+			Json::FastWriter writer;
+			std::string str = writer.write(root);
+			//------------------------------------
+			//------------------------------------
+			//------------------------------------
+			//------------------------------------
+			//G_RechargeManager.AddJob(SM_RECHARGE_AREA_QUERY, SocketHandle, 0, s);
+		}
+	}
+}
 
 void CDBServerSocket::AddQueryGiveItemJob(int iServerID, int iSocketHandle)
-{}
+{
+	PServerConfigInfo pInfo = nullptr;
+	std::lock_guard<std::mutex> guard(m_LockCS);
+	m_ServerHash.First();
+	while (!m_ServerHash.Eof())
+	{
+		pInfo = (PServerConfigInfo)m_ServerHash.GetNextNode();
+		if ((pInfo->iRealServerID == iServerID) && (!pInfo->bDenyGiveItem))
+		{
+			//--------------------------
+			//--------------------------
+			//----这里的json组包是否ok？
+			//--------------------------
+			//--------------------------
+			Json::Value root;
+			root["GameId"] = m_iGameID;
+			root["AreaId"] = pInfo->iMaskServerID;
+			Json::FastWriter writer;
+			std::string str = writer.write(root);
+			//------------------------------------
+			//------------------------------------
+			//------------------------------------
+			//------------------------------------
+			//G_GiveItemManager.AddJob(SM_GIVEITEM_QUERY, SocketHandle, 0, s);
+		}
+	}
+}
 
 void CDBServerSocket::RemoveServerConfig(void* pValue, const std::string &sKey)
-{}
+{
+	delete (PServerConfigInfo)pValue;
+}
 
 bool CDBServerSocket::OnCheckIPAddress(const std::string &sConnectIP)
-{}
+{
+	bool bRetFlag = (m_sAllowDBServerIPs.find(sConnectIP) != string::npos);
+	if (!bRetFlag)
+		Log(sConnectIP + " 连接被禁止！");
+	return bRetFlag;
+}
 
 void CDBServerSocket::LoadConfig()
-{}
+{
+	std::string sConfigFileName(G_CurrentExeDir + "config.ini");
+	CWgtIniFile* pIniFileParser = new CWgtIniFile();
+	pIniFileParser->loadFromFile(sConfigFileName);
+	int iPort = pIniFileParser->getInteger("Setup", "Port", DEFAULT_AuthenServer_PORT);
+	m_iGameID = pIniFileParser->getInteger("Setup", "GameId", G_GAME_ID);
+	delete pIniFileParser;
 
-void CDBServerSocket::OnSocketError(void* Sender, int iErrorCode)
-{}
+	if (!IsActive())
+	{
+		m_sLocalIP = "0.0.0.0";
+		m_iListenPort = iPort;
+		//在CMainThread::DoExecute里面启动再调用Open()
+	}
+}
 
-CClientConnector CDBServerSocket::OnCreateDBSocket(const std::string &sIP)
-{}
+void CDBServerSocket::OnSocketError(void* Sender, int& iErrorCode)
+{
+	Log("Server Socket Error, Code = " + to_string(iErrorCode), lmtError);
+	iErrorCode = 0;
+}
+
+CClientConnector* CDBServerSocket::OnCreateDBSocket(const std::string &sIP)
+{
+	return new CDBConnector;
+}
 
 void CDBServerSocket::OnDBConnect(void* Sender)
-{}
+{
+	CDBConnector* pDBConnector = (CDBConnector*)Sender;
+	Log("DBServer " + pDBConnector->GetRemoteAddress() + " Connected.");
+	InCreditNow();
+	InSendItemNow();
+}
 
 void CDBServerSocket::OnDBDisconnect(void* Sender)
-{}
+{
+	CDBConnector* pDBConnector = (CDBConnector*)Sender;
+	int iServerID = pDBConnector->GetServerID();
+	if (iServerID > 0)
+	{
+		Log("DBServer(" + std::to_string(pDBConnector->m_iServerID) + ")(" + pDBConnector->GetRemoteAddress() + ") DisConnected.");
+		ShowDBMsg(iServerID, 3, "--");
+		ShowDBMsg(iServerID, 4, "--");
+	}
+}
 
 bool CDBServerSocket::RegisterDBServer(CDBConnector* Socket, int iServerID)
-{}
+{
+	bool bRetFlag = false;
+	PServerConfigInfo pInfo = nullptr;
+	std::lock_guard<std::mutex> guard(m_LockCS);
+	m_ServerHash.First();
+	while (!m_ServerHash.Eof())
+	{
+		pInfo = (PServerConfigInfo)m_ServerHash.GetNextNode();
+		if (pInfo->iRealServerID == iServerID)
+		{
+			if (Socket->GetRemoteAddress().find(pInfo->sServerIP) == string::npos)
+				Log("DBServer IP地址不正确: " + std::to_string(pInfo->iRealServerID) + "(" + pInfo->sServerName + ")(" + Socket->GetRemoteAddress() + ")");
+			bRetFlag = true;
+			break;
+		}
+	}
+	return bRetFlag;
+}
 
 std::string CDBServerSocket::OnLineDBServer(int iServerID)
-{}
+{
+	std::string sRetStr("--");
+	CDBConnector* pDBConnector = nullptr;
+	std::lock_guard<std::mutex> guard(m_LockCS);
+	std::list<void*>::iterator vIter;
+	for (vIter = m_ActiveConnects.begin(); vIter != m_ActiveConnects.end(); ++vIter)
+	{
+		pDBConnector = (CDBConnector*)*vIter;
+		if ((pDBConnector != nullptr) && (iServerID == pDBConnector->GetServerID()))
+		{
+			sRetStr = pDBConnector->GetRemoteAddress();
+			break;
+		}
+	}
+	return sRetStr;
+}
 
 void CDBServerSocket::ShowDBMsg(int iServerID, int iCol, const std::string &sMsg)
-{}
+{
+	int iRow = 1;
+	PServerConfigInfo pInfo = nullptr;
+	std::lock_guard<std::mutex> guard(m_LockCS);
+	m_ServerHash.First();
+	while (!m_ServerHash.Eof())
+	{
+		pInfo = (PServerConfigInfo)m_ServerHash.GetNextNode();
+		if (pInfo->iRealServerID == iServerID)
+		{
+			if (m_pLogSocket != nullptr)
+				m_pLogSocket->UpdateListView(sMsg, iRow, iCol);
+			break;
+		}
+		++iRow;
+	}
+}
 
 void CDBServerSocket::RechargeFail(const std::string &sOrderID)
-{}
+{
+	//--------------------------
+	//--------------------------
+	//----这里的json组包是否ok？
+	//--------------------------
+	//--------------------------
+	Json::Value root;
+	root["Orderid"] = sOrderID;
+	root["IP"] = "127.0.0.1";
+	root["State"] = -1;
+	Json::FastWriter writer;
+	std::string str = writer.write(root);
+	//----------------------------------
+	//----------------------------------
+	//----------------------------------
+	//G_RechargeManager.AddJob(SM_RECHARGE_DB_ACK, 0, 0, s, True);
+}
 
 /************************End Of CDBServerSocket******************************************/
