@@ -75,7 +75,7 @@ public:
     void Close(bool BoClearBuffer = true);
 	bool IsActive(){ return m_BoActive; }
 	bool IsConnected(){ return m_BoConnected; }
-	void SetReconnectInterval(unsigned long interval){ m_Reconnect_Interval = interval; }
+	void SetReconnectInterval(unsigned int interval){ m_Reconnect_Interval = interval; }
     void DoExecute();						//子类不重载此方法
 public:
     TOnSocketRead m_OnRead;
@@ -107,13 +107,13 @@ private:
 	HANDLE m_hIOCP;                     // iocp的句柄
 	SOCKET m_CSocket;                   // 原始套接字	
 	std::mutex m_LockCS;                // 队列操作使用的互斥锁
-	unsigned long m_SendLock;			// 接收自旋锁 变量 （暂未使用）
-	unsigned long m_RecvLock;           // 发送自旋锁 变量 （暂未使用）
+	unsigned int m_SendLock;			// 接收自旋锁 变量 （暂未使用）
+	unsigned int m_RecvLock;            // 发送自旋锁 变量 （暂未使用）
 	TSendBufferLinkedList m_SendList;   // 发送缓冲区链表
 	TBlock m_SendBlock;                 // 用于发送的
 	TBlock m_RecvBlock;                 // 用于接收的
     SOCKADDR_IN m_SocketAddr;					   // 
-	unsigned long m_Reconnect_Interval;			   // 重连间隔
+	unsigned int m_Reconnect_Interval;			   // 重连间隔
 	CC_UTILS::PBufferStream m_pReceiveBuffer;      // 处理socket数据接收的buffer
 };
 

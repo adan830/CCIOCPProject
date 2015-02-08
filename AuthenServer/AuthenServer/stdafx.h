@@ -30,6 +30,9 @@
 #include "CASGlobal.h"
 #include "CCProtocol_Server.h"
 #include "CCServerEnDeCode.h"
+#include "CCGameCommon.h"
 #include "CCLogSocket.h"
 #include "json\json.h"
+#include "CCMySQLEngn.h"
 #include "CMainThread.h"
+

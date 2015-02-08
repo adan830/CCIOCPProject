@@ -21,7 +21,7 @@
 
 namespace CC_UTILS{
 
-	typedef std::function<bool(void* pointer, unsigned long ulParam, int &iResult)> TTouchFunc;
+	typedef std::function<bool(void* pointer, unsigned int uiParam, int &iResult)> TTouchFunc;
 
 
 	//整数作为key的hash
@@ -39,13 +39,13 @@ namespace CC_UTILS{
 	class CIntegerHash
 	{
 	public:		
-		CIntegerHash(unsigned long ulSize = 1023);
+		CIntegerHash(unsigned int uiSize = 1023);
 		virtual ~CIntegerHash();
 		bool Add(const int iKey, void* pValue);
 		void Clear();
 		bool Remove(const int iKey);
 		void* ValueOf(const int iKey);
-		int Touch(TTouchFunc func, unsigned long ulParam);
+		int Touch(TTouchFunc func, unsigned int uiParam);
 		void First();
 		bool Eof();
 		void* GetNextNode();         //该函数包含返回下一结点，并将m_pCurrentQueueNode指向下一结点这两个操作
@@ -53,12 +53,12 @@ namespace CC_UTILS{
 	public:
 		TRemoveIntValueEvent m_RemoveEvent;
 	private:
-		unsigned long HashOf(const int iKey);
+		unsigned int HashOf(const int iKey);
 		PPIntHashItem Find(const int iKey);
 		void DoRemoveItem(PIntHashItem pItem);
 	private:
 		int m_iTotalCount;
-		unsigned long m_ulBucketSize;
+		unsigned int m_uiBucketSize;
 		PIntHashItem m_pFirstListNode;
 		PIntHashItem m_pLastListNode;
 		PIntHashItem m_pCurrentQueueNode;
@@ -81,13 +81,13 @@ namespace CC_UTILS{
 	class CStringHash
 	{
 	public:
-		CStringHash(unsigned long ulSize = 1023);
+		CStringHash(unsigned int uiSize = 1023);
 		virtual ~CStringHash();
 		bool Add(const std::string &sKey, void* pValue);
 		void Clear();
 		bool Remove(const std::string &sKey);
 		void* ValueOf(const std::string &sKey);
-		int Touch(TTouchFunc func, unsigned long ulParam);
+		int Touch(TTouchFunc func, unsigned int uiParam);
 		void First();
 		bool Eof();
 		void* GetNextNode();         //该函数包含返回下一结点，并将m_pCurrentQueueNode指向下一结点这两个操作
@@ -95,12 +95,12 @@ namespace CC_UTILS{
 	public:
 		TRemoveStrValueEvent m_RemoveEvent;
 	private:
-		unsigned long HashOf(const std::string &sKey);
+		unsigned int HashOf(const std::string &sKey);
 		PPStrHashItem Find(const std::string &sKey);
 		void DoRemoveItem(PStrHashItem pItem);
 	private:
 		int m_iTotalCount;
-		unsigned long m_ulBucketSize;
+		unsigned int m_uiBucketSize;
 		PStrHashItem m_pFirstListNode;
 		PStrHashItem m_pLastListNode;
 		PStrHashItem m_pCurrentQueueNode;

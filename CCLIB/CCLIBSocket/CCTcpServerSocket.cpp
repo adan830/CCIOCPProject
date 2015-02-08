@@ -9,9 +9,9 @@
 
 const int DEFAULT_CLIENT_CORPSE_TIME = 20 * 60 * 1000;      // 默认服务器与客户端无通信后断线时间
 const int MAX_HASH_BUCKETS_SIZE = 5071;                     // 管理连接Hash表的最大值
-const unsigned long MAX_CLIENT_DELAY_TIME = 15 * 1000;      // SocketHandle的超时复用时间
-const unsigned long MAX_BLOCK_CONTINUE_TIME = 10000;        // 网络阻塞持续时间
-const unsigned long SEND_NODE_CACHE_SIZE = 16 * 1024;      // 每个节点的发送区大小
+const unsigned int MAX_CLIENT_DELAY_TIME = 15 * 1000;       // SocketHandle的超时复用时间
+const unsigned int MAX_BLOCK_CONTINUE_TIME = 10000;         // 网络阻塞持续时间
+const unsigned int SEND_NODE_CACHE_SIZE = 16 * 1024;        // 每个节点的发送区大小
 
 /************************Start Of CSubIOCPWorker****************************************************/
 CSubIOCPWorker::CSubIOCPWorker(PHANDLE ph, TNotifyEvent evt, std::string& sName) : m_pHIOCP(ph), m_OnSocketClose(evt)
@@ -31,12 +31,12 @@ void CSubIOCPWorker :: DoExecute()
 	{
 		try
 		{			
-			unsigned long ulBytesTansfered = 0;
+			unsigned int uiBytesTansfered = 0;
 			ULONG_PTR key = NULL;
 			PBlock pRBlock = nullptr;
-			int Ret = GetQueuedCompletionStatus(*m_pHIOCP, &ulBytesTansfered, &key, (LPOVERLAPPED*)&pRBlock, INFINITE);
+			int Ret = GetQueuedCompletionStatus(*m_pHIOCP, (LPDWORD)&uiBytesTansfered, &key, (LPOVERLAPPED*)&pRBlock, INFINITE);
 			//PostQueuedCompletionStatus发送的关闭消息
-			if (SHUTDOWN_FLAG == (unsigned long)(pRBlock))
+			if (SHUTDOWN_FLAG == (unsigned int)(pRBlock))
 			{
 				SendDebugString(m_sThreadName + ":receive SHUTDOWN_FLAG");
 				break;
@@ -51,7 +51,7 @@ void CSubIOCPWorker :: DoExecute()
 				2.如果 *lpOverlapped为空并且函数没有从完成端口取出完成包，返回值则为0。函数则不会在lpNumberOfBytes and lpCompletionKey所指向的参数中存储信息。
 				3.如果 *lpOverlapped不为空并且函数从完成端口出列一个失败I/O操作的完成包，返回值为0。函数在指向lpNumberOfBytesTransferred, lpCompletionKey, and lpOverlapped的参数指针中存储相关信息。
 				*/
-				if ((0 == Ret) || (ulBytesTansfered == 0))
+				if ((0 == Ret) || (uiBytesTansfered == 0))
 				{
 					//因为key!=NULL  所以不会是第二个情况
 					//这里主要处理第三种情况，关闭socket
@@ -65,7 +65,7 @@ void CSubIOCPWorker :: DoExecute()
 				{
 					case soRead:
 						pRBlock->Event = soIdle;
-						if (!client->IocpReadback(ulBytesTansfered))
+						if (!client->IocpReadback(uiBytesTansfered))
 						{
 							if (nullptr != m_OnSocketClose)
 								m_OnSocketClose(client);
@@ -73,7 +73,7 @@ void CSubIOCPWorker :: DoExecute()
 						break;
 					case soWrite:
 						pRBlock->Event = soIdle;
-						client->IocpSendback(ulBytesTansfered);
+						client->IocpSendback(uiBytesTansfered);
 						break;
 					default:
 						if (nullptr != m_OnSocketClose)
@@ -183,7 +183,7 @@ void CMainIOCPWorker :: DoExecute()
 			memset(&ToAddress, 0, sizeof(ToAddress));
 			int iAddressLen = sizeof(ToAddress);
 			//有条件地接受一个连接基于状态函数的返回值,选择创建或加入一个套接字组
-			stClientSocket = WSAAccept(m_Socket, (sockaddr*)&ToAddress, &iAddressLen, &ConditionFunc, (unsigned long)m_Parent);
+			stClientSocket = WSAAccept(m_Socket, (sockaddr*)&ToAddress, &iAddressLen, &ConditionFunc, (unsigned int)m_Parent);
 			if (IsTerminated())
 				break;
 			if (INVALID_SOCKET != stClientSocket)
@@ -313,8 +313,8 @@ bool CMainIOCPWorker :: Start(const std::string& sIP, int iPort)
 /************************Start Of CClientConnector**************************************************/
 
 CClientConnector :: CClientConnector():m_Socket(INVALID_SOCKET), m_sRemoteAddress(""), m_iRemotePort(0), m_SocketHandle(0),
-	m_bSending(false), m_bSafeClose(false), m_OnSocketError(nullptr), m_iTotalBufferLen(0), m_ulActiveTick(GetTickCount()),
-	m_ulLastSendTick(0), m_ulBufferFullTick(0)
+	m_bSending(false), m_bSafeClose(false), m_OnSocketError(nullptr), m_iTotalBufferLen(0), m_uiActiveTick(GetTickCount()),
+	m_uiLastSendTick(0), m_uiBufferFullTick(0)
 {
 	memset(&m_SendBlock, 0, sizeof(m_SendBlock));
 	memset(&m_RecvBlock, 0, sizeof(m_RecvBlock));
@@ -381,7 +381,7 @@ int CClientConnector :: SendText(const std::string& s)
 
 void CClientConnector :: UpdateActive()
 {
-	m_ulActiveTick = GetTickCount();
+	m_uiActiveTick = GetTickCount();
 }
 
 void CClientConnector :: Clear()
@@ -440,11 +440,11 @@ bool CClientConnector :: PrepareRecv()
 		m_RecvBlock.wsaBuffer.len = MAX_IOCP_BUFFER_SIZE;
 		m_RecvBlock.wsaBuffer.buf = m_RecvBlock.Buffer;
 		memset(&m_RecvBlock.Overlapped, 0, sizeof(m_RecvBlock.Overlapped));
-		unsigned long ulFlag = 0;
-		unsigned long ulTransfered = 0;
+		unsigned int uiFlag = 0;
+		unsigned int uiTransfered = 0;
 		if (m_Socket != INVALID_SOCKET)
 		{
-			retflag = (WSARecv(m_Socket, &m_RecvBlock.wsaBuffer, 1, &ulTransfered, &ulFlag, &m_RecvBlock.Overlapped, nullptr) != SOCKET_ERROR);
+			retflag = (WSARecv(m_Socket, &m_RecvBlock.wsaBuffer, 1, (LPDWORD)&uiTransfered, (LPDWORD)&uiFlag, &m_RecvBlock.Overlapped, nullptr) != SOCKET_ERROR);
 			if (!retflag)
 			{
 				iErrorCode = WSAGetLastError();
@@ -498,16 +498,16 @@ bool CClientConnector :: IocpReadback(int iTransfered)
 	return retflag;
 }
 
-void CClientConnector :: DoActive(unsigned long ulTick)
+void CClientConnector :: DoActive(unsigned int uiTick)
 {
 	if ((m_bSafeClose) && (!m_bSending) && (m_SendList.IsEmpty()))
 	{
 		Close();
 		return;
 	}
-	if ((ulTick - m_ulLastSendTick >= 40) || (m_iTotalBufferLen >= MAX_IOCP_BUFFER_SIZE))
+	if ((uiTick - m_uiLastSendTick >= 40) || (m_iTotalBufferLen >= MAX_IOCP_BUFFER_SIZE))
 	{
-		m_ulLastSendTick = ulTick;
+		m_uiLastSendTick = uiTick;
 		{
 			//------------------------------------------
 			//------------------------------------------
@@ -517,12 +517,12 @@ void CClientConnector :: DoActive(unsigned long ulTick)
 				PrepareSend(0, 0);
 		}
 	}
-	Execute(ulTick);
+	Execute(uiTick);
 }
 
-bool CClientConnector :: IsCorpse(unsigned long ulTick, unsigned long ulMaxCorpseTime)
+bool CClientConnector :: IsCorpse(unsigned int uiTick, unsigned int uiMaxCorpseTime)
 {
-	return ((ulTick > m_ulActiveTick) && (ulTick - m_ulActiveTick > ulMaxCorpseTime));
+	return ((uiTick > m_uiActiveTick) && (uiTick - m_uiActiveTick > uiMaxCorpseTime));
 }
 
 bool CClientConnector :: IsBlock(int iMaxBlockSize)
@@ -530,12 +530,12 @@ bool CClientConnector :: IsBlock(int iMaxBlockSize)
 	bool retflag = (m_iTotalBufferLen > iMaxBlockSize);
 	if (retflag)
 	{
-		if (m_ulBufferFullTick = 0)
+		if (m_uiBufferFullTick = 0)
 		{
-			m_ulBufferFullTick = GetTickCount();
+			m_uiBufferFullTick = GetTickCount();
 			retflag = false;
 		}
-		else if (GetTickCount() < m_ulBufferFullTick + MAX_BLOCK_CONTINUE_TIME)
+		else if (GetTickCount() < m_uiBufferFullTick + MAX_BLOCK_CONTINUE_TIME)
 		{
 			//对于网络较差的远端，在大流量数据冲击的时候，给予一定的缓冲时间
 			retflag = false;
@@ -543,7 +543,7 @@ bool CClientConnector :: IsBlock(int iMaxBlockSize)
 	}
 	else 
 	{
-		m_ulBufferFullTick = 0;
+		m_uiBufferFullTick = 0;
 	}
 	return retflag;
 }
@@ -560,7 +560,7 @@ int CClientConnector::ParseSocketReadData(int iType, const char* pBuf, int iCoun
 	while (iTempBufLen - iOffset >= sizeof(TServerSocketHeader))
 	{
 		pHeader = (PServerSocketHeader)pTempBuf;
-		if (SS_SEGMENTATION_SIGN == pHeader->ulSign)
+		if (SS_SEGMENTATION_SIGN == pHeader->uiSign)
 		{
 			iPackageLen = sizeof(TServerSocketHeader)+pHeader->usBehindLen;
 			//单个数据包超长后扔掉
@@ -679,11 +679,11 @@ void CIOCPServerSocketManager :: Close()
 void CIOCPServerSocketManager :: DoExecute()
 {
 	SetThreadLocale(0X804);
-	unsigned long ulDelayTick = 0;
-	unsigned long ulTick = 0;
+	unsigned int uiDelayTick = 0;
+	unsigned int uiTick = 0;
 	while (!IsTerminated())
 	{
-		ulTick = GetTickCount();
+		uiTick = GetTickCount();
 		try
 		{
 			{
@@ -694,7 +694,7 @@ void CIOCPServerSocketManager :: DoExecute()
 				for (vIter=m_ActiveConnects.begin(); vIter!=m_ActiveConnects.end(); ++vIter)
 				{
 					client = (CClientConnector*)*vIter;
-					if (client->IsCorpse(ulTick, m_iMaxCorpseTime))
+					if (client->IsCorpse(uiTick, m_iMaxCorpseTime))
 					{
 						iErrorCode = -100;
 						DoClientError(client, iErrorCode);
@@ -707,14 +707,14 @@ void CIOCPServerSocketManager :: DoExecute()
 						client->Close();
 					}
 					else
-						client->DoActive(ulTick);
+						client->DoActive(uiTick);
 				}
 			}
 
-			if (m_bDelayFree && (ulTick - ulDelayTick >= 2000))
+			if (m_bDelayFree && (uiTick - uiDelayTick >= 2000))
 			{
-				ulDelayTick = ulTick;
-				m_bDelayFree = DelayFreeClient(ulTick);
+				uiDelayTick = uiTick;
+				m_bDelayFree = DelayFreeClient(uiTick);
 			}
 			if ((!IsTerminated()) && (IsActive()))
 				DoActive();
@@ -763,7 +763,7 @@ void CIOCPServerSocketManager :: DoSocketClose(void* Sender)
 		{
 			pNode = new TDelayFreeNode;
 			pNode->usHandle = ((CClientConnector*)Sender)->m_SocketHandle;
-			pNode->ulAddTick = (unsigned long)GetTickCount();
+			pNode->uiAddTick = (unsigned int)GetTickCount();
 			pNode->pObj = Sender;
 			pNode->Next = nullptr;
 			m_QueryClientHash.RemovePortItem(pNode->usHandle);
@@ -842,7 +842,7 @@ void CIOCPServerSocketManager :: DoClientError(void* Sender, int& iErrorCode)
 }
 
 //还有结点未释放就返回true 赋值给m_BoDelayFree
-bool CIOCPServerSocketManager :: DelayFreeClient(unsigned long ulTick)
+bool CIOCPServerSocketManager :: DelayFreeClient(unsigned int uiTick)
 {
 	bool retflag = false;
 	PDelayFreeNode pNode;
@@ -854,7 +854,7 @@ bool CIOCPServerSocketManager :: DelayFreeClient(unsigned long ulTick)
 		pNextNode = pNode->Next;
 		if (pNode->pObj != nullptr)
 		{
-			if ((ulTick > pNode->ulAddTick) && (ulTick - pNode->ulAddTick >= MAX_CLIENT_DELAY_TIME))
+			if ((uiTick > pNode->uiAddTick) && (uiTick - pNode->uiAddTick >= MAX_CLIENT_DELAY_TIME))
 			{
 				delete((CClientConnector*)pNode->pObj);   
 				pNode->pObj = nullptr;
@@ -873,13 +873,13 @@ bool CIOCPServerSocketManager :: DelayFreeClient(unsigned long ulTick)
 unsigned short CIOCPServerSocketManager :: AllocHandle()
 {
 	unsigned short usRetHandle = 0;
-	unsigned long ulTick = GetTickCount();
+	unsigned int uiTick = GetTickCount();
 	std::lock_guard<std::mutex> guard(m_LockCS);
 	PDelayFreeNode pNode;
 	if (m_DFNFirst != nullptr)
 	{
 		pNode = m_DFNFirst;
-		if (ulTick - pNode->ulAddTick >= MAX_CLIENT_DELAY_TIME)
+		if (uiTick - pNode->uiAddTick >= MAX_CLIENT_DELAY_TIME)
 		{
 			m_DFNFirst = pNode->Next;
 			if (nullptr == m_DFNFirst)

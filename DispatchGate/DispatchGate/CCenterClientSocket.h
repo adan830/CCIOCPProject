@@ -31,7 +31,7 @@ private:
 	void Reconnect();                       // 重连
 	void SendRegisterServer();              // 注册服务器
 private:
-	unsigned long m_ulCheckTick;
+	unsigned int m_uiCheckTick;
 	int m_iPingCount;
 	int m_iWorkIndex;
 	TServerAddress m_ServerArray[MAX_CENTER_SERVER_COUNT];        // 可配置多个CenterServer           

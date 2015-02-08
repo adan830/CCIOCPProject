@@ -12,7 +12,7 @@ const int MAX_FILE_CACHE_SIZE = 8 * 1024;
 const int WRITE_INTERVAL = 1000 * 300;
 
 /************************Start Of CAuthFailFileLog**************************************************/
-CAuthFailFileLog::CAuthFailFileLog() : m_ulLastWriteTick(0), m_iCacheLen(0)
+CAuthFailFileLog::CAuthFailFileLog() : m_uiLastWriteTick(0), m_iCacheLen(0)
 {
 	m_sPath = G_CurrentExeDir + "logs\\AuthFailLog\\";
 	m_pCache = (char*)malloc(MAX_FILE_CACHE_SIZE);
@@ -46,7 +46,7 @@ void CAuthFailFileLog::DoExecute()
 				m_iLastDay = iTodayNum;
 				WriteCache();
 			}
-			if ((m_iCacheLen >= MAX_FILE_CACHE_SIZE) || (GetTickCount() > m_ulLastWriteTick + WRITE_INTERVAL))
+			if ((m_iCacheLen >= MAX_FILE_CACHE_SIZE) || (GetTickCount() > m_uiLastWriteTick + WRITE_INTERVAL))
 				WriteCache();
 		}
 		catch (...)
@@ -76,7 +76,9 @@ void CAuthFailFileLog::WriteCache()
 
 		char tmp[16];
 		time_t now_time = time(NULL);
-		strftime(tmp, sizeof(tmp), "%Y%m%d", localtime(&now_time));
+		tm time;
+		localtime_s(&time, &now_time);
+		strftime(tmp, sizeof(tmp), "%Y%m%d", &time);
 		std::string sTemp(tmp);
 		std::string sFileName = m_sPath + sTemp + ".txt";
 
@@ -97,7 +99,7 @@ void CAuthFailFileLog::WriteCache()
 		}
 
 		m_iCacheLen = 0;
-		m_ulLastWriteTick = GetTickCount();
+		m_uiLastWriteTick = GetTickCount();
 	}
 }
 

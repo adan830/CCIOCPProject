@@ -21,10 +21,10 @@ public:
 public:
 	CC_UTILS::CLogSocket* m_pLogSocket;  //日志管理类
 private:
-	void CheckConfig(const unsigned long ulTick);
+	void CheckConfig(const unsigned int uiTick);
 private:
-	unsigned long m_ulSlowRunTick;       //慢速执行tick
-	unsigned long m_ulCheckConfigTick;   //config文件检测
+	unsigned int m_uiSlowRunTick;       //慢速执行tick
+	unsigned int m_uiCheckConfigTick;   //config文件检测
 	int m_iConfigFileAge;                //记录config文件的版本号
 };
 

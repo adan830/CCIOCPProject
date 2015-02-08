@@ -23,18 +23,18 @@ namespace CC_UTILS{
 
 	void CLogSocket::DoExecute()
 	{
-		unsigned long ulLastCheckTick = 0;
-		unsigned long ulTick = 0;
+		unsigned int uiLastCheckTick = 0;
+		unsigned int uiTick = 0;
 		LoadConfig();
 		while (!IsTerminated())
 		{
 			try
 			{
 				m_ClientSocket.Execute();
-				ulTick = GetTickCount();
-				if (ulTick - ulLastCheckTick >= 10 * 1000)
+				uiTick = GetTickCount();
+				if (uiTick - uiLastCheckTick >= 10 * 1000)
 				{
-					ulLastCheckTick = ulTick;
+					uiLastCheckTick = uiTick;
 					if (m_ClientSocket.IsConnected())
 					{
 						if (m_iPingCount > 3)
@@ -67,7 +67,7 @@ namespace CC_UTILS{
 		if (m_ClientSocket.IsConnected())
 		{
 			memset(&rec, 0, sizeof(rec));
-			rec.head.ulSign = LOG_SEGMENTATION_SIGN;
+			rec.head.uiSign = LOG_SEGMENTATION_SIGN;
 			rec.head.usIdent = SMM_ADD_LABEL;
 			rec.head.usBehindLen = sizeof(TLogLabelInfo);
 			rec.info.iLeft = iLeft;
@@ -90,7 +90,7 @@ namespace CC_UTILS{
 		if (m_ClientSocket.IsConnected())
 		{
 			memset(&rec, 0, sizeof(rec));
-			rec.head.ulSign = LOG_SEGMENTATION_SIGN;
+			rec.head.uiSign = LOG_SEGMENTATION_SIGN;
 			rec.head.usIdent = SMM_UPDATE_LABEL;
 			rec.head.usBehindLen = sizeof(TUpdateLabelInfo);
 			rec.info.iTag = iTag;
@@ -111,7 +111,7 @@ namespace CC_UTILS{
 		if (m_ClientSocket.IsConnected())
 		{
 			memset(&rec, 0, sizeof(rec));
-			rec.head.ulSign = LOG_SEGMENTATION_SIGN;
+			rec.head.uiSign = LOG_SEGMENTATION_SIGN;
 			rec.head.usIdent = SMM_ADD_LISTVIEW;
 			rec.head.usBehindLen = sizeof(TListViewInfo);
 			//---------------------------------
@@ -150,7 +150,7 @@ namespace CC_UTILS{
 		if (m_ClientSocket.IsConnected())
 		{
 			memset(&rec, 0, sizeof(rec));
-			rec.head.ulSign = LOG_SEGMENTATION_SIGN;
+			rec.head.uiSign = LOG_SEGMENTATION_SIGN;
 			rec.head.usIdent = SMM_UPDATE_LISTVIEW;
 			rec.head.usBehindLen = sizeof(TUpdateViewInfo);
 			rec.info.usRow = usRow;
@@ -175,7 +175,7 @@ namespace CC_UTILS{
 		*/
 		int iBufLen = sizeof(TLogSocketHead) + 1 + sMsg.length() + 1;
 		char* pBuf = (char*)malloc(iBufLen);
-		((PLogSocketHead)pBuf)->ulSign = LOG_SEGMENTATION_SIGN;
+		((PLogSocketHead)pBuf)->uiSign = LOG_SEGMENTATION_SIGN;
 		((PLogSocketHead)pBuf)->usIdent = SMM_DEBUG_MESSAGE;
 		((PLogSocketHead)pBuf)->usBehindLen = iBufLen - sizeof(TLogSocketHead);
 
@@ -207,7 +207,7 @@ namespace CC_UTILS{
 			usBufLen = 0;
 		unsigned short usSendLen = sizeof(TLogSocketHead) + usBufLen;
 		char* pTempBuf = (char*)malloc(usSendLen);
-		((PLogSocketHead)pBuf)->ulSign = LOG_SEGMENTATION_SIGN;
+		((PLogSocketHead)pBuf)->uiSign = LOG_SEGMENTATION_SIGN;
 		((PLogSocketHead)pBuf)->usIdent = usIdent;
 		((PLogSocketHead)pBuf)->usBehindLen = usSendLen - sizeof(TLogSocketHead);
 		if ((pBuf != nullptr) && (usBufLen > 0))
@@ -223,7 +223,7 @@ namespace CC_UTILS{
 
 		unsigned short usSendLen = sizeof(TLogSocketHead) + sizeof(TTraceData) + usBufLen;
 		char* pTempBuf = (char*)malloc(usSendLen);
-		((PLogSocketHead)pBuf)->ulSign = LOG_SEGMENTATION_SIGN;
+		((PLogSocketHead)pBuf)->uiSign = LOG_SEGMENTATION_SIGN;
 		((PLogSocketHead)pBuf)->usIdent = SMM_TRACE_DATA;
 		((PLogSocketHead)pBuf)->usBehindLen = usSendLen - sizeof(TLogSocketHead);
 		memset((pTempBuf + sizeof(TLogSocketHead)), 0, sizeof(TTraceData));
@@ -265,7 +265,7 @@ namespace CC_UTILS{
 	void CLogSocket::SendHeartBeat()
 	{
 		TLogSocketHead head;
-		head.ulSign = LOG_SEGMENTATION_SIGN;
+		head.uiSign = LOG_SEGMENTATION_SIGN;
 		head.usIdent = SMM_PING;
 		head.usBehindLen = 0;
 		m_ClientSocket.SendBuf((char*)&head, sizeof(head));
@@ -295,7 +295,7 @@ namespace CC_UTILS{
 			return;
 		int iBufLen = sizeof(TLogSocketHead)+sizeof(TRegisterInfo);
 		char* pBuf = (char*)malloc(iBufLen);
-		((PLogSocketHead)pBuf)->ulSign = LOG_SEGMENTATION_SIGN;
+		((PLogSocketHead)pBuf)->uiSign = LOG_SEGMENTATION_SIGN;
 		((PLogSocketHead)pBuf)->usIdent = SMM_REGISTER;
 		((PLogSocketHead)pBuf)->usBehindLen = iBufLen - sizeof(TLogSocketHead);
 
@@ -312,7 +312,7 @@ namespace CC_UTILS{
 			return;
 		int iBufLen = sizeof(TLogSocketHead)+sizeof(TRegisterInfoEx);
 		char* pBuf = (char*)malloc(iBufLen);
-		((PLogSocketHead)pBuf)->ulSign = LOG_SEGMENTATION_SIGN;
+		((PLogSocketHead)pBuf)->uiSign = LOG_SEGMENTATION_SIGN;
 		((PLogSocketHead)pBuf)->usIdent = SMM_REGISTER_EXT;
 		((PLogSocketHead)pBuf)->usBehindLen = iBufLen - sizeof(TLogSocketHead);
 

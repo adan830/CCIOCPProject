@@ -1,6 +1,6 @@
 /**************************************************************************************
 @author: 陈昌
-@content: 游戏内使用的通用常量和类型定义
+@content: 游戏内使用的通用常量和类型定义 以及游戏内的一些通用函数处理
 **************************************************************************************/
 #ifndef __CC_GAME_COMMON_H__
 #define __CC_GAME_COMMON_H__
@@ -28,5 +28,8 @@ const int ACTOR_NAME_MAX_LEN = 32;                        //角色最大长度
 
 const int IP_ADDRESS_MAX_LEN = 15;		   				  //ip地址长度
 const int SERVER_NAME_MAX_LEN = 50;                       //服务器名最大长度
+
+//校验登录账号
+bool VerifyPassport(const std::string &sPassport); 
 
 #endif //__CC_GAME_COMMON_H__

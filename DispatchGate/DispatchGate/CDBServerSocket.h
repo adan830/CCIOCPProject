@@ -91,7 +91,7 @@ private:
 	int m_iSessionID;           
 	std::string m_sServerName;
 	int m_iConfigFileAge;
-	unsigned long m_ulLastCheckTick;
+	unsigned int m_uiLastCheckTick;
 	CC_UTILS::CLogSocket* m_pLogSocket;			// 连接日志服务的端口
 	CC_UTILS::CStringHash m_ServerHash;         // 区组列表 
 };

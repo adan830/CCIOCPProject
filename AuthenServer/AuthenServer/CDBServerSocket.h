@@ -6,7 +6,6 @@
 #define __CC_DB_SERVER_SOCKET_H__
 
 #include "stdafx.h"
-#include "CCTcpServerSocket.h"
 
 //dispatch上使用的服务器区组配置
 typedef struct _TServerConfigInfo
@@ -34,7 +33,7 @@ public:
 	void SendToClientPeer(unsigned short usIdent, int iParam, char* pBuf, unsigned short usBufLen);
 	void SendToClientPeer(unsigned short usIdent, int iParam, const std::string &str);
 protected:
-	virtual void Execute(unsigned long ulTick);
+	virtual void Execute(unsigned int uiTick);
 	virtual void SocketRead(const char* pBuf, int iCount);
 	virtual void ProcessReceiveMsg(PServerSocketHeader pHeader, char* pData, int iDataLen);
 private:
@@ -101,9 +100,9 @@ private:
 private:
 	std::string m_sServerName;
 	CC_UTILS::CStringHash m_ServerHash;			
-	unsigned long m_ulLastQueryRechargeTick, m_ulQueryRechargeInterval;
-	unsigned long m_ulLastQueryItemTick, m_ulQueryItemInterval;
-	unsigned long m_ulLastCheckTick;
+	unsigned int m_uiLastQueryRechargeTick, m_uiQueryRechargeInterval;
+	unsigned int m_uiLastQueryItemTick, m_uiQueryItemInterval;
+	unsigned int m_uiLastCheckTick;
 	int m_iConfigFileAge;
 	int m_iGameID;
 	std::string m_sAllowDBServerIPs;

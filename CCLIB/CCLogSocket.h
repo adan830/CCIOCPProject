@@ -43,7 +43,7 @@ namespace CC_UTILS{
 	//日志消息最外层头结构
 	typedef struct _TLogSocketHead
 	{
-		unsigned long ulSign;            // 分隔标识
+		unsigned int uiSign;             // 分隔标识
 		unsigned short usIdent;          // 协议号
 		unsigned short usBehindLen;      // 后续封包的长度
 	}TLogSocketHead, *PLogSocketHead;

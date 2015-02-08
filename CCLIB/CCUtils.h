@@ -7,6 +7,7 @@
 
 #include <string>
 #include <vector>
+#include <cstdint>
 
 namespace CC_UTILS{
 
@@ -69,6 +70,9 @@ namespace CC_UTILS{
 
 	//字符串转整数，带默认值，不抛出异常
 	int StrToIntDef(const std::string& sTemp, const int iDef);
+
+	//字符串转64位整数，带默认值，不抛出异常
+	int64_t StrToInt64Def(const std::string& sTemp, const int64_t iDef);
 
 	//返回当前对应的天数数字
 	int GetTodayNum();

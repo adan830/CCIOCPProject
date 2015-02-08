@@ -25,13 +25,13 @@ void SendDebugString(const std::string& sInfo)
 	std::cout << sInfo.c_str() << std::endl;
 }
 
-bool IsInternetIP(const u_long ulIP)
+bool IsInternetIP(const unsigned int uiIP)
 {
 	bool retFlag = true;
 	unsigned char ucFirst;
 	unsigned char ucSecond;
-	ucFirst = ulIP & 0xFF;
-	ucSecond = (ulIP & 0xFF00) >> 8;
+	ucFirst = uiIP & 0xFF;
+	ucSecond = (uiIP & 0xFF00) >> 8;
 	if (192 == ucFirst)
 		retFlag = false;
 	else if (10 == ucFirst)

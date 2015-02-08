@@ -4,6 +4,7 @@
 **************************************************************************************/
 #include "stdafx.h"
 #include "CDBServerSocket.h"
+#include "CSecureManager.h"
 
 using namespace CC_UTILS;
 
@@ -37,7 +38,7 @@ void CDBConnector::SendToClientPeer(unsigned short usIdent, int iParam, char* pB
 	{
 		try
 		{
-			((PServerSocketHeader)pData)->ulSign = SS_SEGMENTATION_SIGN;
+			((PServerSocketHeader)pData)->uiSign = SS_SEGMENTATION_SIGN;
 			((PServerSocketHeader)pData)->usIdent = usIdent;
 			((PServerSocketHeader)pData)->iParam = iParam;
 			((PServerSocketHeader)pData)->usBehindLen = usBufLen;
@@ -66,17 +67,17 @@ void CDBConnector::SendToClientPeer(unsigned short usIdent, int iParam, const st
 		SendToClientPeer(usIdent, iParam, nullptr, 0);
 }
 
-void CDBConnector::Execute(unsigned long ulTick)
+void CDBConnector::Execute(unsigned int uiTick)
 {
 	if (m_bCheckCredit)
 	{
 		m_bCheckCredit = false;
-		//G_ServerSocket.AddRechargeQueryJob(FServerIdx, SocketHandle);
+		pG_DBSocket->AddRechargeQueryJob(m_iServerID, GetSocketHandle());
 	}
 	if (m_bCheckItem)
 	{
 		m_bCheckItem = false;
-		//G_ServerSocket.AddQueryGiveItemJob(FServerIdx, SocketHandle);
+		pG_DBSocket->AddQueryGiveItemJob(m_iServerID, GetSocketHandle());
 	}
 }
 
@@ -386,8 +387,8 @@ void CDBConnector::OnAuthenFail(int iSessionID, int iRetCode, const std::string 
 
 /************************Start Of CDBServerSocket******************************************/
 
-CDBServerSocket::CDBServerSocket(const std::string &sServerName) :m_sServerName("#" + sServerName + "#"), m_ServerHash(511), m_ulLastQueryRechargeTick(0),
-m_ulQueryRechargeInterval(0), m_ulLastQueryItemTick(0), m_ulQueryItemInterval(0), m_ulLastCheckTick(0), m_iConfigFileAge(0), m_iGameID(0), m_sAllowDBServerIPs(""),
+CDBServerSocket::CDBServerSocket(const std::string &sServerName) :m_sServerName("#" + sServerName + "#"), m_ServerHash(511), m_uiLastQueryRechargeTick(0),
+m_uiQueryRechargeInterval(0), m_uiLastQueryItemTick(0), m_uiQueryItemInterval(0), m_uiLastCheckTick(0), m_iConfigFileAge(0), m_iGameID(0), m_sAllowDBServerIPs(""),
 m_pLogSocket(nullptr), m_FirstNode(nullptr), m_LastNode(nullptr)
 {
 	SetMaxCorpseTime(60 * 1000);
@@ -430,12 +431,12 @@ void CDBServerSocket::SQLJobResponse(int iCmd, int iHandle, int iParam, int iRes
 
 void CDBServerSocket::InCreditNow()
 {
-	m_ulQueryRechargeInterval = QUICK_QUERY_DELAY;
+	m_uiQueryRechargeInterval = QUICK_QUERY_DELAY;
 }
 
 void CDBServerSocket::InSendItemNow()
 {
-	m_ulQueryItemInterval = QUICK_QUERY_DELAY;
+	m_uiQueryItemInterval = QUICK_QUERY_DELAY;
 }
 
 void CDBServerSocket::BroadCastKickOutNow(const std::string &sAccount, int iParam)
@@ -460,17 +461,17 @@ void CDBServerSocket::DoActive()
 {
 	LoadServerConfig();
 	ProcResponseMsg();
-	unsigned long tick = GetTickCount();
+	unsigned int tick = GetTickCount();
 	//-----------------------------
 	//-----------------------------
 	//-----------------------------
 	//if Assigned(G_RechargeManager) and G_RechargeManager.Enabled then
 	if (true)
 	{
-		if (tick - m_ulLastQueryRechargeTick >= m_ulQueryRechargeInterval)
+		if (tick - m_uiLastQueryRechargeTick >= m_uiQueryRechargeInterval)
 		{
-			m_ulLastQueryRechargeTick = tick;
-			m_ulQueryRechargeInterval = DEFAULT_QUERY_DELAY;
+			m_uiLastQueryRechargeTick = tick;
+			m_uiQueryRechargeInterval = DEFAULT_QUERY_DELAY;
 			{
 				std::lock_guard<std::mutex> guard(m_LockCS);
 				std::list<void*>::iterator vIter;
@@ -485,10 +486,10 @@ void CDBServerSocket::DoActive()
 	//if Assigned(G_GiveItemManager) and G_GiveItemManager.Enabled then
 	if (true)
 	{
-		if (tick - m_ulLastQueryItemTick >= m_ulQueryItemInterval)
+		if (tick - m_uiLastQueryItemTick >= m_uiQueryItemInterval)
 		{
-			m_ulLastQueryItemTick = tick;
-			m_ulQueryItemInterval = DEFAULT_QUERY_DELAY;
+			m_uiLastQueryItemTick = tick;
+			m_uiQueryItemInterval = DEFAULT_QUERY_DELAY;
 			{
 				std::lock_guard<std::mutex> guard(m_LockCS);
 				std::list<void*>::iterator vIter;
@@ -501,6 +502,7 @@ void CDBServerSocket::DoActive()
 
 bool CDBServerSocket::OnChildNotify(int iServerID, PGameChildInfo p)
 {
+	bool bRetFlag = false;
 	if (!IsTerminated())
 	{
 		std::lock_guard<std::mutex> guard(m_LockCS);
@@ -512,15 +514,101 @@ bool CDBServerSocket::OnChildNotify(int iServerID, PGameChildInfo p)
 			if ((pDBSock != nullptr) && (pDBSock->m_iServerID == iServerID))
 			{
 				pDBSock->SendToClientPeer(SM_CHILD_ONLINE_TIME, 0, (char*)p, sizeof(TGameChildInfo));
+				bRetFlag = true;
 				break;
 			}
 		}
 	}
+	return bRetFlag;
 }
 
 void CDBServerSocket::ProcResponseMsg()
 {
+	PJsonJobNode pNode = nullptr;
+	{
+		std::lock_guard<std::mutex> guard(m_LockJsonNodeCS);
+		pNode = m_FirstNode;
+		m_FirstNode = nullptr;
+		m_LastNode = nullptr;
+	}
 
+	PJsonJobNode pNext = nullptr;
+	while (pNode != nullptr)
+	{
+		pNext = pNode->pNext;
+		{
+			std::lock_guard<std::mutex> guard(m_LockCS);
+			Json::Reader reader;
+			Json::Value root;
+			if (reader.parse(pNode->sJsonText, root))
+			{
+				std::string sAuthenID;
+				std::string sIP;
+				std::string sMac;
+				std::string sCardNo;
+				CDBConnector* pDB = nullptr;
+				switch (pNode->iCmd)
+				{
+				case SM_USER_AUTHEN_REQ:
+					if ((0 == pNode->iRes) || (1 == pNode->iRes))
+					{
+						sAuthenID = root.get("AuthenID", "").asString();
+						sIP = root.get("ClientIP", "").asString();
+						sMac = root.get("Mac", "").asString();
+						if (1 == pNode->iRes)
+							pG_SecureManager->LoginSuccess(sAuthenID, sIP, sMac);
+						else
+							pG_SecureManager->ExecuteCancel(sAuthenID, sIP, scAuthen, sMac);					
+					}
+					pDB = (CDBConnector*)ValueOf(pNode->iHandle);
+					if (pDB != nullptr)
+						pDB->SQLWorkCallBack(SM_USER_AUTHEN_RES, pNode->iParam, pNode->sJsonText);
+					break;
+				case SM_SAFECARD_AUTHEN_REQ:
+					if ((0 == pNode->iRes) || (1 == pNode->iRes))
+					{
+						sCardNo = root.get("SafeCardNo", "").asString();
+						sIP = root.get("ClientIP", "").asString();
+						if (1 == pNode->iRes)
+							pG_SecureManager->SafeCardSuccess(sCardNo, sIP);
+						else
+							pG_SecureManager->ExecuteCancel(sCardNo, sIP, scSafeCard);
+					}
+					pDB = (CDBConnector*)ValueOf(pNode->iHandle);
+					if (pDB != nullptr)
+						pDB->SQLWorkCallBack(SM_SAFECARD_AUTHEN_RES, pNode->iParam, pNode->sJsonText);
+					break;
+				case SM_USER_REGIST_REQ:
+					sIP = root.get("ClientIP", "").asString();
+					if (0 == pNode->iRes)
+						pG_SecureManager->ExecuteCancel(sAuthenID, sIP, scRegister);
+					else
+						pG_SecureManager->RegisterFailed(sIP);
+					pDB = (CDBConnector*)ValueOf(pNode->iHandle);
+					if (pDB != nullptr)
+						pDB->SQLWorkCallBack(SM_USER_REGIST_RES, pNode->iParam, pNode->sJsonText);
+					break;
+				case SM_RECHARGE_DB_REQ:
+					//根据区组来指定返回信息
+					pDB = (CDBConnector*)ValueOf(pNode->iHandle);
+					if (pDB != nullptr)
+						pDB->SQLWorkCallBack(SM_RECHARGE_DB_REQ, pNode->iParam, pNode->sJsonText);
+					else
+						RechargeFail(root.get("Orderid", "").asString());
+					break;
+				case SM_GIVEITEM_DB_REQ:
+					pDB = (CDBConnector*)ValueOf(pNode->iHandle);
+					if (pDB != nullptr)
+						pDB->SQLWorkCallBack(pNode->iCmd, pNode->iParam, pNode->sJsonText);
+					break;
+				default:
+					break;
+				}
+			}
+		}
+		delete pNode;
+		pNode = pNext;
+	}
 }
 
 void CDBServerSocket::Clear()
@@ -539,10 +627,10 @@ void CDBServerSocket::Clear()
 
 void CDBServerSocket::LoadServerConfig()
 {
-	unsigned long ulTick = GetTickCount();
-	if ((0 == m_ulLastCheckTick) || (ulTick - m_ulLastCheckTick >= 5000))
+	unsigned int uiTick = GetTickCount();
+	if ((0 == m_uiLastCheckTick) || (uiTick - m_uiLastCheckTick >= 5000))
 	{
-		m_ulLastCheckTick = ulTick;
+		m_uiLastCheckTick = uiTick;
 		std::string sFileName(G_CurrentExeDir + "AreaConfig.json");
 		int iAge = GetFileAge(sFileName);
 		if ((iAge != -1) && (iAge != m_iConfigFileAge))
@@ -576,7 +664,7 @@ void CDBServerSocket::LoadServerConfig()
 						PServerConfigInfo pInfo;
 						Json::Value item;
 						std::lock_guard<std::mutex> guard(m_LockCS);
-						for (int i = 0; i < root.size(); i++)
+						for (int i = 0; i < (int)root.size(); i++)
 						{
 							item = root.get(i, 0);
 							sAreaName = item.get("AreaName", "").asString();

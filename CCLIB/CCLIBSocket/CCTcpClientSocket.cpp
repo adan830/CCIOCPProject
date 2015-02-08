@@ -353,7 +353,7 @@ int  CIOCPClientSocketManager :: ParseSocketReadData(int iType, const char* pBuf
 	while (iTempBufLen - iOffset >= sizeof(TServerSocketHeader))
 	{
 		pHeader = (PServerSocketHeader)pTempBuf;
-		if (SS_SEGMENTATION_SIGN == pHeader->ulSign)
+		if (SS_SEGMENTATION_SIGN == pHeader->uiSign)
 		{
 			iPackageLen = sizeof(TServerSocketHeader) + pHeader->usBehindLen;
 			//单个数据包超长后扔掉

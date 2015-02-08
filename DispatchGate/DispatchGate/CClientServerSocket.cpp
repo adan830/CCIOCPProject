@@ -16,7 +16,7 @@ const std::string War_Warning = "  ±¾ÓÎÏ·ÇøÊÇ×ÔÓÉ¶ÔÕ½Ä£Ê½£¬×ñÊØÓÎÏ·¹æÔò£¬¿É»ñµÃ³
 CClientServerSocket* pG_GateSocket;
 
 /************************Start Of CDGClient********************************************************/
-CDGClient::CDGClient() :m_ulLastConnectTick(GetTickCount()), m_ulForceCloseTick(0), m_usSelectMaskServerID(0), m_iEncodeIdx(0),
+CDGClient::CDGClient() :m_uiLastConnectTick(GetTickCount()), m_uiForceCloseTick(0), m_usSelectMaskServerID(0), m_iEncodeIdx(0),
 						m_iSelectRealServerID(0), m_bIsGMIP(false), m_iClientType(0), m_ucNetType(0)
 {
 	SendDebugString("CDGClient ´´½¨");
@@ -64,20 +64,20 @@ unsigned char CDGClient::GetNetType()
 
 void CDGClient::ForceClose()
 {
-	m_ulForceCloseTick = GetTickCount();
+	m_uiForceCloseTick = GetTickCount();
 }
 
-void CDGClient::Execute(unsigned long ulTick)
+void CDGClient::Execute(unsigned int uiTick)
 {
-	CClientConnector::Execute(ulTick);
-	if (((ulTick > m_ulLastConnectTick) && (ulTick - m_ulLastConnectTick > MAX_CONNECT_TIMEOUT)) ||
-		((m_ulForceCloseTick > 0) && (ulTick > m_ulForceCloseTick) && (ulTick - m_ulForceCloseTick > DELAY_DISCONNECT_TIME)))
+	CClientConnector::Execute(uiTick);
+	if (((uiTick > m_uiLastConnectTick) && (uiTick - m_uiLastConnectTick > MAX_CONNECT_TIMEOUT)) ||
+		((m_uiForceCloseTick > 0) && (uiTick > m_uiForceCloseTick) && (uiTick - m_uiForceCloseTick > DELAY_DISCONNECT_TIME)))
 	{
 		Close();
 	}
 
-	if (ulTick < m_ulLastConnectTick)
-		m_ulLastConnectTick = ulTick;
+	if (uiTick < m_uiLastConnectTick)
+		m_uiLastConnectTick = uiTick;
 }
 
 void CDGClient::ProcessReceiveMsg(char* pHeader, char* pData, int iDataLen)
@@ -108,16 +108,16 @@ void CDGClient::ProcessReceiveMsg(char* pHeader, char* pData, int iDataLen)
 
 void CDGClient::SocketRead(const char* pBuf, int iCount)
 {
-	if (m_ulForceCloseTick > 0)
+	if (m_uiForceCloseTick > 0)
 		return;
 	if (iCount >= sizeof(TClientSocketHead))
 	{
 		PClientSocketHead pHead = (PClientSocketHead)pBuf;
 		if (pHead->usPackageLen < sizeof(TClientSocketHead))
 			return;
-		if (CS_SEGMENTATION_CLIENTSIGN == pHead->ulSign)
+		if (CS_SEGMENTATION_CLIENTSIGN == pHead->uiSign)
 			m_iClientType = 1;
-		else if (CS_SEGMENTATION_CLIENTSIGN + 1 == pHead->ulSign)
+		else if (CS_SEGMENTATION_CLIENTSIGN + 1 == pHead->uiSign)
 			m_iClientType = 2;
 		else
 			return;
@@ -206,10 +206,10 @@ void CDGClient::SendToClientPeer(unsigned short usIdent, void* pData, unsigned s
 	char* pBuf = (char*)malloc(usBufLen);
 	try
 	{
-		((PClientSocketHead)pBuf)->ulSign = CS_SEGMENTATION_CLIENTSIGN;
+		((PClientSocketHead)pBuf)->uiSign = CS_SEGMENTATION_CLIENTSIGN;
 		((PClientSocketHead)pBuf)->usPackageLen = usBufLen;
 		((PClientSocketHead)pBuf)->usIdent = usIdent;
-		((PClientSocketHead)pBuf)->ulIdx = 0;
+		((PClientSocketHead)pBuf)->uiIdx = 0;
 		if (usDataLen > 0)
 		{
 			memcpy(pBuf + sizeof(TClientSocketHead), pData, usDataLen);
@@ -227,7 +227,7 @@ void CDGClient::SendToClientPeer(unsigned short usIdent, void* pData, unsigned s
 
 
 /************************Start Of CClientServerSocket************************************************/
-CClientServerSocket::CClientServerSocket() :m_ulLastCheckTick(0), m_iIPConfigFileAge(0), m_DefaultRule(itUnKnow), m_sWarWarning("")				 
+CClientServerSocket::CClientServerSocket() :m_uiLastCheckTick(0), m_iIPConfigFileAge(0), m_DefaultRule(itUnKnow), m_sWarWarning("")				 
 {
 	SendDebugString("CClientServerSocket ´´½¨");
 	m_OnCreateClient = std::bind(&CClientServerSocket::OnCreateClientSocket, this, std::placeholders::_1);
@@ -325,11 +325,11 @@ void CClientServerSocket::DoActive()
 	CheckIpConfig(GetTickCount());
 }
 
-void CClientServerSocket::CheckIpConfig(unsigned long ulTick)
+void CClientServerSocket::CheckIpConfig(unsigned int uiTick)
 {
-	if ((0 == m_ulLastCheckTick) || (ulTick - m_ulLastCheckTick >= 20 * 1000))
+	if ((0 == m_uiLastCheckTick) || (uiTick - m_uiLastCheckTick >= 20 * 1000))
 	{
-		m_ulLastCheckTick = ulTick;
+		m_uiLastCheckTick = uiTick;
 		std::string sIPConfigFileName(G_CurrentExeDir + "ipaddress.txt");
 		int iAge = GetFileAge(sIPConfigFileName);
 

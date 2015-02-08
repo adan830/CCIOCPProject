@@ -12,7 +12,7 @@
 #include <functional>
 
 //常量定义
-const unsigned long SHUTDOWN_FLAG = 0XFFFFFFFF;   // iocp端口关闭标志
+const unsigned int SHUTDOWN_FLAG = 0XFFFFFFFF;    // iocp端口关闭标志
 const int MAX_IOCP_BUFFER_SIZE = 8 * 1024;        // IOCP投递缓冲区大小，一般设置成8k性能较佳
 const int MAX_CLIENT_SEND_BUFFER_SIZE = MAX_IOCP_BUFFER_SIZE * 10 * 1024;  // 客户端可以发送的最大数据缓冲，也是服务器这端阻塞的最大客户端缓冲区  80M 
 
@@ -92,7 +92,7 @@ void DoFinalizeWinSocket();
 void SendDebugString(const std::string& sInfo);
 
 //判断当前ip是否是外网ip，根据当前内网设置来调整
-bool IsInternetIP(const u_long ulIP);
+bool IsInternetIP(const unsigned int uiIP);
 
 //返回本机的对外ip地址
 std::string GetInternetIP(const std::string& sDefaultIP = "");

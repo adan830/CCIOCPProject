@@ -11,7 +11,7 @@ using namespace CC_UTILS;
 CMainThread* pG_MainThread;
 
 /************************Start Of CMainThread**************************************************/
-CMainThread::CMainThread(const std::string &sServerName) : m_ulSlowRunTick(0), m_pLogSocket(nullptr)
+CMainThread::CMainThread(const std::string &sServerName) : m_uiSlowRunTick(0), m_pLogSocket(nullptr)
 {
 	m_pLogSocket = new CC_UTILS::CLogSocket(sServerName);
 	/*
@@ -52,16 +52,16 @@ void CMainThread::DoExecute()
 	m_pLogSocket->InitialWorkThread();
 	Log("AuthenServer Æô¶¯.");
 	pG_DBSocket->Open();
-	unsigned long ulTick;
+	unsigned int uiTick;
 	while (!IsTerminated())
 	{
 		int iErrorCode = 1;
 		try
 		{
-			ulTick = GetTickCount();
-			if (ulTick - m_ulSlowRunTick >= 1000)
+			uiTick = GetTickCount();
+			if (uiTick - m_uiSlowRunTick >= 1000)
 			{
-				m_ulSlowRunTick = ulTick;
+				m_uiSlowRunTick = uiTick;
 
 				//---------------------------------------
 				//---------------------------------------

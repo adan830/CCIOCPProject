@@ -41,7 +41,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\CCLIB\CCLIBSocket;..\..\CCLIB;..\..\CCLIB\jsoncpp;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\CCLIB\CCLIBSocket;..\..\CCLIB;..\..\CCLIB\jsoncpp;..\..\CCLIB\CCMySQL\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\CCLIB\CCMySQL\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -84,10 +85,15 @@
     <ClInclude Include="CAuthFailLog.h" />
     <ClInclude Include="CDBServerSocket.h" />
     <ClInclude Include="CMainThread.h" />
+    <ClInclude Include="CRechargeManager.h" />
+    <ClInclude Include="CSecureManager.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\CCLIB\CCGameCommon.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\CCLIB\CCHashClass.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -101,6 +107,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\CCLIB\CCLogSocket.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\CCLIB\CCMySQLEngn.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\CCLIB\CCServerEnDeCode.cpp">
@@ -117,6 +126,8 @@
     <ClCompile Include="CAuthFailLog.cpp" />
     <ClCompile Include="CDBServerSocket.cpp" />
     <ClCompile Include="CMainThread.cpp" />
+    <ClCompile Include="CRechargeManager.cpp" />
+    <ClCompile Include="CSecureManager.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

@@ -13,7 +13,7 @@ using namespace CC_UTILS;
 CMainThread* pG_MainThread;
 
 /************************Start Of CMainThread**************************************************/
-CMainThread::CMainThread(const std::string &sServerName) : m_ulSlowRunTick(0), m_ulCheckConfigTick(0), m_iConfigFileAge(0), m_pLogSocket(nullptr)
+CMainThread::CMainThread(const std::string &sServerName) : m_uiSlowRunTick(0), m_uiCheckConfigTick(0), m_iConfigFileAge(0), m_pLogSocket(nullptr)
 {
 	pG_DBSocket = new CDBServerSocket(sServerName);
 	pG_GateSocket = new CClientServerSocket;
@@ -31,11 +31,11 @@ CMainThread::~CMainThread()
 	delete pG_DBSocket;
 }
 
-void CMainThread::CheckConfig(const unsigned long ulTick)
+void CMainThread::CheckConfig(const unsigned int uiTick)
 {	
-	if ((0 == m_ulCheckConfigTick) || (ulTick - m_ulCheckConfigTick >= 30 * 1000))
+	if ((0 == m_uiCheckConfigTick) || (uiTick - m_uiCheckConfigTick >= 30 * 1000))
 	{
-		m_ulCheckConfigTick = ulTick;	
+		m_uiCheckConfigTick = uiTick;
 		std::string sConfigFileName(G_CurrentExeDir + "config.ini");
 		int iAge = GetFileAge(sConfigFileName);
 		if ((iAge != -1) && (iAge != m_iConfigFileAge))
@@ -71,17 +71,17 @@ void CMainThread::DoExecute()
 	pG_PigSocket->InitialWorkThread();
 
 	Log("DispatchGate Æô¶¯.");
-	unsigned long ulTick;
+	unsigned int uiTick;
 	while (!IsTerminated())
 	{
 		int iErrorCode = 1;
 		try
 		{
-			ulTick = GetTickCount();
-			if (ulTick - m_ulSlowRunTick >= 1000)
+			uiTick = GetTickCount();
+			if (uiTick - m_uiSlowRunTick >= 1000)
 			{
-				m_ulSlowRunTick = ulTick;
-				CheckConfig(ulTick);
+				m_uiSlowRunTick = uiTick;
+				CheckConfig(uiTick);
 				
 				pG_CenterSocket->DoHeartBeat();
 				pG_PigSocket->DoHeartBeat();	

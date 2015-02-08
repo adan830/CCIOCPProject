@@ -49,7 +49,7 @@ void CPigClientSocket::SendToServerPeer(unsigned short usIdent, int iParam, void
 	{
 		try
 		{
-			((PServerSocketHeader)pData)->ulSign = SS_SEGMENTATION_SIGN;
+			((PServerSocketHeader)pData)->uiSign = SS_SEGMENTATION_SIGN;
 			((PServerSocketHeader)pData)->usIdent = usIdent;
 			((PServerSocketHeader)pData)->iParam = iParam;			
 			((PServerSocketHeader)pData)->usBehindLen = usBufLen;
@@ -68,14 +68,14 @@ void CPigClientSocket::SendToServerPeer(unsigned short usIdent, int iParam, void
 
 void CPigClientSocket::DoHeartBeat()
 {
-	unsigned long ulInterval = 10 * 1000;
+	unsigned int uiInterval = 10 * 1000;
 	if (!IsConnected())
-		ulInterval = 3 * 1000;
+		uiInterval = 3 * 1000;
 
-	unsigned long ulTick = GetTickCount();
-	if (ulTick - m_ulCheckTick >= ulInterval)
+	unsigned int uiTick = GetTickCount();
+	if (uiTick - m_uiCheckTick >= uiInterval)
 	{
-		m_ulCheckTick = ulTick;
+		m_uiCheckTick = uiTick;
 		if (IsConnected())
 		{   //连接状态进行心跳检测
 			if (m_iPingCount >= 3)

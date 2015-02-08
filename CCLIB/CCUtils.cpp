@@ -191,19 +191,19 @@ namespace CC_UTILS{
 
 	std::string GetFileVersion(const std::string &sFileName)
 	{
-		unsigned long ulDummy;
+		unsigned int uiDummy;
 		std::string sVersion("");
-		unsigned long ulVerInfoSize = GetFileVersionInfoSize(sFileName.c_str(), &ulDummy);
-		if (0 == ulVerInfoSize)
+		unsigned int uiVerInfoSize = GetFileVersionInfoSize(sFileName.c_str(), (LPDWORD)&uiDummy);
+		if (0 == uiVerInfoSize)
 			return sVersion;
 
-		char* pVerInfo = (char*)malloc(ulVerInfoSize);
+		char* pVerInfo = (char*)malloc(uiVerInfoSize);
 		if (nullptr == pVerInfo)
 			return sVersion;
 
-		GetFileVersionInfo(sFileName.c_str(), 0, ulVerInfoSize, pVerInfo);
+		GetFileVersionInfo(sFileName.c_str(), 0, uiVerInfoSize, pVerInfo);
 		VS_FIXEDFILEINFO* pFixedFileInfo = nullptr;
-		if (0 == VerQueryValue(pVerInfo, "\\", (LPVOID*)&pFixedFileInfo, (PUINT)&ulVerInfoSize))
+		if (0 == VerQueryValue(pVerInfo, "\\", (LPVOID*)&pFixedFileInfo, (PUINT)&uiVerInfoSize))
 			return sVersion;
 
 		if (pFixedFileInfo != nullptr)
@@ -240,6 +240,23 @@ namespace CC_UTILS{
 		try
 		{
 			iRetValue = std::stoi(sTemp);
+		}
+		catch (...)
+		{
+			iRetValue = iDef;
+		}
+		return iRetValue;
+	}
+
+	int64_t StrToInt64Def(const std::string& sTemp, const int64_t iDef)
+	{
+		int64_t iRetValue;
+		try
+		{
+			//---------
+			//这个转化的通用性 如何？？？？
+			//---------
+			iRetValue = atoll(sTemp.c_str());
 		}
 		catch (...)
 		{

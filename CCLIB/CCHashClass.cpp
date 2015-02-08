@@ -9,10 +9,10 @@ namespace CC_UTILS{
 
 /************************Start Of CIntegerHash**************************************************/
 
-	CIntegerHash::CIntegerHash(unsigned long ulSize) :m_RemoveEvent(nullptr), m_iTotalCount(0), m_ulBucketSize(ulSize), m_pFirstListNode(nullptr),
+	CIntegerHash::CIntegerHash(unsigned int uiSize) :m_RemoveEvent(nullptr), m_iTotalCount(0), m_uiBucketSize(uiSize), m_pFirstListNode(nullptr),
 		m_pLastListNode(nullptr), m_pCurrentQueueNode(nullptr)
 	{
-		m_TopBuckets = new PIntHashItem[ulSize];
+		m_TopBuckets = new PIntHashItem[uiSize];
 	}	
 
 	CIntegerHash::~CIntegerHash()
@@ -27,12 +27,12 @@ namespace CC_UTILS{
 		PIntHashItem pBucket = *(Find(iKey));
 		if (nullptr == pBucket)
 		{
-			unsigned long ulHash = HashOf(iKey) % m_ulBucketSize;
+			unsigned int uiHash = HashOf(iKey) % m_uiBucketSize;
 			pBucket = new TIntHashItem;
 			pBucket->Key = iKey;
 			pBucket->Value = pValue;
 			pBucket->BPrev = nullptr;
-			pBucket->BNext = m_TopBuckets[ulHash];
+			pBucket->BNext = m_TopBuckets[uiHash];
 			pBucket->LPrev = m_pLastListNode;
 			pBucket->LNext = nullptr;
 
@@ -43,7 +43,7 @@ namespace CC_UTILS{
 			else
 				m_pFirstListNode = pBucket;
 
-			m_TopBuckets[ulHash] = pBucket;
+			m_TopBuckets[uiHash] = pBucket;
 			m_pLastListNode = pBucket;
 			++m_iTotalCount;
 			retFlag = true;
@@ -68,7 +68,7 @@ namespace CC_UTILS{
 		m_pFirstListNode = nullptr;
 		m_pLastListNode = nullptr;
 		m_pCurrentQueueNode = nullptr;
-		for (int i = 0; i < (int)m_ulBucketSize; i++)
+		for (int i = 0; i < (int)m_uiBucketSize; i++)
 			m_TopBuckets[i] = nullptr;
 		m_iTotalCount = 0;
 	}
@@ -84,8 +84,8 @@ namespace CC_UTILS{
 				pItem->BPrev->BNext = pItem->BNext;
 			else
 			{
-				unsigned long ulHash = HashOf(pItem->Key) % m_ulBucketSize;
-				m_TopBuckets[ulHash] = pItem->BNext;
+				unsigned int uiHash = HashOf(pItem->Key) % m_uiBucketSize;
+				m_TopBuckets[uiHash] = pItem->BNext;
 			}
 
 			if (pItem->LNext != nullptr)
@@ -119,8 +119,8 @@ namespace CC_UTILS{
 	bool CIntegerHash::Remove(const int iKey)
 	{
 		bool retFlag = false;
-		unsigned long ulHash = HashOf(iKey) % m_ulBucketSize;
-		PIntHashItem pCurr = m_TopBuckets[ulHash];
+		unsigned int uiHash = HashOf(iKey) % m_uiBucketSize;
+		PIntHashItem pCurr = m_TopBuckets[uiHash];
 		while (pCurr != nullptr)
 		{
 			if (iKey == pCurr->Key)
@@ -144,7 +144,7 @@ namespace CC_UTILS{
 	}
 
 	//func返回true的时候，从hash中删除该结点
-	int CIntegerHash::Touch(TTouchFunc func, unsigned long ulParam)
+	int CIntegerHash::Touch(TTouchFunc func, unsigned int uiParam)
 	{
 		int iRetCode = 0;
 		if (func != nullptr)
@@ -154,7 +154,7 @@ namespace CC_UTILS{
 			while (pCurr != nullptr)
 			{
 				pNext = pCurr->LNext;
-				if (func(pCurr->Value, ulParam, iRetCode))
+				if (func(pCurr->Value, uiParam, iRetCode))
 					DoRemoveItem(pCurr);
 				pCurr = pNext;
 			}
@@ -186,15 +186,15 @@ namespace CC_UTILS{
 			return nullptr;
 	}
 
-	unsigned long CIntegerHash::HashOf(const int iKey)
+	unsigned int CIntegerHash::HashOf(const int iKey)
 	{
 		return iKey;
 	}
 
 	PPIntHashItem CIntegerHash::Find(const int iKey)
 	{
-		unsigned long ulHash = HashOf(iKey) % m_ulBucketSize;
-		PPIntHashItem ppItem = &m_TopBuckets[ulHash];
+		unsigned int uiHash = HashOf(iKey) % m_uiBucketSize;
+		PPIntHashItem ppItem = &m_TopBuckets[uiHash];
 		while (*ppItem != nullptr)
 		{
 			if (iKey == (*ppItem)->Key)
@@ -211,10 +211,10 @@ namespace CC_UTILS{
 
 /************************Start Of CStringHash**************************************************/
 
-	CStringHash::CStringHash(unsigned long ulSize) : m_RemoveEvent(nullptr), m_iTotalCount(0), m_ulBucketSize(ulSize), m_pFirstListNode(nullptr),
+	CStringHash::CStringHash(unsigned int uiSize) : m_RemoveEvent(nullptr), m_iTotalCount(0), m_uiBucketSize(uiSize), m_pFirstListNode(nullptr),
 		m_pLastListNode(nullptr), m_pCurrentQueueNode(nullptr)
 	{
-		m_TopBuckets = new PStrHashItem[ulSize];
+		m_TopBuckets = new PStrHashItem[uiSize];
 	}
 
 	CStringHash::~CStringHash()
@@ -229,12 +229,12 @@ namespace CC_UTILS{
 		PStrHashItem pBucket = *(Find(sKey));
 		if (nullptr == pBucket)
 		{
-			unsigned long ulHash = HashOf(sKey) % m_ulBucketSize;
+			unsigned int uiHash = HashOf(sKey) % m_uiBucketSize;
 			pBucket = new TStrHashItem;
 			pBucket->Key = sKey;
 			pBucket->Value = pValue;
 			pBucket->BPrev = nullptr;
-			pBucket->BNext = m_TopBuckets[ulHash];
+			pBucket->BNext = m_TopBuckets[uiHash];
 			pBucket->LPrev = m_pLastListNode;
 			pBucket->LNext = nullptr;
 
@@ -245,7 +245,7 @@ namespace CC_UTILS{
 			else
 				m_pFirstListNode = pBucket;
 
-			m_TopBuckets[ulHash] = pBucket;
+			m_TopBuckets[uiHash] = pBucket;
 			m_pLastListNode = pBucket;
 			++m_iTotalCount;
 			retFlag = true;
@@ -270,7 +270,7 @@ namespace CC_UTILS{
 		m_pFirstListNode = nullptr;
 		m_pLastListNode = nullptr;
 		m_pCurrentQueueNode = nullptr;
-		for (int i = 0; i < (int)m_ulBucketSize; i++)
+		for (int i = 0; i < (int)m_uiBucketSize; i++)
 			m_TopBuckets[i] = nullptr;
 		m_iTotalCount = 0;
 	}
@@ -286,8 +286,8 @@ namespace CC_UTILS{
 				pItem->BPrev->BNext = pItem->BNext;
 			else
 			{
-				unsigned long ulHash = HashOf(pItem->Key) % m_ulBucketSize;
-				m_TopBuckets[ulHash] = pItem->BNext;
+				unsigned int uiHash = HashOf(pItem->Key) % m_uiBucketSize;
+				m_TopBuckets[uiHash] = pItem->BNext;
 			}
 
 			if (pItem->LNext != nullptr)
@@ -321,8 +321,8 @@ namespace CC_UTILS{
 	bool CStringHash::Remove(const std::string &sKey)
 	{
 		bool retFlag = false;
-		unsigned long ulHash = HashOf(sKey) % m_ulBucketSize;
-		PStrHashItem pCurr = m_TopBuckets[ulHash];
+		unsigned int uiHash = HashOf(sKey) % m_uiBucketSize;
+		PStrHashItem pCurr = m_TopBuckets[uiHash];
 		while (pCurr != nullptr)
 		{
 			if (0 == sKey.compare(pCurr->Key))
@@ -345,7 +345,7 @@ namespace CC_UTILS{
 			return nullptr;
 	}
 
-	int CStringHash::Touch(TTouchFunc func, unsigned long ulParam)
+	int CStringHash::Touch(TTouchFunc func, unsigned int uiParam)
 	{
 		int iRetCode = 0;
 		if (func != nullptr)
@@ -355,7 +355,7 @@ namespace CC_UTILS{
 			while (pCurr != nullptr)
 			{
 				pNext = pCurr->LNext;
-				if (func(pCurr->Value, ulParam, iRetCode))
+				if (func(pCurr->Value, uiParam, iRetCode))
 					DoRemoveItem(pCurr);
 				pCurr = pNext;
 			}
@@ -388,9 +388,9 @@ namespace CC_UTILS{
 	}
 
 	//CStringHash的key不区分大小写
-	unsigned long CStringHash::HashOf(const std::string &sKey)
+	unsigned int CStringHash::HashOf(const std::string &sKey)
 	{
-		unsigned long ulRetCode = 0;
+		unsigned int uiRetCode = 0;
 		bool bHead = false;
 		bool bTail = false;
 		unsigned char key;
@@ -416,15 +416,15 @@ namespace CC_UTILS{
 			if ((!bHead) && (!bTail) && (key >= 0x41) && (key <= 0x5A))
 				key = key | 0x20;
 
-			ulRetCode = ((ulRetCode << 2) | (ulRetCode >> (sizeof(ulRetCode) * 8 - 2))) ^ key;
+			uiRetCode = ((uiRetCode << 2) | (uiRetCode >> (sizeof(uiRetCode)* 8 - 2))) ^ key;
 		}
-		return ulRetCode;
+		return uiRetCode;
 	}
 
 	PPStrHashItem CStringHash::Find(const std::string &sKey)
 	{
-		unsigned long ulHash = HashOf(sKey) % m_ulBucketSize;
-		PPStrHashItem ppItem = &m_TopBuckets[ulHash];
+		unsigned int uiHash = HashOf(sKey) % m_uiBucketSize;
+		PPStrHashItem ppItem = &m_TopBuckets[uiHash];
 		while (*ppItem != nullptr)
 		{
 			if (0 == sKey.compare((*ppItem)->Key))

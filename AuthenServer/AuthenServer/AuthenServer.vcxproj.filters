@@ -36,6 +36,12 @@
     <ClInclude Include="CASGlobal.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="CSecureManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CRechargeManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -78,6 +84,18 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\..\CCLIB\jsoncpp\jsoncpp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CSecureManager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CRechargeManager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\CCLIB\CCGameCommon.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\CCLIB\CCMySQLEngn.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

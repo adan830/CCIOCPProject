@@ -12,10 +12,10 @@
 // Client与服务器间的通讯头
 typedef struct _TClientSocketHead
 {
-	unsigned long ulSign;				// 分隔符 CS_SEGMENTATION_SIGN
+	unsigned int uiSign;				// 分隔符 CS_SEGMENTATION_SIGN
 	unsigned short usPackageLen;		// 封包总长度
 	unsigned short usIdent;				// Ident or $8000 = 压缩   [Ident>=$8000 数据头后2字节表示压缩前数据长度，后续数据为压缩数据区。Ident<$8000 数据头后为数据区]
-	unsigned long ulIdx;			    // 包序号,后续数据可能会被压缩
+	unsigned int uiIdx;		    	    // 包序号,后续数据可能会被压缩
 }TClientSocketHead, *PClientSocketHead;
 
 //客户端的窗口类型
@@ -115,7 +115,7 @@ typedef struct _TClientWindowRec
 {
 	unsigned char WinType;
 	int Param;
-	unsigned long TransID;          // 事务ID
+	unsigned int TransID;          // 事务ID
 	//buf:提示信息字符串
 }TClientWindowRec, *PClientWindowRec;
 

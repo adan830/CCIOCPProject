@@ -27,7 +27,7 @@ public:
 private:
 	void OnAddLabel(void* Sender);
 private:
-	unsigned long m_ulSlowRunTick;       //慢速执行tick
+	unsigned int m_uiSlowRunTick;       //慢速执行tick
 };
 
 extern CMainThread* pG_MainThread;

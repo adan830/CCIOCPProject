@@ -58,7 +58,7 @@ void CDBConnector::SendToClientPeer(unsigned short usIdent, int iParam, void* pB
 	{
 		try
 		{
-			((PServerSocketHeader)pData)->ulSign = SS_SEGMENTATION_SIGN;
+			((PServerSocketHeader)pData)->uiSign = SS_SEGMENTATION_SIGN;
 			((PServerSocketHeader)pData)->usIdent = usIdent;
 			((PServerSocketHeader)pData)->iParam = iParam;
 			((PServerSocketHeader)pData)->usBehindLen = usBufLen;
@@ -274,7 +274,7 @@ void CDBConnector::ReceiveConfig(int iParam, const char* pBuf, unsigned short us
 /************************Start Of CDBServerSocket******************************************/
 
 CDBServerSocket::CDBServerSocket(const std::string& sName) :m_sAllowDBServerIP(""), m_iSessionID(1000), m_sServerName("#"+sName+"#"), 
-m_iConfigFileAge(0), m_ulLastCheckTick(0), m_pLogSocket(nullptr), m_ServerHash(511) 
+m_iConfigFileAge(0), m_uiLastCheckTick(0), m_pLogSocket(nullptr), m_ServerHash(511) 
 {
 	SetMaxCorpseTime(60 * 1000);
 	m_ServerHash.m_RemoveEvent = std::bind(&CDBServerSocket::RemoveServerInfo, this, std::placeholders::_1, std::placeholders::_2);
@@ -288,7 +288,6 @@ m_iConfigFileAge(0), m_ulLastCheckTick(0), m_pLogSocket(nullptr), m_ServerHash(5
 
 CDBServerSocket::~CDBServerSocket()
 {
-	m_ServerHash.m_RemoveEvent = nullptr;
 	if (m_pLogSocket != nullptr)
 		delete m_pLogSocket;
 }
@@ -582,10 +581,10 @@ void CDBServerSocket::OnSetListView(void* Sender)
 
 void CDBServerSocket::LoadServerConfig()
 {
-	unsigned long ulTick = GetTickCount();
-	if ((0 == m_ulLastCheckTick) || (ulTick - m_ulLastCheckTick >= 30000))
+	unsigned int uiTick = GetTickCount();
+	if ((0 == m_uiLastCheckTick) || (uiTick - m_uiLastCheckTick >= 30000))
 	{
-		m_ulLastCheckTick = ulTick;
+		m_uiLastCheckTick = uiTick;
 		std::string sFileName(G_CurrentExeDir + "AreaConfig.json");
 		int iAge = GetFileAge(sFileName);
 		if ((iAge != -1) && (iAge != m_iConfigFileAge))

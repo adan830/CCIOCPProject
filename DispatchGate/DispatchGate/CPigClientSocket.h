@@ -28,7 +28,7 @@ private:
 	void OnSocketRead(void* Sender, const char* pBuf, int iCount);
 	void OnSocketError(void* Sender, int& iErrorCode);
 private:
-	unsigned long m_ulCheckTick;
+	unsigned int m_uiCheckTick;
 	int m_iPingCount;
 };
 

@@ -83,71 +83,56 @@ end;
 
 	void Initialize_Code()
 	{
-		/*
-procedure initialize_Code();
-var
-  i, enDivisor, deDivisor: integer;
-  wEnLen, wDeLen    : Word;
-  Pen, pde          : PAnsiChar;
-begin
-  enDivisor := 0;
-  deDivisor := 0;
-  wEnLen := integer(@_EnCode_End_) - integer(@EnCode);
-  wDeLen := integer(@_DeCode_End_) - integer(@DeCode);
-  Pen := @EnCode;
-  for i := 0 to wEnLen - 1 do
-  begin
-    if PByte(Pen)^ = ENCODE_DIVISOR then
-    begin
-      enDivisor := i;
-      Break;
-    end;
-    inc(Pen);
-  end;
+		int enDivisor = 0;
+		int deDivisor = 0;
+		unsigned short usEnLen = int(&_EnCode_End_) - int(&EnCode);
+		unsigned short usDeLen = int(&_DeCode_End_) - int(&DeCode);
 
-  pde := @DeCode;
-  for i := 0 to wDeLen - 1 do
-  begin
-    if PByte(pde)^ = ENCODE_DIVISOR then
-    begin
-      deDivisor := i;
-      Break;
-    end;
-    inc(pde);
-  end;
-  Pen := @EnCode;
-  pde := @DeCode;
+		char* pEn = (char*)&EnCode;
+		for (int i = 0; i < usEnLen; i++)
+		{
+			if (ENCODE_DIVISOR == *(pEn))
+			{
+				enDivisor = i;
+				break;
+			}
+			++pEn;
+		}
 
-  for i := Low(CodeBuffer) to High(CodeBuffer) do
-    with CodeBuffer[i] do
-    begin
-      wEnBufferLen := wEnLen;
-      wDeBufferLen := wDeLen;
-      pEnBuffer := VirtualAlloc(nil, wEnBufferLen, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-      pDeBuffer := VirtualAlloc(nil, wDeBufferLen, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-      Move(Pen^, pEnBuffer^, wEnBufferLen);
-      Move(pde^, pDeBuffer^, wDeBufferLen);
-      pEnBuffer[enDivisor] := Char(i);                      // 加密因子 (ENCODE_DIVISOR)的位置 需要反编译找出位置
-      pDeBuffer[deDivisor] := Char(i);                      // 解密因子
-    end;
-end;
-		*/
+		char* pDe = (char*)&DeCode;
+		for (int i = 0; i < usDeLen; i++)
+		{
+			if (ENCODE_DIVISOR == *(pDe))
+			{
+				deDivisor = i;
+				break;
+			}
+			++pDe;
+		}
+
+		pEn = (char*)&EnCode;
+		pDe = (char*)&DeCode;
+		PEnDeRecord pBuf = nullptr;
+		for (int i = 0; i < MAX_BUFFER_TYPE; i++)
+		{
+			pBuf = &CodeBuffer[i];
+			pBuf->usEnBufferLen = usEnLen;
+			pBuf->usDeBufferLen = usDeLen;
+			pBuf->pEnBuffer = (char*)VirtualAlloc(nullptr, usEnLen, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+			pBuf->pDeBuffer = (char*)VirtualAlloc(nullptr, usDeLen, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+			memcpy(pBuf->pEnBuffer, pEn, usEnLen);
+			memcpy(pBuf->pDeBuffer, pDe, usDeLen);
+			pBuf->pEnBuffer[enDivisor] = (char)i;			// 加密因子 (ENCODE_DIVISOR)的位置 需要反编译找出位置
+			pBuf->pDeBuffer[deDivisor] = (char)i;			// 解密因子
+		}
 	}
 
 	void Finalize_Code()
 	{
-		/*
-procedure finalize_Code();
-var
-  i                 : integer;
-begin
-  for i := Low(CodeBuffer) to High(CodeBuffer) do
-    with CodeBuffer[i] do
-    begin
-      VirtualFree(pEnBuffer, wEnBufferLen, MEM_DECOMMIT);
-      VirtualFree(pDeBuffer, wDeBufferLen, MEM_DECOMMIT);
-    end;
-end;
-		*/
+		for (int i = 0; i < MAX_BUFFER_TYPE; i++)
+		{
+			VirtualFree(CodeBuffer[i].pEnBuffer, CodeBuffer[i].usEnBufferLen, MEM_DECOMMIT);
+			VirtualFree(CodeBuffer[i].pDeBuffer, CodeBuffer[i].usDeBufferLen, MEM_DECOMMIT);
+		}
 	}
 }

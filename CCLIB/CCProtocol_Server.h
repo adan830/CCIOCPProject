@@ -11,7 +11,7 @@
 // Server¼äÍ¨Ñ¶µÄĞ­ÒéÍ·
 typedef struct _TServerSocketHeader
 {
-	unsigned long ulSign;				// ·Ö¸ô·û SS_SEGMENTATION_SIGN
+	unsigned int uiSign;				// ·Ö¸ô·û SS_SEGMENTATION_SIGN
 	int iParam;							// À©Õ¹²ÎÊı
 	unsigned short usIdent;				// Ğ­ÒéºÅ
 	unsigned short usBehindLen;			// ºóĞøÊı¾İ³¤¶È
@@ -82,7 +82,7 @@ typedef struct _TJsonJobNode
 	int iHandle;
 	int iParam;
 	int iRes;
-	unsigned long ulAddTick;
+	unsigned int uiAddTick;
 	std::string sJsonText;
 	_TJsonJobNode* pNext;
 }TJsonJobNode, *PJsonJobNode;
@@ -97,9 +97,10 @@ const int SM_USER_AUTHEN_REQ = 0x1003;                              // ÇëÇóÈÏÖ¤
 const int SM_USER_AUTHEN_RES = 0x1004;                              // ÈÏÖ¤·µ»Ø
 const int SM_SERVER_CONFIG = 0x1005;                                // ÅäÖÃĞÅÏ¢
 const int SM_USER_REGIST_REQ = 0x1008;                              // ÓÃ»§×¢²á
+const int SM_USER_REGIST_RES = 0x1009;								// ÓÃ»§×¢²á·µ»Ø
 const int SM_KICKOUT_ACCOUNT = 0x1010;                              // ÌßµôÕËºÅ
 const int SM_RECHARGE_AREA_QUERY = 0x1011;                          // °´ĞéÄâÇøºÅ×Ô¶¯ÂÖÑ¯³äÖµĞÅÏ¢
-
+const int SM_RECHARGE_DB_REQ = 0x1012;                              // ÈÏÖ¤·şÎñÆ÷Ïòdb·¢ËÍ³äÖµÇëÇó
 const int SM_RECHARGE_DB_ACK = 0x1013;								// db·µ»Ø¸øÈÏÖ¤·şÎñÆ÷³äÖµ½á¹û
 const int SM_CHILD_ONLINE_TIME = 0x1015;                            // ·À³ÁÃÔ£¬ÔÚÏßµÄÊ±¼ä
 const int SM_CHILD_LOGON = 0x1016;									// ·À³ÁÃÔ£¬ÉÏÏß
@@ -117,6 +118,7 @@ const int SM_PLAYER_MSG = 0x2004;                                   // Íæ¼ÒµÄÏûÏ
 const int SM_MULPLAYER_MSG = 0x2005;                                // Èº·¢µÄÏûÏ¢
 
 const int SM_GIVEITEM_QUERY = 0x2044;                               // °´ÕÕĞéÄâÇøºÅ×Ô¶¯ÂÖÑ¯ÍÆËÍµÀ¾ßĞÅÏ¢
+const int SM_GIVEITEM_DB_REQ = 0x2045;                              // ÈÏÖ¤·şÎñÆ÷Ïòdb·¢ËÍËÍµÀ¾ßÇëÇó
 const int SM_GIVEITEM_DB_ACK = 0x2046;								// db·µ»Ø¸øÈÏÖ¤·şÎñÆ÷ËÍµÀ¾ß½á¹û
 const int SM_REFRESH_RECHARGE = 0x2056;								// Í¨ÖªÈÏÖ¤·şÎñÁ¢¼´²éÑ¯³äÖµ
 

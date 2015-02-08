@@ -15,7 +15,7 @@
 typedef struct _TDelayFreeNode
 {
 	unsigned short usHandle;
-	unsigned long ulAddTick;
+	unsigned int uiAddTick;
 	void* pObj;
 	_TDelayFreeNode* Next;	
 }TDelayFreeNode, *PDelayFreeNode;
@@ -39,7 +39,7 @@ public:
 	std::string& GetRemoteAddress();
 	unsigned short GetSocketHandle(){ return m_SocketHandle; }
 protected:
-	virtual void Execute(unsigned long ulTick){}
+	virtual void Execute(unsigned int uiTick){}
 	virtual void SocketRead(const char* pBuf, int iCount){}
 	int ParseSocketReadData(int iType, const char* pBuf, int iCount);                                     //由子类覆盖的SocketRead函数调用
 	virtual void ProcessReceiveMsg(PServerSocketHeader pHeader, char* pData, int iDataLen){};             //处理具体的消息包数据，子类实现
@@ -48,8 +48,8 @@ private:
 	void Clear();
 	void PrepareSend(int iUntreated, int iTransfered);
 	bool PrepareRecv();
-	void DoActive(unsigned long ulTick);
-	bool IsCorpse(unsigned long ulTick, unsigned long ulMaxCorpseTime);
+	void DoActive(unsigned int uiTick);
+	bool IsCorpse(unsigned int uiTick, unsigned int uiMaxCorpseTime);
 	bool IsBlock(int iMaxBlockSize);
 private:
     SOCKET m_Socket;
@@ -64,9 +64,9 @@ private:
 	std::mutex m_LockCS;                // 队列操作使用的互斥锁
 	TOnSocketError m_OnSocketError;
 	int m_iTotalBufferLen;
-	unsigned long m_ulActiveTick;
-	unsigned long m_ulLastSendTick;
-	unsigned long m_ulBufferFullTick;	// 客户端发送缓冲区堆积满数据多久后踢掉
+	unsigned int m_uiActiveTick;
+	unsigned int m_uiLastSendTick;
+	unsigned int m_uiBufferFullTick;	// 客户端发送缓冲区堆积满数据多久后踢掉
 	CC_UTILS::PBufferStream m_pReceiveBuffer;      // 处理socket数据接收的buffer
 friend class CIOCPServerSocketManager;
 };
@@ -167,7 +167,7 @@ private:
 	void DoAcceptError(void* Sender, int& iErrorCode);
 	void DoClientError(void* Sender, int& iErrorCode);
 
-	bool DelayFreeClient(unsigned long ulTick);
+	bool DelayFreeClient(unsigned int uiTick);
 	unsigned short AllocHandle();
 	void AddClient(int iHandle, void* pClient);
 private:
