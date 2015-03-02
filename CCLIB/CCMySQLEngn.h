@@ -110,22 +110,22 @@ namespace CC_UTILS{
   public:
 	  CMySQLManager();
 	  virtual ~CMySQLManager();
-	  bool Connect(const std::string &sHost, const std::string &sDBName, const std::string &sUser, const std::string &sPwd, std::string sCharSet = MYSQL_DEFAULT_CHARSET, int iPort = MYSQL_DEFAULT_PORT);
+	  bool Connect(const std::string &sHost, const std::string &sDBName, const std::string &sUser, const std::string &sPwd, std::string sCharSet=MYSQL_DEFAULT_CHARSET, int iPort = MYSQL_DEFAULT_PORT);
 	  void Close();
 	  bool Open();
 	  bool SelectDB(const std::string &sDBName);
-	  bool Exec(const std::string &sSQL, IMySQLFields &DataSet, int &iAffected);
-	  unsigned int Escape_string(char* source, unsigned int uiSize, char* dest);
-	  std::string Escape_string(char* source, unsigned int uiSize);
+	  bool Exec(const std::string &sSQL, IMySQLFields* pDataSet, int &iAffected);
+	  unsigned int EscapeString(char* pSource, unsigned int uiSize, char* pDest);
+	  std::string EscapeString(char* pSource, unsigned int uiSize);
 	  std::string GetLastError(unsigned int &uiErrorCode);
 	  bool IsConnected();
 	  void SetConnectString(const std::string &sValue);
   public:
 	  int m_iPort;
-	  std::string m_sHost;	
+	  std::string m_sHostName;
 	  std::string m_sDBName;
 	  std::string m_sUser;
-	  std::string m_sPwd;
+	  std::string m_sPassword;
 	  std::string m_sCharSet;	
 	  bool m_bAutoReconnect;	
 	  bool m_bAutoCreateDB;
@@ -148,6 +148,7 @@ namespace CC_UTILS{
 	  std::string m_sConnectString;
 	  unsigned int m_uiErrorCode;
   };
+
 }
 
 #endif //__CC_MYSQLENGN_H__

@@ -301,6 +301,9 @@ enum enum_server_command
 
 #define ONLY_KILL_QUERY         1
 
+#define ER_BAD_DB_ERROR     1049                                 //未知DB
+#define SERVER_GONE_ERROR   2006                                 //连接断开
+#define CONN_HOST_ERROR     2003                                 //连接失败
 
 struct st_vio;					/* Only C */
 typedef struct st_vio Vio;
