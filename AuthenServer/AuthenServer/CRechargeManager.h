@@ -6,6 +6,7 @@
 #define __CC_RECHARGE_MANAGER_H__
 
 #include "stdafx.h"
+using namespace CC_UTILS;
 
 /**
 *
@@ -21,15 +22,14 @@ public:
 private:
 	void OnMySQLError(unsigned int uiErrorCode, const std::string &sErrMsg);
 	void CheckProcExists(void* Sender);
-	//function BuildJsonResult(DataSet: IMySQLFields) : AnsiString;
-	//std::string BuildJsonResult(IMySQLFields DataSet);
+	std::string BuildJsonResult(IMySQLFields* pDataSet);
 	bool QueryAreaRecharge(PJsonJobNode pNode);
 	bool DBRechargeAck(PJsonJobNode pNode);			
 private:
 	void* m_Owner;
 	std::string m_sConnectStr;
-	bool m_bEnabled;	
-    //FMySQLProc: TMySQL;    
+	bool m_bEnabled;
+	CMySQLManager* m_pMySQLProc;
 };
 
 
