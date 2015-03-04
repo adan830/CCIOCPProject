@@ -19,6 +19,7 @@ public:
 	CSQLWorkThread(void* owner, const std::string &sConnectStr);
 	virtual ~CSQLWorkThread();
 	virtual void DoExecute();
+	bool IsEnabled();
 private:
 	void OnMySQLError(unsigned int uiErrorCode, const std::string &sErrMsg);
 	void CheckProcExists(void* Sender);
@@ -30,6 +31,30 @@ private:
 	std::string m_sConnectStr;
 	bool m_bEnabled;
 	CMySQLManager* m_pMySQLProc;
+};
+
+/**
+*
+* ≥‰÷µπ‹¿Ì∆˜
+*
+*/
+class CRechargeManager
+{
+public:
+	CRechargeManager();
+	virtual ~CRechargeManager();
+	bool AddRechargeJob(int iCmd, int iHandle, int iParam, const std::string &sTxt, const bool bForce = false);
+	PJsonJobNode PopRechargeJob();
+	bool IsEnable();
+private:
+	std::string LoadSQLConfig();
+	void Clear();
+private:
+	std::mutex m_LockCS;
+	PJsonJobNode m_pFirst;
+	PJsonJobNode m_pLast;
+	int m_iCount;
+	CSQLWorkThread* m_pWorkThread;
 };
 
 
