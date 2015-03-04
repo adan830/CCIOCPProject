@@ -355,6 +355,11 @@ end;
 		return Open();
 	}
 
+	bool CMySQLManager::IsMySQLConnected()
+	{
+		return m_bConnected;
+	}
+
 	void CMySQLManager::Close()
 	{
 		if (m_LibHandle != nullptr)

@@ -303,4 +303,141 @@ namespace CC_UTILS{
 		}
 		return 0;
 	}
+
+
+	std::string EncodeString(std::string &str)
+	{
+		/*
+var
+  EncBuf            : PChar;
+  BufLen            : Integer;
+begin
+  BufLen := Length(Str) * 2;
+  EncBuf := AllocMem(BufLen);
+  Encode6BitBuf(PChar(Str), EncBuf, Length(Str), BufLen);
+  Result := StrPas(EncBuf);
+  FreeMem(EncBuf);
+end;
+		*/
+		return "";
+	}
+
+	std::string DecodeString(std::string &str)
+	{
+		/*
+var
+  EncBuf            : PChar;
+  BufLen            : Integer;
+begin
+  BufLen := Length(Str) * 2;
+  EncBuf := AllocMem(BufLen);
+  Decode6BitBuf(PChar(Str), EncBuf, Length(Str), BufLen);
+  Result := StrPas(EncBuf);
+  FreeMem(EncBuf);
+end;
+		*/
+		return "";
+	}
+
+	void Decode6BitBuf(char* pSource, char* pBuf, int iSrcLen, int iBufLen)
+	{
+		/*
+const
+  Masks             : array[2..6] of Byte = ($FC, $F8, $F0, $E0, $C0);
+var
+  I, nBitPos, nMadeBit, nBufPos: Integer;
+  btCh, btTmp, btByte: Byte;
+begin
+  btCh := 0;
+  nBitPos := 2;
+  nMadeBit := 0;
+  nBufPos := 0;
+  btTmp := 0;
+  for I := 0 to nSrcLen - 1 do
+  begin
+    if Integer(sSource[I]) - $3C >= 0 then
+      btCh := Byte(sSource[I]) - $3C
+    else
+    begin
+      nBufPos := 0;
+      Break;
+    end;
+    if nBufPos >= nBufLen then
+      Break;
+    if (nMadeBit + 6) >= 8 then
+    begin
+      btByte := Byte(btTmp or ((btCh and $3F) shr (6 - nBitPos)));
+      pBuf[nBufPos] := Char(btByte);
+      Inc(nBufPos);
+      nMadeBit := 0;
+      if nBitPos < 6 then
+        Inc(nBitPos, 2)
+      else
+      begin
+        nBitPos := 2;
+        Continue;
+      end;
+    end;
+    btTmp := Byte(Byte(btCh shl nBitPos) and Masks[nBitPos]);
+    Inc(nMadeBit, 8 - nBitPos);
+  end;
+  pBuf[nBufPos] := #0;
+end;
+		*/
+	}
+
+	void Encode6BitBuf(char* pSource, char* pDest, int iSrcLen, int iDestLen)
+	{
+		/*
+var
+  I                 : Integer;
+  nRestCount        : Integer;
+  nDestPos          : Integer;
+  btMade            : Byte;
+  btCh              : Byte;
+  btRest            : Byte;
+begin
+  nRestCount := 0;
+  btRest := 0;
+  nDestPos := 0;
+  for I := 0 to nSrcLen - 1 do
+  begin
+    if nDestPos >= nDestLen then
+      Break;
+    btCh := Byte(pSrc[I]);
+    btMade := Byte((btRest or (btCh shr (2 + nRestCount))) and $3F);
+    btRest := Byte(((btCh shl (8 - (2 + nRestCount))) shr 2) and $3F);
+    Inc(nRestCount, 2);
+
+    if nRestCount < 6 then
+    begin
+      pDest[nDestPos] := Char(btMade + $3C);
+      Inc(nDestPos);
+    end
+    else
+    begin
+      if nDestPos < nDestLen - 1 then
+      begin
+        pDest[nDestPos] := Char(btMade + $3C);
+        pDest[nDestPos + 1] := Char(btRest + $3C);
+        Inc(nDestPos, 2);
+      end
+      else
+      begin
+        pDest[nDestPos] := Char(btMade + $3C);
+        Inc(nDestPos);
+      end;
+      nRestCount := 0;
+      btRest := 0;
+    end;
+  end;
+  if nRestCount > 0 then
+  begin
+    pDest[nDestPos] := Char(btRest + $3C);
+    Inc(nDestPos);
+  end;
+  pDest[nDestPos] := #0;
+end;
+		*/
+	}
 }

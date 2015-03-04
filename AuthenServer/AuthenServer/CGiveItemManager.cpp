@@ -1,36 +1,48 @@
 /**************************************************************************************
 @author: 陈昌
-@content: 充值付费管理器
+@content: 道具推送管理器
 **************************************************************************************/
 #include "stdafx.h"
-#include "CRechargeManager.h"
+#include "CGiveItemManager.h"
 
-const std::string Area_Recharge_Proc = "P_GS_Order_ChargeQueue";
-const std::string Recharge_CallBack_Proc = "P_GS_Order_ChargeCallBack";
+const std::string Area_GiveItem_Proc = "P_GS_UsrItem_Queue";
+const std::string GiveItem_CallBack_Proc = "P_GS_UsrItem_CallBack";
 const int MAX_CACHE_JOB = 600;
-const std::string GAME_PAY_DB_HOST = "192.168.1.2";
-const std::string GAME_PAY_DB_USER = DB_USERNAME;
-const std::string GAME_PAY_DB_PWD = DB_PASSWORD;
+const std::string GAME_GIVEITEM_DB_HOST = "192.168.1.2";
+const std::string GAME_GIVEITEM_DB_USER = DB_USERNAME;
+const std::string GAME_GIVEITEM_DB_PWD = DB_PASSWORD;
+const std::string GAME_GIVEITEM_DB_NAME = "longget_gameitem_svr";
 
-/************************Start Of CRechargeSQLWorkThread******************************************/
-CRechargeSQLWorkThread::CRechargeSQLWorkThread(void* owner, const std::string &sConnectStr) : m_Owner(owner), m_sConnectStr(sConnectStr), m_bEnabled(false), m_pMySQLProc(nullptr)
+/************************Start Of CGiveItemSQLWorkThread******************************************/
+CGiveItemSQLWorkThread::CGiveItemSQLWorkThread(void* owner) : m_Owner(owner), m_bEnabled(false), m_pMySQLProc(nullptr)
 {}
 
-CRechargeSQLWorkThread::~CRechargeSQLWorkThread()
+CGiveItemSQLWorkThread::~CGiveItemSQLWorkThread()
 {
 	WaitThreadExecuteOver();
 }
 
-bool CRechargeSQLWorkThread::IsEnabled()
+bool CGiveItemSQLWorkThread::IsEnabled()
 {
 	return m_bEnabled;
 }
 
-void CRechargeSQLWorkThread::DoExecute()
+void CGiveItemSQLWorkThread::InitConnectString(const std::string &sHostName, const std::string &sDBName, const std::string &sUserName, 
+	const std::string &sPassword, const std::string &sCharSet, const int iPort)
+{
+	m_pMySQLProc->m_sHostName = sHostName;
+	m_pMySQLProc->m_sDBName = sDBName;
+	m_pMySQLProc->m_sUser = sUserName;
+	m_pMySQLProc->m_sPassword = sPassword;
+	m_pMySQLProc->m_sCharSet = sCharSet;
+	m_pMySQLProc->m_iPort = iPort;
+}
+
+void CGiveItemSQLWorkThread::DoExecute()
 {
 	m_pMySQLProc = new CMySQLManager();
 	m_pMySQLProc->SetConnectString(m_sConnectStr);
-	m_pMySQLProc->m_OnError = std::bind(&CRechargeSQLWorkThread::OnMySQLError, this, std::placeholders::_1, std::placeholders::_2);
+	m_pMySQLProc->m_OnError = std::bind(&CGiveItemSQLWorkThread::OnMySQLError, this, std::placeholders::_1, std::placeholders::_2);
 	PJsonJobNode pWorkNode = nullptr;
 	PJsonJobNode pTempNode = nullptr;
 	try
@@ -54,7 +66,7 @@ void CRechargeSQLWorkThread::DoExecute()
 			{
 				if (nullptr == pWorkNode)
 				{
-					pWorkNode = ((CRechargeManager*)m_Owner)->PopRechargeJob();
+					pWorkNode = ((CGiveItemManager*)m_Owner)->PopGiveItemJob();
 					iErrorCount = 0;
 				}
 				if (pWorkNode != nullptr)
@@ -62,15 +74,15 @@ void CRechargeSQLWorkThread::DoExecute()
 					bool bSuccess = false;
 					switch (pWorkNode->iCmd)
 					{
-					case SM_RECHARGE_AREA_QUERY:
-						//定时查询本区的充值
-						bSuccess = QueryAreaRecharge(pWorkNode);
+					case SM_GIVEITEM_QUERY:
+						//定时查询本区的道具推送
+						bSuccess = QueryAreaGiveItem(pWorkNode);
 						break;
-					case SM_RECHARGE_DB_ACK:
-						bSuccess = DBRechargeAck(pWorkNode);
+					case SM_GIVEITEM_DB_ACK:
+						bSuccess = DBGiveItemAck(pWorkNode);
 						break;
 					default:
-						Log("[充值接口]:未知协议：" + std::to_string(pWorkNode->iCmd), lmtWarning);
+						Log("[推送道具]:未知协议：" + std::to_string(pWorkNode->iCmd), lmtWarning);
 						bSuccess = true;
 						break;
 					}
@@ -83,7 +95,7 @@ void CRechargeSQLWorkThread::DoExecute()
 						++iErrorCount;
 						if (iErrorCount >= 10)
 						{
-							OnMySQLError(2, "[充值接口]:多次SQL执行错误！");
+							OnMySQLError(2, "[推送道具]:多次SQL执行错误！");
 							bSuccess = true;
 						}
 					}
@@ -92,12 +104,12 @@ void CRechargeSQLWorkThread::DoExecute()
 						pTempNode = pWorkNode;
 						pWorkNode = nullptr;
 						delete pTempNode;
-					}				
+					}
 				}
 			}
 			catch (...)
 			{
-				Log("[充值接口]:异常:", lmtException);
+				Log("[推送道具]:异常:", lmtException);
 			}
 			WaitForSingleObject(m_Event, 10);
 		}
@@ -113,7 +125,7 @@ void CRechargeSQLWorkThread::DoExecute()
 	}
 }
 
-void CRechargeSQLWorkThread::OnMySQLError(unsigned int uiErrorCode, const std::string &sErrMsg)
+void CGiveItemSQLWorkThread::OnMySQLError(unsigned int uiErrorCode, const std::string &sErrMsg)
 {
 	if (0 == uiErrorCode)
 		Log(sErrMsg, lmtMessage);
@@ -121,22 +133,22 @@ void CRechargeSQLWorkThread::OnMySQLError(unsigned int uiErrorCode, const std::s
 		Log(sErrMsg, lmtError);
 }
 
-void CRechargeSQLWorkThread::CheckProcExists(void* Sender)
+void CGiveItemSQLWorkThread::CheckProcExists(void* Sender)
 {
 	m_bEnabled = false;
-	std::string sSql("SHOW PROCEDURE STATUS LIKE \"" + Area_Recharge_Proc + "\"");
+	std::string sSql("SHOW PROCEDURE STATUS LIKE \"" + Area_GiveItem_Proc + "\"");
 	int iAffected = 0;
 	IMySQLFields* pDataSet = nullptr;
 	if ((m_pMySQLProc->Exec(sSql, pDataSet, iAffected)) && (1 == iAffected))
 	{
-		sSql = "SHOW PROCEDURE STATUS LIKE \"" + Recharge_CallBack_Proc + "\"";
+		sSql = "SHOW PROCEDURE STATUS LIKE \"" + GiveItem_CallBack_Proc + "\"";
 		m_bEnabled = (m_pMySQLProc->Exec(sSql, pDataSet, iAffected)) && (1 == iAffected);
 	}
 	if (!m_bEnabled)
-		Log("充值接口不存在", lmtWarning);
+		Log("推送道具接口不存在", lmtWarning);
 }
 
-std::string CRechargeSQLWorkThread::BuildJsonResult(IMySQLFields* pDataSet)
+std::string CGiveItemSQLWorkThread::BuildJsonResult(IMySQLFields* pDataSet)
 {
 	std::string sTemp("");
 	if (pDataSet != nullptr)
@@ -144,16 +156,18 @@ std::string CRechargeSQLWorkThread::BuildJsonResult(IMySQLFields* pDataSet)
 		try
 		{
 			Json::Value root;
-			root["OrderId"] = pDataSet->FieldByName("OrderId")->AsString();
-			root["AppId"] = pDataSet->FieldByName("AddId")->AsInteger();
+			root["OrderId"] = pDataSet->FieldByName("transid")->AsString();
 			root["ToAccount"] = pDataSet->FieldByName("ToAccount")->AsInt64();
-			root["GameId"] = pDataSet->FieldByName("ServerId")->AsInteger();    //db使用的是ServerId对应游戏编号
+			root["GameId"] = pDataSet->FieldByName("ServerId")->AsInteger();    
 			root["AreaId"] = pDataSet->FieldByName("AreaId")->AsInteger();
 			root["GroupId"] = pDataSet->FieldByName("GroupId")->AsInteger();
-			root["ChargeCurrency"] = pDataSet->FieldByName("ChargeCurrency")->AsInteger();
-			root["ChargeAmount"] = pDataSet->FieldByName("ChargeAmount")->AsInteger();
-			root["BindAmount"] = pDataSet->FieldByName("LockAmount")->AsInteger();
-			root["ServerBatch"] = pDataSet->FieldByName("ServerBatch")->AsString();
+			root["ItemCount"] = pDataSet->FieldByName("ItemCount")->AsInteger();
+			root["ItemName"] = pDataSet->FieldByName("ItemName")->AsString();
+			root["Description"] = pDataSet->FieldByName("Description")->AsString();
+			PMySQLField pTempField = pDataSet->FieldByName("ItemType");
+			if (pTempField != nullptr)
+				root["BindFlag"] = pDataSet->FieldByName("BindFlag")->AsInteger();
+
 			Json::FastWriter writer;
 			sTemp = writer.write(root);
 		}
@@ -165,7 +179,7 @@ std::string CRechargeSQLWorkThread::BuildJsonResult(IMySQLFields* pDataSet)
 	return sTemp;
 }
 
-bool CRechargeSQLWorkThread::QueryAreaRecharge(PJsonJobNode pNode)
+bool CGiveItemSQLWorkThread::QueryAreaGiveItem(PJsonJobNode pNode)
 {
 	bool retFlag = true;
 	Json::Reader reader;
@@ -174,7 +188,7 @@ bool CRechargeSQLWorkThread::QueryAreaRecharge(PJsonJobNode pNode)
 	{
 		int iAffected = 0;
 		IMySQLFields* pDataSet = nullptr;
-		std::string sSql = "call " + Area_Recharge_Proc + "(" + root.get("GameId", "0").asString() + ", " + root.get("AreaId", "0").asString() + ");";
+		std::string sSql = "call " + Area_GiveItem_Proc + "(" + root.get("GameId", "0").asString() + ", " + root.get("AreaId", "0").asString() + ");";
 		if (m_pMySQLProc->Exec(sSql, pDataSet, iAffected))
 		{
 			if ((iAffected > 0) && (pDataSet != nullptr))
@@ -187,7 +201,7 @@ bool CRechargeSQLWorkThread::QueryAreaRecharge(PJsonJobNode pNode)
 					/****************************
 					?????????????????????????????
 					with nNode^ do
-						G_ServerSocket.SQLJobResponse(SM_RECHARGE_DB_REQ, Handle, nParam, 0, BuildJsonResult(DataSet));
+					G_ServerSocket.SQLJobResponse(SM_GIVEITEM_DB_REQ, Handle, nParam, 0, BuildJsonResult(DataSet));
 					****************************/
 					pDataSet->Next();
 				}
@@ -197,7 +211,7 @@ bool CRechargeSQLWorkThread::QueryAreaRecharge(PJsonJobNode pNode)
 	return retFlag;
 }
 
-bool CRechargeSQLWorkThread::DBRechargeAck(PJsonJobNode pNode)
+bool CGiveItemSQLWorkThread::DBGiveItemAck(PJsonJobNode pNode)
 {
 	bool retFlag = false;
 	Json::Reader reader;
@@ -206,29 +220,28 @@ bool CRechargeSQLWorkThread::DBRechargeAck(PJsonJobNode pNode)
 	{
 		int iAffected = 0;
 		IMySQLFields* pDataSet = nullptr;
-		std::string sSql = "call " + Recharge_CallBack_Proc + "(\"" + root.get("OrderId", "").asString() + "\", \"" + root.get("IP", "").asString() + "\", " + root.get("State", "0").asString() + ");";
+		std::string sSql = "call " + GiveItem_CallBack_Proc + "(\"" + root.get("OrderId", "").asString() + "\", \"" + root.get("IP", "").asString() + "\", " + root.get("State", "0").asString() + ");";
 		retFlag = m_pMySQLProc->Exec(sSql, pDataSet, iAffected);
 	}
 	return retFlag;
 }
-/************************End Of CRechargeSQLWorkThread********************************************/
+/************************End Of CGiveItemSQLWorkThread********************************************/
 
 
-/************************Start Of CRechargeManager******************************************/
-CRechargeManager::CRechargeManager() : m_pFirst(nullptr), m_pLast(nullptr), m_iCount(0)
+/************************Start Of CGiveItemManager******************************************/
+CGiveItemManager::CGiveItemManager() : m_pFirst(nullptr), m_pLast(nullptr), m_iCount(0)
 {
-	std::string sTemp = LoadSQLConfig();
-	m_pWorkThread = new CRechargeSQLWorkThread(this, sTemp);
+	m_pWorkThread = new CGiveItemSQLWorkThread(this);
 }
 
-CRechargeManager::~CRechargeManager()
+CGiveItemManager::~CGiveItemManager()
 {
 	Clear();
 	if (m_pWorkThread != nullptr)
 		delete m_pWorkThread;
 }
 
-bool CRechargeManager::AddRechargeJob(int iCmd, int iHandle, int iParam, const std::string &sTxt, const bool bForce)
+bool CGiveItemManager::AddGiveItemJob(int iCmd, int iHandle, int iParam, const std::string &sTxt, const bool bForce)
 {
 	bool retFlag = m_iCount < MAX_CACHE_JOB;
 	if (retFlag || bForce)
@@ -249,11 +262,11 @@ bool CRechargeManager::AddRechargeJob(int iCmd, int iHandle, int iParam, const s
 			m_pLast = pNode;
 			++m_iCount;
 		}
-	}	
+	}
 	return retFlag;
 }
 
-PJsonJobNode CRechargeManager::PopRechargeJob()
+PJsonJobNode CGiveItemManager::PopGiveItemJob()
 {
 	PJsonJobNode pRetNode = nullptr;
 	std::lock_guard<std::mutex> guard(m_LockCS);
@@ -263,29 +276,32 @@ PJsonJobNode CRechargeManager::PopRechargeJob()
 		m_pFirst = pRetNode->pNext;
 		if (nullptr == m_pFirst)
 			m_pLast = nullptr;
-		--m_iCount;		 
+		--m_iCount;
 	}
 	return pRetNode;
 }
 
-bool CRechargeManager::IsEnable()
+bool CGiveItemManager::IsEnable()
 {
 	return m_pWorkThread->IsEnabled();
 }
 
-std::string CRechargeManager::LoadSQLConfig()
+void CGiveItemManager::LoadSQLConfig()
 {
-	std::string sRetStr;
 	std::string sConfigFileName(G_CurrentExeDir + "config.ini");
 	CWgtIniFile* pIniFileParser = new CWgtIniFile();
 	pIniFileParser->loadFromFile(sConfigFileName);
-	sRetStr = "Host = " + pIniFileParser->getString("RechargeDB", "Host", GAME_PAY_DB_HOST) + "; User = " + pIniFileParser->getString("RechargeDB", "User", GAME_PAY_DB_USER) + 
-		"; Pwd = " + CC_UTILS::DecodeString(pIniFileParser->getString("RechargeDB", "Password", GAME_PAY_DB_PWD)) + "; Database = test_paycenter_svr;";
+	m_pWorkThread->InitConnectString(
+		pIniFileParser->getString("GiveItemDB", "Host", GAME_GIVEITEM_DB_HOST),
+		pIniFileParser->getString("GiveItemDB", "DBName", GAME_GIVEITEM_DB_NAME),
+		pIniFileParser->getString("GiveItemDB", "User", GAME_GIVEITEM_DB_USER),
+		CC_UTILS::DecodeString(pIniFileParser->getString("GiveItemDB", "Password", GAME_GIVEITEM_DB_PWD)),
+		"gbk", 3306
+		);
 	delete pIniFileParser;
-	return sRetStr;
 }
 
-void CRechargeManager::Clear()
+void CGiveItemManager::Clear()
 {
 	std::lock_guard<std::mutex> guard(m_LockCS);
 	PJsonJobNode pWorkNode = nullptr;
@@ -299,5 +315,5 @@ void CRechargeManager::Clear()
 	m_pLast = nullptr;
 	m_iCount = 0;
 }
-/************************End Of CRechargeManager******************************************/
+/************************End Of CGiveItemManager******************************************/
 

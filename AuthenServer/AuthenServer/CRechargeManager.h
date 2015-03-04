@@ -13,11 +13,11 @@ using namespace CC_UTILS;
 * 数据库处理线程
 *
 */
-class CSQLWorkThread : public CExecutableBase
+class CRechargeSQLWorkThread : public CExecutableBase
 {
 public:
-	CSQLWorkThread(void* owner, const std::string &sConnectStr);
-	virtual ~CSQLWorkThread();
+	CRechargeSQLWorkThread(void* owner, const std::string &sConnectStr);
+	virtual ~CRechargeSQLWorkThread();
 	virtual void DoExecute();
 	bool IsEnabled();
 private:
@@ -54,7 +54,7 @@ private:
 	PJsonJobNode m_pFirst;
 	PJsonJobNode m_pLast;
 	int m_iCount;
-	CSQLWorkThread* m_pWorkThread;
+	CRechargeSQLWorkThread* m_pWorkThread;
 };
 
 

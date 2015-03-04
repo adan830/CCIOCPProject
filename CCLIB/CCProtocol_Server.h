@@ -7,6 +7,7 @@
 #define __CC_PROTOCOL_SERVER_H__
 
 #include "CCGameCommon.h"
+#include <string>
 
 // Server间通讯的协议头
 typedef struct _TServerSocketHeader
@@ -148,6 +149,14 @@ const int DEFAULT_WEBQUERYSRV_PORT = 8012;                          // WEBQuery 
 const int DEFAULT_ACTLOG_SERVER_PORT = 8500;                        // GS <- ACTLog
 const int DEFAULT_PIG_SERVER_PORT = 8600;                           // DispatchGate <- PigServer
 const int DEFAULT_CONTROL_SERVER_PORT = 9800;                       // EventLog <- ControlClient
+
+//mysql相关
+const std::string DB_HOSTNAME = "localhost";
+const int DB_PORT = 3306;
+const std::string DB_PROTOCOL = "mysql-5";
+const std::string DB_USERNAME = "gamemaster";
+const std::string DB_PASSWORD = "WByjUrYaYCt]HODoDl";                 //编码后的，具体解码见Decodestring
+const std::string DB_DATABASE = "";
 
 
 #endif //__CC_PROTOCOL_SERVER_H__

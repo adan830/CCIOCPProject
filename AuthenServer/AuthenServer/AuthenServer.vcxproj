@@ -84,6 +84,7 @@
     <ClInclude Include="CASGlobal.h" />
     <ClInclude Include="CAuthFailLog.h" />
     <ClInclude Include="CDBServerSocket.h" />
+    <ClInclude Include="CGiveItemManager.h" />
     <ClInclude Include="CMainThread.h" />
     <ClInclude Include="CRechargeManager.h" />
     <ClInclude Include="CSecureManager.h" />
@@ -125,6 +126,7 @@
     <ClCompile Include="CASGlobal.cpp" />
     <ClCompile Include="CAuthFailLog.cpp" />
     <ClCompile Include="CDBServerSocket.cpp" />
+    <ClCompile Include="CGiveItemManager.cpp" />
     <ClCompile Include="CMainThread.cpp" />
     <ClCompile Include="CRechargeManager.cpp" />
     <ClCompile Include="CSecureManager.cpp" />

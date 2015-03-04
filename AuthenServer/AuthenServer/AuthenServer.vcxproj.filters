@@ -42,6 +42,9 @@
     <ClInclude Include="CRechargeManager.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="CGiveItemManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -96,6 +99,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\..\CCLIB\CCMySQLEngn.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CGiveItemManager.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

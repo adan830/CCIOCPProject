@@ -118,7 +118,7 @@ namespace CC_UTILS{
 	  unsigned int EscapeString(char* pSource, unsigned int uiSize, char* pDest);
 	  std::string EscapeString(char* pSource, unsigned int uiSize);
 	  std::string GetLastError(unsigned int &uiErrorCode);
-	  bool IsConnected();
+	  bool IsMySQLConnected();
 	  void SetConnectString(const std::string &sValue);
   public:
 	  int m_iPort;

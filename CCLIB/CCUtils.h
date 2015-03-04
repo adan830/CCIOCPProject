@@ -79,6 +79,12 @@ namespace CC_UTILS{
 
 	//循环创建目录
 	int ForceCreateDirectories(std::string& sDir);
+
+	//字符串加解密功能块
+	std::string EncodeString(std::string &str);
+	std::string DecodeString(std::string &str);
+	void Decode6BitBuf(char* pSource, char* pBuf, int iSrcLen, int iBufLen);
+	void Encode6BitBuf(char* pSource, char* pDest, int iSrcLen, int iDestLen);
 }
 
 #endif //__CC_UTILS_H__
