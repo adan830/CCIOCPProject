@@ -77,6 +77,22 @@ typedef struct _TGameChildInfo
 	int iOnLineSecond;
 }TGameChildInfo, *PGameChildInfo;
 
+// 帐号标记枚举类型
+typedef enum _TAccountFlag {
+	//未知0x1、绑定安全卡0x2、简单密码0x4、非安全账号0x8, 密码保护
+	accKnown = 0, accSafeCard, accNeedModifyPwd, accNoSafeAccount, accPwdAccount, accResv5, accResv6, accResv7,
+	accResv8, accResv9, accResv10, accResv11, accResv12, accResv13, accResv14, accResv15,
+	accResv16, accResv17, accResv18, accResv19, accResv20, accResv21, accResv22, accResv23,
+	accResv24, accResv25, accResv26, accResv27, accResv28, accResv29, accResv30, accResv31
+} TAccountFlag;
+
+  TAccountFlagSet = set of TAccountFlag;
+  TAccountFlagInfo = record
+    case Boolean of
+      False: (nFlag: Integer);
+      True: (FlagSet: TAccountFlagSet)
+  end;
+
 typedef struct _TJsonJobNode
 {
 	int iCmd;

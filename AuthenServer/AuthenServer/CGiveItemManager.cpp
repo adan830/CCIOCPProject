@@ -11,7 +11,7 @@ const int MAX_CACHE_JOB = 600;
 const std::string GAME_GIVEITEM_DB_HOST = "192.168.1.2";
 const std::string GAME_GIVEITEM_DB_USER = DB_USERNAME;
 const std::string GAME_GIVEITEM_DB_PWD = DB_PASSWORD;
-const std::string GAME_GIVEITEM_DB_NAME = "longget_gameitem_svr";
+const std::string GAME_GIVEITEM_DB_NAME = "test_gameitem_svr";
 
 /************************Start Of CGiveItemSQLWorkThread******************************************/
 CGiveItemSQLWorkThread::CGiveItemSQLWorkThread(void* owner) : m_Owner(owner), m_bEnabled(false), m_pMySQLProc(nullptr)
