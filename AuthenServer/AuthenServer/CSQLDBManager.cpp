@@ -6,6 +6,7 @@
 #include "CSQLDBManager.h"
 
 const std::string SQL_LOGINLOG_PROC = "PW_GS_Passport_CreateLoginLog";
+const std::string SQL_SAFECARD_AUTHEN_PROC = "P_GS_Usr_Securitycard_Verify";
 
 /************************Start Of CSingleSQLWorker******************************************/
 CSingleSQLWorker::CSingleSQLWorker(CSQLWorkerUnit* owner, unsigned short usIdx, const std::string &sConnectStr) : m_pOwner(owner), m_usThreadIdx(usIdx), m_sConnectStr(sConnectStr)
@@ -57,7 +58,7 @@ bool CSingleSQLWorker::SQLDB_AuthenLog(PJsonJobNode pNode)
 	if (reader.parse(pNode->sJsonText, root))
 	{
 		std::string sLogSQL = "call " + SQL_LOGINLOG_PROC + "(" + root.get("UniqueID", "").asString() + ", " + root.get("AppID", "").asString() + ", " 
-							+ root.get("AreaID", "").asString() + ", 0, \"" + root.get("ClientIP", "").asString() + "\",\"" + root.get("Mac", "").asString() + "\", 1);";
+			+ root.get("AreaID", "").asString() + ", 0, \"" + root.get("ClientIP", "").asString() + "\",\"" + root.get("Mac", "").asString() + "\", 1);";
 		int iAffected = 0;
 		IMySQLFields* pDataSet = nullptr;
 		retFlag = m_pMySQLProc->Exec(sLogSQL, pDataSet, iAffected);
@@ -67,61 +68,65 @@ bool CSingleSQLWorker::SQLDB_AuthenLog(PJsonJobNode pNode)
 
 bool CSingleSQLWorker::SQLDB_SafeCardAuthen(PJsonJobNode pNode)
 {
-	/*
-var
-  nResult           : integer;
-  SQL               : AnsiString;
-  DataSet           : IMySQLFields;
-  Affected          : integer;
-  js                : TlkJSONobject;
-begin
-  nResult := 0;
-  Result := False;
-  {$IFDEF TEST}
-  LOG('[SQLDB_SafeCardAuthen]:' + nNode^.JsonText);
-  {$ENDIF}
-  js := TlkJSON.ParseText(nNode^.JsonText) as TlkJSONobject;
-  if Assigned(js) then
-  try
-    with js, FMySQLProc do
-    begin
-      SQL := Format('call %s(%s, "%s", "%s", "%s", %d);', [
-        SQL_SAFECARD_AUTHEN_PROC,
-          GetStringValue(Field['UniqueID']),
-          GetStringValue(Field['ClientIP']),
-          GetStringValue(Field['Position']),
-          GetStringValue(Field['PosValue']),
-          StrToIntDef(GetStringValue(Field['VerifyStyle']), 2)
-          ]);
-      if Exec(SQL, DataSet, Affected) then
-      begin
-        Result := True;
-        if Assigned(DataSet) then
-        begin
-          nResult := DataSet.FieldbyName('ReturnCode').AsInteger;
-          nNode^.nRes := nResult;                           // 返回值
-        end;
-      end;
-      Add('Result', nResult);
-      case nResult of
-        0: Add('Message', MSG_SAFECARD_AUTHEN_ERROR);       // 'SQL Execute Error.'
-        1: ;
-        -1, -2, -3, -4, -5, -9: Add('Message', MSG_SAFECARD_AUTHEN_ERROR);
-      else
-        Add('Message', MSG_SAFECARD_AUTHEN_ERROR);          // 'Unknown SQL procedure result.'
-      end;
-      if Assigned(G_ServerSocket) then
-        with nNode^ do
-          G_ServerSocket.SQLJobResponse(Cmd, Handle, nParam, nRes, TlkJSON.GenerateText(js));
-    end;
-    {$IFDEF TEST}
-    if nResult <> 1 then
-      Log('SafeCardAuth Fail: ' + TlkJSON.GenerateText(js));
-    {$ENDIF}
-  finally
-    js.Free;
-  end;
-end;
-	*/
+	int iRetCode = 0;
+	bool retFlag = false;
+#ifdef TEST
+	Log("[SQLDB_SafeCardAuthen]:" + pNode->sJsonText);
+#endif
+	Json::Reader reader;
+	Json::Value root;
+	if (reader.parse(pNode->sJsonText, root))
+	{
+		std::string sSql = "call " + SQL_SAFECARD_AUTHEN_PROC + "(" + root.get("UniqueID", "").asString() + ", \"" + root.get("ClientIP", "").asString() + "\", \"" 
+			+ root.get("Position", "").asString() + "\", \"" + root.get("PosValue", "").asString() + "\", " + std::to_string(StrToIntDef(root.get("VerifyStyle", "").asString(), 2)) + ");";
+		int iAffected = 0;
+		IMySQLFields* pDataSet = nullptr;
+		if (m_pMySQLProc->Exec(sSql, pDataSet, iAffected))
+		{
+			retFlag = true;
+			if (pDataSet != nullptr)
+			{
+				iRetCode = pDataSet->FieldByName("ReturnCode")->AsInteger();
+				pNode->iRes = iRetCode;
+			}
+		}
+		root["Result"] = iRetCode;
+		switch (iRetCode)
+		{
+		case 0:
+			//sql执行错误
+			root["Message"] = MSG_SAFECARD_AUTHEN_ERROR;
+			break;
+		case 1:
+			//成功
+			break;
+		case -1:
+		case -2:
+		case -3:
+		case -4:
+		case -5:
+		case -9:
+			//各种认证错误 
+			root["Message"] = MSG_SAFECARD_AUTHEN_ERROR;
+			break;
+		default:
+			//其它异常未知sql执行结果
+			root["Message"] = MSG_SAFECARD_AUTHEN_ERROR;
+			break;
+		}
+		/*
+		//--------------------------------
+		//--------------------------------
+		//--------------------------------
+		  if Assigned(G_ServerSocket) then
+			with nNode^ do
+			  G_ServerSocket.SQLJobResponse(Cmd, Handle, nParam, nRes, TlkJSON.GenerateText(js));
+		*/
+	}
+#ifdef TEST
+	if (iRetCode != 1)
+		Log("SafeCardAuth Fail: " + pNode->sJsonText);
+#endif
+	return retFlag;
 }
 /************************End Of CSingleSQLWorker********************************************/
