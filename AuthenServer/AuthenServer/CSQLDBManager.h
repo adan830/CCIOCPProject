@@ -27,7 +27,7 @@ public:
 	virtual void DoExecute();
 private:
 	std::string _EscapeString(const std::string &str);
-	void MySQLAuthenRes(Json::Value js, PJsonJobNode pNode, IMySQLFields* pDataSet, AccountFlag: TAccountFlagInfo);
+	void MySQLAuthenRes(Json::Value js, PJsonJobNode pNode, IMySQLFields* pDataSet, TAccountFlagInfo AccountFlag);
 	void OnMySQLError(unsigned int uiErrorCode, const std::string &sErrMsg);
 	bool SQLDB_Authen(PJsonJobNode pNode);
 	bool SQLDB_Regist(PJsonJobNode pNode);

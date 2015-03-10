@@ -86,12 +86,16 @@ typedef enum _TAccountFlag {
 	accResv24, accResv25, accResv26, accResv27, accResv28, accResv29, accResv30, accResv31
 } TAccountFlag;
 
-  TAccountFlagSet = set of TAccountFlag;
-  TAccountFlagInfo = record
-    case Boolean of
-      False: (nFlag: Integer);
-      True: (FlagSet: TAccountFlagSet)
-  end;
+//c++里面enum类型对于集合操作如何处理？？？？？？？？？？？？？？？？？？？？
+//c++里面enum类型对于集合操作如何处理？？？？？？？？？？？？？？？？？？？？
+//c++里面enum类型对于集合操作如何处理？？？？？？？？？？？？？？？？？？？？
+//---------------------------------------------
+//---------------------------------------------
+typedef union TAccountFlagInfo
+{
+	int iFlag;
+	TAccountFlag FlagSet;
+};
 
 typedef struct _TJsonJobNode
 {
