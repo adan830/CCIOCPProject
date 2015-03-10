@@ -81,5 +81,6 @@ private:
 	CSQLWorkerUnit* m_pWorkUnits[2];
 };
 
+extern CSQLDBManager* pG_SQLDBManager;
 
 #endif //__CC_SQLDB_MANAGER_H__
