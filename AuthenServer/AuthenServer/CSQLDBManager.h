@@ -25,6 +25,7 @@ public:
 	CSingleSQLWorker(CSQLWorkerUnit* owner, unsigned short usIdx, const std::string &sConnectStr);
 	virtual ~CSingleSQLWorker();
 	virtual void DoExecute();
+	void SetWorkType(TSQLWorkDB worktype);
 private:
 	std::string _EscapeString(const std::string &str);
 	void MySQLAuthenRes(Json::Value js, PJsonJobNode pNode, IMySQLFields* pDataSet, TAccountFlagInfo AccountFlag);

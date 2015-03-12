@@ -123,6 +123,7 @@ const int SM_KICKOUT_ACCOUNT = 0x1010;                              // лъ╣Тук╨е
 const int SM_RECHARGE_AREA_QUERY = 0x1011;                          // ╟╢пИдБгЬ╨евт╤╞бжя╞ЁДж╣пео╒
 const int SM_RECHARGE_DB_REQ = 0x1012;                              // хож╓╥ЧнЯфВоРdb╥╒кмЁДж╣гКгС
 const int SM_RECHARGE_DB_ACK = 0x1013;								// db╥╣╩ь╦Ьхож╓╥ЧнЯфВЁДж╣╫А╧Ш
+const int SM_USER_AUTHEN_LOG = 0x1014;                              // мФ╪рхож╓Ёи╧╕╨С╣др╩╦Ж╩ь╣ВжВ©Б╧ЩЁл
 const int SM_CHILD_ONLINE_TIME = 0x1015;                            // ╥юЁацтё╛тзоъ╣дй╠╪Д
 const int SM_CHILD_LOGON = 0x1016;									// ╥юЁацтё╛иооъ
 const int SM_CHILD_LOGOUT = 0x1017;									// ╥юЁацтё╛обоъ
@@ -131,6 +132,7 @@ const int SM_SAFECARD_AUTHEN_RES = 0x1020;                          // цэ╠ё©╗хож
 
 const int SM_ENCODE_BUFFER = 0x1101;                                // фТ╤╞╪сцэ
 const int SM_DECODE_BUFFER = 0x1102;                                // ╫Бцэ
+
 
 const int SM_SELECT_SERVER = 0x2001;                                // я║╥ЧгКгС
 const int SM_PLAYER_CONNECT = 0x2002;                               // мФ╪ра╛╫с

@@ -28,7 +28,14 @@ CSingleSQLWorker::~CSingleSQLWorker()
 }
 
 void CSingleSQLWorker::DoExecute()
-{}
+{
+
+}
+
+void CSingleSQLWorker::SetWorkType(TSQLWorkDB worktype)
+{
+	m_WorkType = worktype;
+}
 
 std::string CSingleSQLWorker::_EscapeString(const std::string &str)
 {
@@ -37,155 +44,123 @@ std::string CSingleSQLWorker::_EscapeString(const std::string &str)
 
 void CSingleSQLWorker::MySQLAuthenRes(Json::Value js, PJsonJobNode pNode, IMySQLFields* pDataSet, TAccountFlagInfo AccountFlag)
 {
-	bool bIsChild = false;
-	PMySQLField pMyField = nullptr;
-	//账号
-	pMyField = pDataSet->FieldByName("Account");	
-	if (pMyField != nullptr)
-		js["UniqueID"] = pMyField->AsString();  
-	pMyField = pDataSet->FieldByName("CreateTime");
-	//创建时间
-	if (pMyField != nullptr)
-		js["CreateTime"] = pMyField->AsDateTime();
-	//上次登陆ip
-	pMyField = pDataSet->FieldByName("Usr_LastIP");	
-	if (pMyField != nullptr)
-		js["LastLoginIP"] = pMyField->AsString();
-	//上次登陆时间
-	pMyField = pDataSet->FieldByName("Usr_LastTime");
-	if (pMyField != nullptr)
-		js["LastLoginTime"] = pMyField->AsDateTime();
-	//帐号等级
-	pMyField = pDataSet->FieldByName("Usr_Level");
-	if (pMyField != nullptr)
-		js["AccountLevel"] = pMyField->AsString();
-	//安全等级
-	pMyField = pDataSet->FieldByName("Usr_SecurityLevel");
-	if (pMyField != nullptr)
-		js["SecurityLevel"] = pMyField->AsString();
-	//通过防沉迷
-	pMyField = pDataSet->FieldByName("Usr_IsSecurityGame");
-	if (pMyField != nullptr)
-		js["IsSecurityGame"] = pMyField->AsString();
-	//通过邮件认证
-	pMyField = pDataSet->FieldByName("Usr_IsSecurityEmail");
-	if (pMyField != nullptr)
-		js["IsSecurityEmail"] = pMyField->AsString();
-	//通过手机认证
-	pMyField = pDataSet->FieldByName("Usr_IsSecurityMobile");
-	if (pMyField != nullptr)
-		js["IsSecurityMobile"] = pMyField->AsString();
-	//通行证激活等级
-	pMyField = pDataSet->FieldByName("c_KeyLevel");
-	if (pMyField != nullptr)
-		js["ActivityFlag"] = pMyField->AsString();
-	//启用密保卡
-	pMyField = pDataSet->FieldByName("Usr_IsSecurityCard");
-	if (pMyField != nullptr)
-		js["SafeCard"] = pMyField->AsString();
-	//支付密码认证 0: 不开启 1: 开启
-	pMyField = pDataSet->FieldByName("Usr_IsSecurityPay");
-	if (pMyField != nullptr)
-		js["NeedPayPwd"] = pMyField->AsString();
-	//支付密码 格式: md5(密码小写)
-	pMyField = pDataSet->FieldByName("Usr_PaySecurityKey");
-	if (pMyField != nullptr)
-		js["PayPwd"] = pMyField->AsString();
-	//名人认证级别 0: 未认证
-	pMyField = pDataSet->FieldByName("Usr_Certification");
-	if (pMyField != nullptr)
-		js["Certification"] = pMyField->AsString();
-
-	//密保卡号
-	pMyField = pDataSet->FieldByName("Usr_Certification");
-	if (pMyField != nullptr)
-		js["Certification"] = pMyField->AsString();
-	//用户标示
-	pMyField = pDataSet->FieldByName("Usr_Flag");
-	if (pMyField != nullptr)
+	try
 	{
-		/*
-        Flag := myField.AsInteger;
-        if (Flag and $1) <> 0 then
-          Include(AccountFlag.FlagSet, accNeedModifyPwd);
-        if (Flag and $2) <> 0 then
-          Include(AccountFlag.FlagSet, accNoSafeAccount);
-		*/
+		bool bIsChild = false;
+		PMySQLField pMyField = nullptr;
+		//账号
+		pMyField = pDataSet->FieldByName("Account");
+		if (pMyField != nullptr)
+			js["UniqueID"] = pMyField->AsString();
+		pMyField = pDataSet->FieldByName("CreateTime");
+		//创建时间
+		if (pMyField != nullptr)
+			js["CreateTime"] = pMyField->AsDateTime();
+		//上次登陆ip
+		pMyField = pDataSet->FieldByName("Usr_LastIP");
+		if (pMyField != nullptr)
+			js["LastLoginIP"] = pMyField->AsString();
+		//上次登陆时间
+		pMyField = pDataSet->FieldByName("Usr_LastTime");
+		if (pMyField != nullptr)
+			js["LastLoginTime"] = pMyField->AsDateTime();
+		//帐号等级
+		pMyField = pDataSet->FieldByName("Usr_Level");
+		if (pMyField != nullptr)
+			js["AccountLevel"] = pMyField->AsString();
+		//安全等级
+		pMyField = pDataSet->FieldByName("Usr_SecurityLevel");
+		if (pMyField != nullptr)
+			js["SecurityLevel"] = pMyField->AsString();
+		//通过防沉迷
+		pMyField = pDataSet->FieldByName("Usr_IsSecurityGame");
+		if (pMyField != nullptr)
+			js["IsSecurityGame"] = pMyField->AsString();
+		//通过邮件认证
+		pMyField = pDataSet->FieldByName("Usr_IsSecurityEmail");
+		if (pMyField != nullptr)
+			js["IsSecurityEmail"] = pMyField->AsString();
+		//通过手机认证
+		pMyField = pDataSet->FieldByName("Usr_IsSecurityMobile");
+		if (pMyField != nullptr)
+			js["IsSecurityMobile"] = pMyField->AsString();
+		//通行证激活等级
+		pMyField = pDataSet->FieldByName("c_KeyLevel");
+		if (pMyField != nullptr)
+			js["ActivityFlag"] = pMyField->AsString();
+		//启用密保卡
+		pMyField = pDataSet->FieldByName("Usr_IsSecurityCard");
+		if (pMyField != nullptr)
+			js["SafeCard"] = pMyField->AsString();
+		//支付密码认证 0: 不开启 1: 开启
+		pMyField = pDataSet->FieldByName("Usr_IsSecurityPay");
+		if (pMyField != nullptr)
+			js["NeedPayPwd"] = pMyField->AsString();
+		//支付密码 格式: md5(密码小写)
+		pMyField = pDataSet->FieldByName("Usr_PaySecurityKey");
+		if (pMyField != nullptr)
+			js["PayPwd"] = pMyField->AsString();
+		//名人认证级别 0: 未认证
+		pMyField = pDataSet->FieldByName("Usr_Certification");
+		if (pMyField != nullptr)
+			js["Certification"] = pMyField->AsString();
+
+		//密保卡号
+		pMyField = pDataSet->FieldByName("Usr_Certification");
+		if (pMyField != nullptr)
+			js["Certification"] = pMyField->AsString();
+		//用户标示
+		pMyField = pDataSet->FieldByName("Usr_Flag");
+		if (pMyField != nullptr)
+		{
+			/*
+			Flag := myField.AsInteger;
+			if (Flag and $1) <> 0 then
+			Include(AccountFlag.FlagSet, accNeedModifyPwd);
+			if (Flag and $2) <> 0 then
+			Include(AccountFlag.FlagSet, accNoSafeAccount);
+			*/
+		}
+		//身份证号
+		pMyField = pDataSet->FieldByName("Usr_CardId");
+		if (pMyField != nullptr)
+		{
+			/*
+			CardId := myField.AsString;
+			Add('CardID', CardId);                              // 身份证
+			isChild := G_ChildManager.IsChild(CardID, isDeny);
+			if isChild then
+			begin
+			{$IFDEF WALLOW_ALLOW}
+			if isDeny then
+			{$ENDIF}
+			begin
+			Add('Result', 10);
+			Add('Message', MSG_DENY_CHILD);                 // 'Child Login is Deny!'
+			end;
+			end;
+			*/
+		}
+		else
+			Log("身份证号不存在！", lmtError);
+
+		if (bIsChild)
+			js["IsChild"] = "1";
+		else
+			js["IsChild"] = "0";
+		js["AccountFlag"] = AccountFlag.iFlag;
+
+		if (pG_SQLDBManager != nullptr)
+		{
+			Json::FastWriter writer;
+			std::string sTemp = writer.write(js);
+			pG_SQLDBManager->AddWorkJob(SM_USER_AUTHEN_LOG, pNode->iHandle, pNode->iParam, sTemp);
+		}
 	}
-	//身份证号
-	pMyField = pDataSet->FieldByName("Usr_CardId");
-	if (pMyField != nullptr)
+	catch (...)
 	{
-		/*
-		CardId := myField.AsString;
-		Add('CardID', CardId);                              // 身份证
-		isChild := G_ChildManager.IsChild(CardID, isDeny);
-		if isChild then
-		begin
-		{$IFDEF WALLOW_ALLOW}
-		if isDeny then
-		{$ENDIF}
-		begin
-		Add('Result', 10);
-		Add('Message', MSG_DENY_CHILD);                 // 'Child Login is Deny!'
-		end;
-		end;
-		*/
+		Log("MySQLAuthenRes: ");
 	}
-	else
-		Log("身份证号不存在！", lmtError);
-
-	if (bIsChild)
-		js["IsChild"] = "1";
-	else
-		js["IsChild"] = "0";
-	js["AccountFlag"] = AccountFlag.iFlag;
-
-	if (pG_SQLDBManager != nullptr)
-	{
-		pG_SQLDBManager->AddWorkJob(SM_USER_AUTH);
-	}
-		
-
-
-	/*
-var
-  CardId            : ansistring;
-  isChild           : Boolean;
-  isDeny            : Boolean;
-  myField           : PMySQLField;
-  Flag              : Integer;
-begin
-  try
-    isChild := False;
-    with DataSet, js do
-    begin
-
-      myField := FieldByName('Usr_CardId');                 //身份证号
-      if Assigned(myField) then
-      begin
-
-      end
-      else
-        Log('身份证号不存在！', lmtError);
-      if isChild then
-        Add('IsChild', '1')                                 // 非成年人
-      else
-        Add('IsChild', '0');                                // 成年人
-      Add('AccountFlag', AccountFlag.nFlag);
-    end;
-    if Assigned(G_SQLInterFace) then
-      G_SQLInterFace.AddJob(
-        SM_USER_AUTHEN_LOG,
-        pNode^.Handle,
-        pNode^.nParam,
-        TlkJson.GenerateText(js));
-  except
-    on E: Exception do
-      Log('MYAuthenRes: ' + E.Message);
-  end;
-end;
-	*/
 }
 
 void CSingleSQLWorker::OnMySQLError(unsigned int uiErrorCode, const std::string &sErrMsg)
@@ -213,7 +188,7 @@ bool CSingleSQLWorker::SQLDB_Authen(PJsonJobNode pNode)
 		std::string sIP = root.get("ClientIP", "").asString();
 		std::string sMac = root.get("Mac", "").asString();
 		std::string sAreaID = root.get("AreaID", "").asString();
-		std::string sPwd = ""; //------------------------------------- MD5Print(MD5String(LowerCase(GetStringValue(Field['Pwd'])) + G_PWD_MD5_KEY), True);
+		std::string sPwd = ""; //--------------------------------- MD5Print(MD5String(LowerCase(GetStringValue(Field['Pwd'])) + G_PWD_MD5_KEY), True);
 		std::string sSql = "call " + SQL_AUTHEN_PROC + "(\"" + _EscapeString(sAccount) + "\", \"" + _EscapeString(sPwd) + "\", " + root.get("AppID", "").asString 
 			+ ", " + sAreaID + ", 0, \"" + sIP + "\");";
 		int iAffected = 0;
@@ -269,8 +244,10 @@ bool CSingleSQLWorker::SQLDB_Authen(PJsonJobNode pNode)
 		}
 		if (iRetCode != 1)
 		{
+			//---------------------------------
+			//---------------------------------
+			//---------------------------------
 			//G_AuthFailLog.WriteLog(Format('%s,%s,%s,%s,%s,%s,%d'#13#10, [FormatDateTime('yyyy-mm-dd hh:nn:ss', Now()), AreaID, Account, IP, Mac, Pwd, nResult]));
-			pG_AuthFailLog->WriteLog();
 			iRetCode = -9;
 		}
 		root["Result"] = iRetCode;
@@ -456,3 +433,60 @@ bool CSingleSQLWorker::SQLDB_SafeCardAuthen(PJsonJobNode pNode)
 	return retFlag;
 }
 /************************End Of CSingleSQLWorker********************************************/
+
+
+
+/************************Start Of CSQLWorkerUnit******************************************/
+
+CSQLWorkerUnit::CSQLWorkerUnit(const std::string &s, TSQLWorkDB dbtype) : m_pFirst(nullptr), m_pLast(nullptr), m_iCount(0)
+{
+	for (int i = 0; i < MAX_SQL_WORK_COUNT; i++)
+	{
+		m_pWorkThreads[i] = new CSingleSQLWorker(this, i, s);
+		m_pWorkThreads[i]->SetWorkType(dbtype);
+	}
+}
+
+CSQLWorkerUnit::~CSQLWorkerUnit()
+{
+	for (int i = 0; i < MAX_SQL_WORK_COUNT; i++)
+		delete m_pWorkThreads[i];
+
+	Clear();
+}
+
+bool CSQLWorkerUnit::AddWorkJob(int iCmd, int iHandle, int iParam, const std::string &s)
+{
+
+}
+
+PJsonJobNode CSQLWorkerUnit::PopWorkJob()
+{
+
+}
+
+void CSQLWorkerUnit::Clear()
+{
+	/*
+var
+  nNode             : PJSONJobNode;
+begin
+  EnterCriticalSection(FCS);
+  try
+    while Assigned(FFirst) do
+    begin
+      nNode := FFirst;
+      FFirst := nNode^.Next;
+      DisPose(nNode);
+    end;
+    FFirst := nil;
+    FLast := nil;
+    FCount := 0;
+  finally
+    LeaveCriticalSection(FCS);
+  end;
+end;
+	*/
+}
+
+/************************End Of CSQLWorkerUnit********************************************/
