@@ -4,6 +4,7 @@
 **************************************************************************************/
 #include "stdafx.h"
 #include "CRechargeManager.h"
+#include "CDBServerSocket.h"
 
 const std::string Area_Recharge_Proc = "P_GS_Order_ChargeQueue";
 const std::string Recharge_CallBack_Proc = "P_GS_Order_ChargeCallBack";
@@ -11,6 +12,8 @@ const int MAX_CACHE_JOB = 600;
 const std::string GAME_PAY_DB_HOST = "192.168.1.2";
 const std::string GAME_PAY_DB_USER = DB_USERNAME;
 const std::string GAME_PAY_DB_PWD = DB_PASSWORD;
+
+CRechargeManager* pG_RechargeManager;
 
 /************************Start Of CRechargeSQLWorkThread******************************************/
 CRechargeSQLWorkThread::CRechargeSQLWorkThread(void* owner, const std::string &sConnectStr) : m_Owner(owner), m_sConnectStr(sConnectStr), m_bEnabled(false), m_pMySQLProc(nullptr)
@@ -103,12 +106,10 @@ void CRechargeSQLWorkThread::DoExecute()
 		}
 		if (pWorkNode != nullptr)
 			delete pWorkNode;
-		m_pMySQLProc->Close();
 		delete m_pMySQLProc;
 	}
 	catch (...)
 	{
-		m_pMySQLProc->Close();
 		delete m_pMySQLProc;
 	}
 }
@@ -182,13 +183,7 @@ bool CRechargeSQLWorkThread::QueryAreaRecharge(PJsonJobNode pNode)
 				pDataSet->First();
 				while (!pDataSet->Eof())
 				{
-					/****************************
-					/****************************
-					/****************************
-					?????????????????????????????
-					with nNode^ do
-						G_ServerSocket.SQLJobResponse(SM_RECHARGE_DB_REQ, Handle, nParam, 0, BuildJsonResult(DataSet));
-					****************************/
+					pG_DBSocket->SQLJobResponse(SM_RECHARGE_DB_REQ, pNode->iHandle, pNode->iParam, 0, BuildJsonResult(pDataSet));
 					pDataSet->Next();
 				}
 			}

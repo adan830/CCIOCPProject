@@ -183,5 +183,7 @@ const std::string DB_USERNAME = "gamemaster";
 const std::string DB_PASSWORD = "WByjUrYaYCt]HODoDl";                 //编码后的，具体解码见Decodestring
 const std::string DB_DATABASE = "";
 
+const std::string DEFAULT_MQ_SERVER_IP = "222.73.123.112";
+
 
 #endif //__CC_PROTOCOL_SERVER_H__

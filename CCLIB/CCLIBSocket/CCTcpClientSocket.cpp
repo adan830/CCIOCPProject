@@ -341,7 +341,7 @@ int CIOCPClientSocketManager :: SendBuf(const char* pBuf, int iCount)
 	return sendLen;
 }
 
-int  CIOCPClientSocketManager :: ParseSocketReadData(int iType, const char* pBuf, int iCount)
+int CIOCPClientSocketManager :: ParseSocketReadData(int iType, const char* pBuf, int iCount)
 {
 	m_pReceiveBuffer->Write(pBuf, iCount);
 	char* pTempBuf = (char*)m_pReceiveBuffer->GetMemPoint();
@@ -647,12 +647,15 @@ void CIOCPClientSocketManager :: PrepareSend(int iUntreated, int iTransfered)
 			if (WSASend(m_CSocket, &m_SendBlock.wsaBuffer, 1, (LPDWORD)&iTransfered, 0, &m_SendBlock.Overlapped, nullptr) == SOCKET_ERROR)
 			{
 				/*
-				原来的样子？？？这个应该不对，DoError失败的话，m_Sending 也还是false;
-				if (DoError(seSend))
-				  return;
+				//----------------------------------------
+				//----------------------------------------
+				//----------------------------------------
+				//seSend状态下，如果是ERROR_IO_PENDING报错，表示 等待I/O，稍后就会返回 
+				这时m_Sending状态应该为true
+				//但之前这里出现错误，回头还需要再调试！！！！！！！！！！！！！！！！！
 				*/
-				DoError(seSend);
-				return;
+				if (DoError(seSend))
+					return;
 			}
 			m_Sending = true;
 		}

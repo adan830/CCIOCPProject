@@ -5,6 +5,12 @@
 #include "stdafx.h"
 #include "CMainThread.h"
 #include "CDBServerSocket.h"
+#include "CRechargeManager.h"
+#include "CGiveItemManager.h"
+#include "CSQLDBManager.h"
+#include "CHumanReportManager.h"
+#include "CSecureManager.h"
+#include "CAuthFailLog.h"
 
 using namespace CC_UTILS;
 
@@ -14,37 +20,46 @@ CMainThread* pG_MainThread;
 CMainThread::CMainThread(const std::string &sServerName) : m_uiSlowRunTick(0), m_pLogSocket(nullptr)
 {
 	m_pLogSocket = new CC_UTILS::CLogSocket(sServerName);
+	m_pLogSocket->m_OnConnectEvent = std::bind(&CMainThread::OnAddLabel, this, std::placeholders::_1);
+	pG_SQLDBManager = new CSQLDBManager;
+	pG_DBSocket = new CDBServerSocket(sServerName);
 	/*
-	m_LogSocket.OnConnect := OnAddLabel;
-
-
-	G_SQLInterFace := TSQLDBInterface.Create;
-	G_ServerSocket := TServerSocket.Create(ServerName);
+	//---------------------------------------
+	//---------------------------------------
+	//---------------------------------------
 	G_ChildManager := TChildManager.Create(OnChildNotify);
 	G_IWebSocket := TIWebSocket.Create;
-	G_RechargeManager := TRechargeManager.Create;
-	G_ReportManager := TReportManager.Create;
-	G_GiveItemManager := TGiveItemManager.Create;
-	G_AuthenSecure := TAuthenSecure.Create;
-	G_AuthFailLog := TAuthFailFileLog.Create;
 	*/
+	pG_RechargeManager = new CRechargeManager;
+	pG_GiveItemManager = new CGiveItemManager;
+	pG_HumanReportManager = new CHumanReportManager;
+	pG_SecureManager = new CSecureManager;
+	pG_AuthFailLog = new CAuthFailFileLog;
 }
 
 CMainThread::~CMainThread()
 {
 	WaitThreadExecuteOver();
 	/*
+	//---------------------------------------
+	//---------------------------------------
+	//---------------------------------------
 	FreeAndnil(G_ChildManager);
-	FreeObject(G_ServerSocket);
-	FreeObject(G_SQLInterFace);
-	FreeObject(G_RechargeManager);
-	FreeObject(G_GiveItemManager);
-	FreeObject(G_IWebSocket);
-	FreeObject(G_ReportManager);
-	FreeObject(G_AuthenSecure);
-	FreeObject(m_LogSocket);
-	FreeObject(G_AuthFailLog);
 	*/
+	delete pG_DBSocket;
+	delete pG_SQLDBManager;
+	delete pG_RechargeManager;
+	delete pG_GiveItemManager;
+	/*
+	//---------------------------------------
+	//---------------------------------------
+	//---------------------------------------
+	FreeObject(G_IWebSocket);
+	*/
+	delete pG_HumanReportManager;
+	delete pG_SecureManager;
+	delete m_pLogSocket;
+	delete pG_AuthFailLog;
 }
 
 void CMainThread::DoExecute()
@@ -62,16 +77,18 @@ void CMainThread::DoExecute()
 			if (uiTick - m_uiSlowRunTick >= 1000)
 			{
 				m_uiSlowRunTick = uiTick;
-
-				//---------------------------------------
-				//---------------------------------------
+				m_pLogSocket->UpdateLabel(std::to_string(pG_SQLDBManager->GetPoolCount()), LABEL_POOL_COUNT_ID);
 				/*
-				m_pLogSocket->UpdateLabel(std::string(G_SQLInterFace.Count), LABEL_POOL_COUNT_ID);
+				//---------------------------------------
+				//---------------------------------------
 				G_IWebSocket.DoHeartbest;
-				G_ReportManager.Run(Tick);
-				G_AuthenSecure.Execute();
-				m_LogSocket.UpdateLabel(Format('%d/%d/%d', [G_AuthenSecure.LoginFailCount, G_AuthenSecure.RegistFailCount, G_AuthenSecure.MacFailCount]), LABEL_SECURE_COUNT_ID);
 				*/
+				pG_HumanReportManager->Run(uiTick);
+				pG_SecureManager->Execute();
+				int iCount1 = pG_SecureManager->GetLoginFailCount();
+				int iCount2 = pG_SecureManager->GetRegistFailCount();
+				int iCount3 = pG_SecureManager->GetMacFailCount();
+				m_pLogSocket->UpdateLabel(std::to_string(iCount1) + std::to_string(iCount2) + std::to_string(iCount3), LABEL_SECURE_COUNT_ID);
 			}
 		}
 		catch (...)
@@ -80,9 +97,7 @@ void CMainThread::DoExecute()
 		}
 		WaitForSingleObject(m_Event, 10);
 	}
-	//--------------------
-	//--------------------
-	//G_ServerSocket.Close;
+	pG_DBSocket->Close();
 }
 
 void CMainThread::OnAddLabel(void* Sender)
@@ -95,7 +110,6 @@ void CMainThread::OnAddLabel(void* Sender)
 	m_pLogSocket->AddLabel("0", 248, 30, LABEL_CHILD_COUNT_ID);
 }
 /************************End Of CMainThread****************************************************/
-
 
 void Log(const std::string& sInfo, byte loglv)
 {

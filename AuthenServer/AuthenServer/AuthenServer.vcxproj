@@ -85,6 +85,8 @@
     <ClInclude Include="CAuthFailLog.h" />
     <ClInclude Include="CDBServerSocket.h" />
     <ClInclude Include="CGiveItemManager.h" />
+    <ClInclude Include="CHumanReportManager.h" />
+    <ClInclude Include="CIWebClientSocket.h" />
     <ClInclude Include="CMainThread.h" />
     <ClInclude Include="CRechargeManager.h" />
     <ClInclude Include="CSecureManager.h" />
@@ -128,6 +130,8 @@
     <ClCompile Include="CAuthFailLog.cpp" />
     <ClCompile Include="CDBServerSocket.cpp" />
     <ClCompile Include="CGiveItemManager.cpp" />
+    <ClCompile Include="CHumanReportManager.cpp" />
+    <ClCompile Include="CIWebClientSocket.cpp" />
     <ClCompile Include="CMainThread.cpp" />
     <ClCompile Include="CRechargeManager.cpp" />
     <ClCompile Include="CSecureManager.cpp" />

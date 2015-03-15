@@ -4,6 +4,7 @@
 **************************************************************************************/
 #include "stdafx.h"
 #include "CGiveItemManager.h"
+#include "CDBServerSocket.h"
 
 const std::string Area_GiveItem_Proc = "P_GS_UsrItem_Queue";
 const std::string GiveItem_CallBack_Proc = "P_GS_UsrItem_CallBack";
@@ -12,6 +13,8 @@ const std::string GAME_GIVEITEM_DB_HOST = "192.168.1.2";
 const std::string GAME_GIVEITEM_DB_USER = DB_USERNAME;
 const std::string GAME_GIVEITEM_DB_PWD = DB_PASSWORD;
 const std::string GAME_GIVEITEM_DB_NAME = "test_gameitem_svr";
+
+CGiveItemManager* pG_GiveItemManager;
 
 /************************Start Of CGiveItemSQLWorkThread******************************************/
 CGiveItemSQLWorkThread::CGiveItemSQLWorkThread(void* owner) : m_Owner(owner), m_bEnabled(false), m_pMySQLProc(nullptr)
@@ -115,12 +118,10 @@ void CGiveItemSQLWorkThread::DoExecute()
 		}
 		if (pWorkNode != nullptr)
 			delete pWorkNode;
-		m_pMySQLProc->Close();
 		delete m_pMySQLProc;
 	}
 	catch (...)
 	{
-		m_pMySQLProc->Close();
 		delete m_pMySQLProc;
 	}
 }
@@ -196,13 +197,7 @@ bool CGiveItemSQLWorkThread::QueryAreaGiveItem(PJsonJobNode pNode)
 				pDataSet->First();
 				while (!pDataSet->Eof())
 				{
-					/****************************
-					/****************************
-					/****************************
-					?????????????????????????????
-					with nNode^ do
-					G_ServerSocket.SQLJobResponse(SM_GIVEITEM_DB_REQ, Handle, nParam, 0, BuildJsonResult(DataSet));
-					****************************/
+					pG_DBSocket->SQLJobResponse(SM_GIVEITEM_DB_REQ, pNode->iHandle, pNode->iParam, 0, BuildJsonResult(pDataSet));
 					pDataSet->Next();
 				}
 			}

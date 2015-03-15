@@ -5,6 +5,7 @@
 #include "stdafx.h"
 #include "CSQLDBManager.h"
 #include "CAuthFailLog.h"
+#include "CDBServerSocket.h"
 
 const std::string SQL_LOGINLOG_PROC = "PW_GS_Passport_CreateLoginLog";
 const std::string SQL_SAFECARD_AUTHEN_PROC = "P_GS_Usr_Securitycard_Verify";
@@ -121,12 +122,10 @@ void CSingleSQLWorker::DoExecute()
 			pWorkNode->sJsonText = "";
 			delete pWorkNode;
 		}
-		m_pMySQLProc->Close();
 		delete m_pMySQLProc;
 	}
 	catch (...)
 	{
-		m_pMySQLProc->Close();
 		delete m_pMySQLProc;
 	}	
 }
@@ -352,15 +351,14 @@ bool CSingleSQLWorker::SQLDB_Authen(PJsonJobNode pNode)
 			iRetCode = -9;
 		}
 		root["Result"] = iRetCode;
-		/*
-		  if Assigned(G_ServerSocket) then
-		  begin
-			Field['Pwd'].Value := '';
-			with nNode^ do
-			  G_ServerSocket.SQLJobResponse(Cmd, Handle, nParam, nRes, TlkJSON.GenerateText(js));
-		  end;
-		*/
-
+		if (pG_DBSocket != nullptr)
+		{
+			//返回的时候将密码去掉
+			root["Pwd"] = "";
+			Json::FastWriter writer;
+			std::string sRetStr = writer.write(root);
+			pG_DBSocket->SQLJobResponse(pNode->iCmd, pNode->iHandle, pNode->iParam, pNode->iRes, sRetStr);
+		}
 #ifdef TEST
 		if (iRetCode != 1)
 		{
@@ -521,14 +519,9 @@ bool CSingleSQLWorker::SQLDB_SafeCardAuthen(PJsonJobNode pNode)
 			root["Message"] = MSG_SAFECARD_AUTHEN_ERROR;
 			break;
 		}
-		/*
-		//--------------------------------
-		//--------------------------------
-		//--------------------------------
-		  if Assigned(G_ServerSocket) then
-			with nNode^ do
-			  G_ServerSocket.SQLJobResponse(Cmd, Handle, nParam, nRes, TlkJSON.GenerateText(js));
-		*/
+		Json::FastWriter writer;
+		std::string sRetStr = writer.write(root);
+		pG_DBSocket->SQLJobResponse(pNode->iCmd, pNode->iHandle, pNode->iParam, pNode->iRes, sRetStr);
 	}
 #ifdef TEST
 	if (iRetCode != 1)
@@ -644,15 +637,9 @@ bool CSQLDBManager::AddWorkJob(int iCmd, int iHandle, int iParam, const std::str
 {
 	bool retFlag = false;
 	CSQLWorkerUnit* pWorker = nullptr;
-	/*
-	//-----------------------------------
-	//-----------------------------------
-	//-----------------------------------
-  if not Assigned(G_ServerSocket) then
-  begin
-    Exit;
-  end;
-	*/
+	if (nullptr == pG_DBSocket)
+		return retFlag;
+
 	Json::Reader reader;
 	Json::Value root;
 	std::string sAccount;
@@ -667,18 +654,12 @@ bool CSQLDBManager::AddWorkJob(int iCmd, int iHandle, int iParam, const std::str
 		pWorker = m_pWorkUnits[swMain];
 		break;
 	case SM_IN_CREDIT_NOW:
-		//--------------------------------------
-		//--------------------------------------
-		//--------------------------------------
-		//G_ServerSocket.InCreditNow; 
+		pG_DBSocket->InCreditNow();
 		retFlag = true;
 		pWorker = nullptr;
 		break;
     case SM_SENDITEM_NOW:
-		//--------------------------------------
-		//--------------------------------------
-		//--------------------------------------
-		//G_ServerSocket.InSendItemNow; 
+		pG_DBSocket->InSendItemNow();
 		retFlag = true;
 		pWorker = nullptr;
 		break;
@@ -686,10 +667,7 @@ bool CSQLDBManager::AddWorkJob(int iCmd, int iHandle, int iParam, const std::str
 		if (reader.parse(s, root))
 		{
 			sAccount = root.get("Account", "").asString();
-			//------------------------------------------------
-			//------------------------------------------------
-			//------------------------------------------------
-			//G_ServerSocket.BroadCastKickOutNow(Account, Param); // 广播踢人
+			pG_DBSocket->BroadCastKickOutNow(sAccount, iParam);
 			retFlag = true;
 		}
 		pWorker = nullptr;

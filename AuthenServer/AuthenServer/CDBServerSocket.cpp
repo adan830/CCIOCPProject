@@ -5,6 +5,9 @@
 #include "stdafx.h"
 #include "CDBServerSocket.h"
 #include "CSecureManager.h"
+#include "CSQLDBManager.h"
+#include "CRechargeManager.h"
+#include "CGiveItemManager.h"
 
 using namespace CC_UTILS;
 
@@ -221,27 +224,29 @@ void CDBConnector::Msg_UserAuthenRequest(int iParam, char* pBuf, unsigned short 
 					std::string sMac = root.get("Mac", "").asString();
 					std::string sAreaID = root.get("AreaID", "").asString();
 					std::string sPwd = root.get("Pwd", "").asString();
-					/*
-					if G_AuthenSecure.LimitOfLogin(Auth_ID, Auth_IP, Mac) then
-					begin
-					  iRetCode := 7;
-					  Msg := MSG_LOGIN_SECURE_FAILED;           // 1小时内的失败次数过多
-					  G_AuthFailLog.WriteLog(Format('%s,%s,%s,%s,%s,%s,%d'#13#10, [FormatDateTime('yyyy-mm-dd hh:nn:ss', Now()), AreaID, Auth_ID, Auth_IP, Mac, Pwd, iRetCode]));
-					end
+
+					if (pG_SecureManager->LimitOfLogin(sAuthID, sAuthIP, sMac))
+					{
+						iRetCode = 7;
+						sMsg = MSG_LOGIN_SECURE_FAILED;
+						//---------------
+						//---------------
+						//---------------
+						//G_AuthFailLog.WriteLog(Format('%s,%s,%s,%s,%s,%s,%d'#13#10, [FormatDateTime('yyyy-mm-dd hh:nn:ss', Now()), AreaID, Auth_ID, Auth_IP, Mac, Pwd, iRetCode]));
+					}
 					else
-					begin
-					  if G_SQLInterFace.AddJob(SM_USER_AUTHEN_REQ, SocketHandle, Param, Str) then
-					  begin
-						iRetCode := 1;
-						Exit;                                   // 加入队列成功，暂时无出错返回
-					  end
-					  else
-					  begin
-						iRetCode := 9;
-						Msg := MSG_SERVER_BUSY;
-					  end;
-					end;
-					*/
+					{
+						if (pG_SQLDBManager->AddWorkJob(SM_USER_AUTHEN_REQ, GetSocketHandle(), iParam, str))
+						{
+							iRetCode = 1;
+							return;
+						}
+						else
+						{
+							iRetCode = 9;
+							sMsg = MSG_SERVER_BUSY;
+						}
+					}
 				}
 				else
 				{
@@ -254,6 +259,7 @@ void CDBConnector::Msg_UserAuthenRequest(int iParam, char* pBuf, unsigned short 
 				sMsg = "认证类型错误:" + std::to_string(iAuthType);
 				break;
 			}
+
 		}
 		else
 		{
@@ -283,22 +289,23 @@ void CDBConnector::Msg_NewAccountRequest(int iParam, char* pBuf, unsigned short 
 	if (reader.parse(str, root))
 	{
 		std::string sIP = root.get("ClientIP", "").asString();
-		/*
-		if G_AuthenSecure.LimitOfRegister(IP) then            // 判断同IP注册数量限制
-		begin
-			js.Add('Result', 8);                                // 注册失败，稍候再试
-			js.Add('Message', MSG_REGISTER_SECURE_FAILED);
-			ResultStr := TlkJSON.GenerateText(js);
-			SQLWorkCallBack(SM_USER_REGIST_RES, iParam, ResultStr);
-		end
-		else if not G_SQLInterFace.AddJob(SM_USER_REGIST_REQ, SocketHandle, Param, Str) then
-		begin
-			js.Add('Result', 9);                                // 队列满，失败返回
-			js.Add('Message', MSG_SERVER_BUSY);
-			ResultStr := TlkJSON.GenerateText(js);
-			SQLWorkCallBack(SM_USER_REGIST_RES, iParam, ResultStr);
-		end;
-		*/
+		if (pG_SecureManager->LimitOfRegister(sIP))
+		{
+			root["Result"] = 8;  // 注册失败，稍候再试
+			root["Message"] = MSG_REGISTER_SECURE_FAILED;		
+			Json::FastWriter writer;
+			std::string sResultStr = writer.write(root);
+			SQLWorkCallBack(SM_USER_REGIST_RES, iParam, sResultStr);
+		}
+		else if (!pG_SQLDBManager->AddWorkJob(SM_USER_REGIST_REQ, GetSocketHandle(), iParam, str))
+		{
+			root["Result"] = 9;   // 队列满，失败返回
+			root["Message"] = MSG_SERVER_BUSY;
+			Json::FastWriter writer;
+			std::string sResultStr = writer.write(root);
+			SQLWorkCallBack(SM_USER_REGIST_RES, iParam, sResultStr);
+
+		}
 	}
 	else
 	{
@@ -315,10 +322,10 @@ void CDBConnector::Msg_DBResponse(int iIdent, int iParam, char* pBuf, unsigned s
 	switch (iIdent)
 	{
 	case SM_RECHARGE_DB_ACK:
-		//G_RechargeManager.AddJob(Ident, SocketHandle, Param, str, True);
+		pG_RechargeManager->AddRechargeJob(iIdent, GetSocketHandle(), iParam, str, true);
 		break;
 	case SM_GIVEITEM_DB_ACK:
-		//G_GiveItemManager.AddJob(Ident, SocketHandle, Param, str, True);
+		pG_GiveItemManager->AddGiveItemJob(iIdent, GetSocketHandle(), iParam, str, true);
 		break;
 	default:
 		Log("Msg_DBResponse 未知协议：" + std::to_string(iIdent), lmtWarning);
@@ -339,20 +346,19 @@ void CDBConnector::Msg_SafeCardAuthen(int iParam, char* pBuf, unsigned short usB
 	{
 		std::string sCardNo = root.get("SafeCardNo", "").asString();
 		std::string sIP = root.get("ClientIP", "").asString();
-		/*
-		if G_AuthenSecure.LimitOfSafeCard(CardNo, IP) then
-		begin
-		  js.Add('Result', 7);                                  // 1小时内的失败次数过多
-		  js.Add('Message', MSG_SAFECARD_SECURE_FAILED);
-		end
+		if (pG_SecureManager->LimitOfSafeCard(sCardNo, sIP))
+		{
+			root["Result"] = 7;  // 1小时内的失败次数过多
+			root["Message"] = MSG_SAFECARD_SECURE_FAILED;
+		}
 		else
-		begin
-		  if G_SQLInterFace.AddJob(SM_SAFECARD_AUTHEN_REQ, SocketHandle, Param, Buf) then
-			Exit;
-		  js.Add('Result', 9);                                  // 队列满，失败返回
-		  js.Add('Message', MSG_SERVER_BUSY);
-		end;
-		*/
+		{
+			if (pG_SQLDBManager->AddWorkJob(SM_SAFECARD_AUTHEN_REQ, GetSocketHandle(), iParam, jsonStr))
+				return;
+
+			root["Result"] = 9;   // 队列满，失败返回
+			root["Message"] = MSG_SERVER_BUSY;
+		}
 		std::string str = writer.write(root);
 		SQLWorkCallBack(SM_SAFECARD_AUTHEN_RES, iParam, str);
 	}
@@ -365,11 +371,6 @@ void CDBConnector::SQLWorkCallBack(int iCmd, int iParam, const std::string &str)
 
 void CDBConnector::OnAuthenFail(int iSessionID, int iRetCode, const std::string &sMsg, int iAuthType, int iAuthenApp)
 {
-	//--------------------------
-	//--------------------------
-	//----这里的json组包是否ok？
-	//--------------------------
-	//--------------------------
 	Json::Value root;
 	root["Result"] = iRetCode;
 	root["Message"] = sMsg;
@@ -462,11 +463,7 @@ void CDBServerSocket::DoActive()
 	LoadServerConfig();
 	ProcResponseMsg();
 	unsigned int tick = GetTickCount();
-	//-----------------------------
-	//-----------------------------
-	//-----------------------------
-	//if Assigned(G_RechargeManager) and G_RechargeManager.Enabled then
-	if (true)
+	if ((pG_RechargeManager != nullptr) && (pG_RechargeManager->IsEnable()))
 	{
 		if (tick - m_uiLastQueryRechargeTick >= m_uiQueryRechargeInterval)
 		{
@@ -480,11 +477,7 @@ void CDBServerSocket::DoActive()
 			}
 		}
 	}
-	//------------------------------------
-	//------------------------------------
-	//------------------------------------
-	//if Assigned(G_GiveItemManager) and G_GiveItemManager.Enabled then
-	if (true)
+	if ((pG_GiveItemManager != nullptr) && (pG_GiveItemManager->IsEnable()))
 	{
 		if (tick - m_uiLastQueryItemTick >= m_uiQueryItemInterval)
 		{
@@ -781,21 +774,12 @@ void CDBServerSocket::AddRechargeQueryJob(int iServerID, int iSocketHandle)
 		pInfo = (PServerConfigInfo)m_ServerHash.GetNextNode();
 		if ((pInfo->iRealServerID == iServerID) && (!pInfo->bDenyRecharge))
 		{
-			//--------------------------
-			//--------------------------
-			//----这里的json组包是否ok？
-			//--------------------------
-			//--------------------------
 			Json::Value root;
 			root["GameId"] = m_iGameID;
 			root["AreaId"] = pInfo->iMaskServerID;
 			Json::FastWriter writer;
 			std::string str = writer.write(root);
-			//------------------------------------
-			//------------------------------------
-			//------------------------------------
-			//------------------------------------
-			//G_RechargeManager.AddJob(SM_RECHARGE_AREA_QUERY, SocketHandle, 0, s);
+			pG_RechargeManager->AddRechargeJob(SM_RECHARGE_AREA_QUERY, iSocketHandle, 0, str);
 		}
 	}
 }
@@ -810,21 +794,12 @@ void CDBServerSocket::AddQueryGiveItemJob(int iServerID, int iSocketHandle)
 		pInfo = (PServerConfigInfo)m_ServerHash.GetNextNode();
 		if ((pInfo->iRealServerID == iServerID) && (!pInfo->bDenyGiveItem))
 		{
-			//--------------------------
-			//--------------------------
-			//----这里的json组包是否ok？
-			//--------------------------
-			//--------------------------
 			Json::Value root;
 			root["GameId"] = m_iGameID;
 			root["AreaId"] = pInfo->iMaskServerID;
 			Json::FastWriter writer;
 			std::string str = writer.write(root);
-			//------------------------------------
-			//------------------------------------
-			//------------------------------------
-			//------------------------------------
-			//G_GiveItemManager.AddJob(SM_GIVEITEM_QUERY, SocketHandle, 0, s);
+			pG_GiveItemManager->AddGiveItemJob(SM_GIVEITEM_QUERY, iSocketHandle, 0, str);
 		}
 	}
 }
@@ -949,21 +924,13 @@ void CDBServerSocket::ShowDBMsg(int iServerID, int iCol, const std::string &sMsg
 
 void CDBServerSocket::RechargeFail(const std::string &sOrderID)
 {
-	//--------------------------
-	//--------------------------
-	//----这里的json组包是否ok？
-	//--------------------------
-	//--------------------------
 	Json::Value root;
 	root["Orderid"] = sOrderID;
 	root["IP"] = "127.0.0.1";
 	root["State"] = -1;
 	Json::FastWriter writer;
 	std::string str = writer.write(root);
-	//----------------------------------
-	//----------------------------------
-	//----------------------------------
-	//G_RechargeManager.AddJob(SM_RECHARGE_DB_ACK, 0, 0, s, True);
+	pG_RechargeManager->AddRechargeJob(SM_RECHARGE_DB_ACK, 0, 0, str, true);
 }
 
 /************************End Of CDBServerSocket******************************************/

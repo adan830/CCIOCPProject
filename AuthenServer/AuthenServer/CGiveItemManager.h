@@ -59,4 +59,6 @@ private:
 	CGiveItemSQLWorkThread* m_pWorkThread;
 };
 
+extern CGiveItemManager* pG_GiveItemManager;
+
 #endif //__CC_GIVEITEM_MANAGER_H__

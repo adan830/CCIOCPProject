@@ -66,11 +66,6 @@ class CDBServerSocket : public CIOCPServerSocketManager
 public:
 	CDBServerSocket(const std::string &sServerName);
 	virtual ~CDBServerSocket();
-	/*
-	//merge in
-	procedure OnCreate; override;
-	procedure OnDestroy; override;
-	*/
 	void SQLJobResponse(int iCmd, int iHandle, int iParam, int iRes, const std::string &str);
 	void InCreditNow();
 	void InSendItemNow();

@@ -57,5 +57,6 @@ private:
 	CRechargeSQLWorkThread* m_pWorkThread;
 };
 
+extern CRechargeManager* pG_RechargeManager;
 
 #endif //__CC_RECHARGE_MANAGER_H__

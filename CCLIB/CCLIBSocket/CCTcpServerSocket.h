@@ -152,6 +152,7 @@ public:
 	TOnSocketError m_OnClientError;
 	TOnCreateClient m_OnCreateClient;
 	TOnCheckAddress m_OnCheckAddress;
+	std::list<void*> m_ActiveConnects;		 // 维护当前连接客户端的对象列表，该成员变量还是需要对外开放，但在外部尽量少使用，加锁
 protected:
 	virtual void DoActive(){}         // Open 后在Execute中调用
     void* ValueOf(const int iKey);  
@@ -159,7 +160,6 @@ protected:
 	void SetMaxBlockSize(const int iSize){ m_iMaxBlockSize = iSize; }
 protected:
 	std::mutex m_LockCS;                     // 临界区操作使用的互斥锁，子类特殊条件会使用
-	std::list<void*> m_ActiveConnects;		 // 维护当前连接客户端的对象列表，该成员变量还是需要对外开放，最少需要对子类开放
 private: 
 	void DoReady(void* Sender);
 	void DoSocketClose(void* Sender);
