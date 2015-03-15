@@ -130,9 +130,12 @@ const int SM_CHILD_LOGOUT = 0x1017;									// 防沉迷，下线
 const int SM_SAFECARD_AUTHEN_REQ = 0x1019;							// 密保卡认证
 const int SM_SAFECARD_AUTHEN_RES = 0x1020;                          // 密保卡认证返回
 
+const int SM_IN_CREDIT_NOW = 0x1020;                                // 充值 Web接口<->AuthenServer  ------  重复
+const int SM_SENDITEM_NOW = 0x1021;                                 // 送道具 Web接口<->AuthenServer
+const int SM_KICKOUT_NOW = 0x1022;                                  // 踢下线 Web接口<->AuthenServer
+
 const int SM_ENCODE_BUFFER = 0x1101;                                // 启动加密
 const int SM_DECODE_BUFFER = 0x1102;                                // 解密
-
 
 const int SM_SELECT_SERVER = 0x2001;                                // 选服请求
 const int SM_PLAYER_CONNECT = 0x2002;                               // 玩家连接

@@ -10,13 +10,31 @@ const std::string SQL_LOGINLOG_PROC = "PW_GS_Passport_CreateLoginLog";
 const std::string SQL_SAFECARD_AUTHEN_PROC = "P_GS_Usr_Securitycard_Verify";
 const std::string SQL_REGIST_PROC = "***";
 
+const int MAX_THREAD_COUNT = 3;
+const int MAX_POOL_COUNT = 3000;
+
 #ifdef TEST
 const std::string SQL_AUTHEN_PROC = 'P_GS_ForTest';
 #else
 const std::string SQL_AUTHEN_PROC = "PR_GS_Passport_Login";
 #endif
 
+#ifdef TEST
+	const std::string DB_MAIN_USER = DB_USERNAME;
+	const std::string DB_MAIN_PWD = DB_PASSWORD;
+	#ifdef LOCAL_PASSPORT
+		const std::string DB_MAIN_HOST = DB_HOSTNAME;
+	#else	
+		const std::string DB_MAIN_HOST = "192.168.1.2";
+	#endif
+#else
+	const std::string DB_MAIN_HOST = "192.168.123.8";
+	const std::string DB_MAIN_USER = "writeuser";
+	const std::string DB_MAIN_PWD = "YsPmH_HpIOUzTRA]";
+#endif
+
 CSQLDBManager* pG_SQLDBManager;
+std::string G_PWD_MD5_KEY;
 
 /************************Start Of CSingleSQLWorker******************************************/
 CSingleSQLWorker::CSingleSQLWorker(CSQLWorkerUnit* owner, unsigned short usIdx, const std::string &sConnectStr) : m_pOwner(owner), m_usThreadIdx(usIdx), m_sConnectStr(sConnectStr)
@@ -29,7 +47,88 @@ CSingleSQLWorker::~CSingleSQLWorker()
 
 void CSingleSQLWorker::DoExecute()
 {
+	m_pMySQLProc = new CC_UTILS::CMySQLManager();
+	try
+	{
+		m_pMySQLProc->SetConnectString(m_sConnectStr);
+		m_pMySQLProc->m_OnError = std::bind(&CSingleSQLWorker::OnMySQLError, this, std::placeholders::_1, std::placeholders::_2);
+		PJsonJobNode pWorkNode = nullptr;
+		int iErrorCount = 0;
+		while (!IsTerminated())
+		{
+			try
+			{
+				if (nullptr == pWorkNode)
+				{
+					iErrorCount = 0;
+					pWorkNode = m_pOwner->PopWorkJob();
+				}
 
+				if (pWorkNode != nullptr)
+				{
+					if (!m_pMySQLProc->IsMySQLConnected())
+					{
+						m_pMySQLProc->Open();
+						WaitForSingleObject(m_Event, 1000);
+					}
+
+					bool bSuccess = false;
+					switch (pWorkNode->iCmd)
+					{
+					case SM_USER_AUTHEN_REQ:
+						bSuccess = SQLDB_Authen(pWorkNode);
+						break;
+					case SM_USER_REGIST_REQ:
+						bSuccess = SQLDB_Regist(pWorkNode);
+						break;
+					case SM_USER_AUTHEN_LOG:
+						bSuccess = SQLDB_AuthenLog(pWorkNode);
+						break;
+					case SM_SAFECARD_AUTHEN_REQ:
+						bSuccess = SQLDB_SafeCardAuthen(pWorkNode);
+						break;
+					default:
+						Log("[TSQLWorker未知协议]：" + std::to_string(pWorkNode->iCmd), lmtWarning);
+						bSuccess = true;
+						break;
+					}
+
+					if (!bSuccess)
+					{
+						m_pMySQLProc->Open();
+						WaitForSingleObject(m_Event, 1000);
+						++iErrorCount;
+						if (iErrorCount >= 10)
+							OnMySQLError(3, "[认证接口]:多次SQL执行错误！");
+					}
+					PJsonJobNode pTempNode = pWorkNode;
+					pWorkNode->sJsonText = "";
+					pWorkNode = nullptr;
+					delete pWorkNode;
+				}
+				else
+					WaitForSingleObject(m_Event, 10);
+			}
+			catch (...)
+			{
+				Log("TSQLWorker.Execute,ErrCode=" + std::to_string(GetLastError()) + " [ErrorMsg]", lmtException);
+				WaitForSingleObject(m_Event, 10);
+			}
+		}
+
+		if (pWorkNode != nullptr)
+		{
+			pWorkNode->sJsonText = "";
+			delete pWorkNode;
+		}
+		m_pMySQLProc->Close();
+		delete m_pMySQLProc;
+	}
+	catch (...)
+	{
+		m_pMySQLProc->Close();
+		delete m_pMySQLProc;
+	}	
 }
 
 void CSingleSQLWorker::SetWorkType(TSQLWorkDB worktype)
@@ -125,21 +224,23 @@ void CSingleSQLWorker::MySQLAuthenRes(Json::Value js, PJsonJobNode pNode, IMySQL
 		pMyField = pDataSet->FieldByName("Usr_CardId");
 		if (pMyField != nullptr)
 		{
-			/*
-			CardId := myField.AsString;
-			Add('CardID', CardId);                              // 身份证
-			isChild := G_ChildManager.IsChild(CardID, isDeny);
-			if isChild then
-			begin
-			{$IFDEF WALLOW_ALLOW}
-			if isDeny then
-			{$ENDIF}
-			begin
-			Add('Result', 10);
-			Add('Message', MSG_DENY_CHILD);                 // 'Child Login is Deny!'
-			end;
-			end;
-			*/
+			std::string sCardId = pMyField->AsString();
+			js["CardID"] = sCardId;
+			bool bIsDeny = false;
+			//------------------------------
+			//------------------------------
+			//------------------------------
+			//isChild: = G_ChildManager.IsChild(CardID, isDeny);
+			if (bIsChild)
+			{
+#ifdef WALLOW_ALLOW
+				if (bIsDeny)
+#endif				
+				{
+					js["Result"] = 10;
+					js["Message"] = MSG_DENY_CHILD;
+				}			
+			}
 		}
 		else
 			Log("身份证号不存在！", lmtError);
@@ -189,7 +290,7 @@ bool CSingleSQLWorker::SQLDB_Authen(PJsonJobNode pNode)
 		std::string sMac = root.get("Mac", "").asString();
 		std::string sAreaID = root.get("AreaID", "").asString();
 		std::string sPwd = ""; //--------------------------------- MD5Print(MD5String(LowerCase(GetStringValue(Field['Pwd'])) + G_PWD_MD5_KEY), True);
-		std::string sSql = "call " + SQL_AUTHEN_PROC + "(\"" + _EscapeString(sAccount) + "\", \"" + _EscapeString(sPwd) + "\", " + root.get("AppID", "").asString 
+		std::string sSql = "call " + SQL_AUTHEN_PROC + "(\"" + _EscapeString(sAccount) + "\", \"" + _EscapeString(sPwd) + "\", " + root.get("AppID", "").asString()
 			+ ", " + sAreaID + ", 0, \"" + sIP + "\");";
 		int iAffected = 0;
 		IMySQLFields* pDataSet = nullptr;
@@ -269,6 +370,7 @@ bool CSingleSQLWorker::SQLDB_Authen(PJsonJobNode pNode)
 		}			
 #endif
 	}
+	return retFlag;
 }
 
 bool CSingleSQLWorker::SQLDB_Regist(PJsonJobNode pNode)
@@ -347,6 +449,8 @@ begin
   end;
 end;
 	*/
+	bool bRetFlag = false;
+	return bRetFlag;
 }
 
 //认证成功后记录
@@ -436,6 +540,7 @@ bool CSingleSQLWorker::SQLDB_SafeCardAuthen(PJsonJobNode pNode)
 
 
 
+
 /************************Start Of CSQLWorkerUnit******************************************/
 
 CSQLWorkerUnit::CSQLWorkerUnit(const std::string &s, TSQLWorkDB dbtype) : m_pFirst(nullptr), m_pLast(nullptr), m_iCount(0)
@@ -457,36 +562,167 @@ CSQLWorkerUnit::~CSQLWorkerUnit()
 
 bool CSQLWorkerUnit::AddWorkJob(int iCmd, int iHandle, int iParam, const std::string &s)
 {
+	bool retFlag = m_iCount < MAX_POOL_COUNT;
+	if (retFlag)
+	{
+		PJsonJobNode pNode = new TJsonJobNode();
+		pNode->iCmd = iCmd;
+		pNode->iHandle = iHandle;
+		pNode->iParam = iParam;
+		pNode->iRes = 0;
+		pNode->sJsonText = s;
+		pNode->pNext = nullptr;
 
+		{
+			std::lock_guard<std::mutex> guard(m_LockCS);
+			if (m_pLast != nullptr)
+				m_pLast->pNext = pNode;
+			else
+				m_pFirst = pNode;
+			m_pLast = pNode;
+			++m_iCount;
+		}
+	}
+	return retFlag;
 }
 
 PJsonJobNode CSQLWorkerUnit::PopWorkJob()
 {
-
+	PJsonJobNode pRetNode = nullptr;
+	std::lock_guard<std::mutex> guard(m_LockCS);
+	if (m_pFirst != nullptr)
+	{
+		pRetNode = m_pFirst;
+		m_pFirst = pRetNode->pNext;
+		if (nullptr == m_pFirst)
+			m_pLast = nullptr;
+		--m_iCount;
+	}
+	return pRetNode;
 }
 
 void CSQLWorkerUnit::Clear()
 {
-	/*
-var
-  nNode             : PJSONJobNode;
-begin
-  EnterCriticalSection(FCS);
-  try
-    while Assigned(FFirst) do
-    begin
-      nNode := FFirst;
-      FFirst := nNode^.Next;
-      DisPose(nNode);
-    end;
-    FFirst := nil;
-    FLast := nil;
-    FCount := 0;
-  finally
-    LeaveCriticalSection(FCS);
-  end;
-end;
-	*/
+	PJsonJobNode pNode = nullptr;
+	std::lock_guard<std::mutex> guard(m_LockCS);
+	while (m_pFirst != nullptr)
+	{
+		pNode = m_pFirst;
+		m_pFirst = pNode->pNext;
+		delete(pNode);
+	}
+	m_pFirst = nullptr;
+	m_pLast = nullptr;
+	m_iCount = 0;
 }
 
 /************************End Of CSQLWorkerUnit********************************************/
+
+
+
+
+/************************Start Of CSQLDBManager******************************************/
+CSQLDBManager::CSQLDBManager()
+{
+	m_pWorkUnits[0] = nullptr;
+	m_pWorkUnits[1] = nullptr;
+	LoadSQLConfig();
+
+	std::string sPwdMd5Key = "X?ECJOPrM@UdHnH"; //---p2G956DFh3#---
+	G_PWD_MD5_KEY = CC_UTILS::DecodeString(sPwdMd5Key);
+}
+
+CSQLDBManager::~CSQLDBManager()
+{
+	delete m_pWorkUnits[0];
+	delete m_pWorkUnits[1];
+	m_pWorkUnits[0] = nullptr;
+	m_pWorkUnits[1] = nullptr;
+}
+
+bool CSQLDBManager::AddWorkJob(int iCmd, int iHandle, int iParam, const std::string &s)
+{
+	bool retFlag = false;
+	CSQLWorkerUnit* pWorker = nullptr;
+	/*
+	//-----------------------------------
+	//-----------------------------------
+	//-----------------------------------
+  if not Assigned(G_ServerSocket) then
+  begin
+    Exit;
+  end;
+	*/
+	Json::Reader reader;
+	Json::Value root;
+	std::string sAccount;
+	switch (iCmd)
+	{
+	case SM_USER_AUTHEN_REQ:
+	case SM_SAFECARD_AUTHEN_REQ:
+		pWorker = m_pWorkUnits[swSlave];
+		break;
+	case SM_USER_REGIST_REQ:
+	case SM_USER_AUTHEN_LOG: 
+		pWorker = m_pWorkUnits[swMain];
+		break;
+	case SM_IN_CREDIT_NOW:
+		//--------------------------------------
+		//--------------------------------------
+		//--------------------------------------
+		//G_ServerSocket.InCreditNow; 
+		retFlag = true;
+		pWorker = nullptr;
+		break;
+    case SM_SENDITEM_NOW:
+		//--------------------------------------
+		//--------------------------------------
+		//--------------------------------------
+		//G_ServerSocket.InSendItemNow; 
+		retFlag = true;
+		pWorker = nullptr;
+		break;
+    case SM_KICKOUT_NOW:
+		if (reader.parse(s, root))
+		{
+			sAccount = root.get("Account", "").asString();
+			//------------------------------------------------
+			//------------------------------------------------
+			//------------------------------------------------
+			//G_ServerSocket.BroadCastKickOutNow(Account, Param); // 广播踢人
+			retFlag = true;
+		}
+		pWorker = nullptr;
+		break;
+	default:
+		pWorker = m_pWorkUnits[swSlave];
+		break;
+	}
+	if (pWorker != nullptr)
+		retFlag = pWorker->AddWorkJob(iCmd, iHandle, iParam, s);
+	return retFlag;
+}
+
+int CSQLDBManager::GetPoolCount()
+{
+	return m_pWorkUnits[0]->m_iCount + m_pWorkUnits[1]->m_iCount;
+}
+
+void CSQLDBManager::LoadSQLConfig()
+{
+	std::string sConfigFileName(G_CurrentExeDir + "config.ini");
+	CWgtIniFile* pIniFileParser = new CWgtIniFile();
+	pIniFileParser->loadFromFile(sConfigFileName);
+	std::string sHost = pIniFileParser->getString("MainDB", "Host", DB_MAIN_HOST);
+	std::string sUser = pIniFileParser->getString("MainDB", "User", DB_MAIN_USER);
+	std::string sPwd = CC_UTILS::DecodeString(pIniFileParser->getString("MainDB", "Pwd", DB_MAIN_PWD));
+	std::string sConnectStr = "Host=" + sHost + ";User=" + sUser + ";Pwd=" + sPwd + ";Database=LongGet_Passport_SVR;";
+	m_pWorkUnits[swMain] = new CSQLWorkerUnit(sConnectStr, swMain);
+	sHost = pIniFileParser->getString("SlaveDB", "Host", DB_MAIN_HOST);;
+	sUser = pIniFileParser->getString("SlaveDB", "User", DB_MAIN_USER);;
+	sPwd = CC_UTILS::DecodeString(pIniFileParser->getString("SlaveDB", "Pwd", DB_MAIN_PWD));
+	sConnectStr = "Host=" + sHost + ";User=" + sUser + ";Pwd=" + sPwd + ";Database=LongGet_Passport_SVR;";
+	m_pWorkUnits[swSlave] = new CSQLWorkerUnit(sConnectStr, swSlave);
+	delete pIniFileParser;
+}
+/************************End Of CSQLDBManager********************************************/

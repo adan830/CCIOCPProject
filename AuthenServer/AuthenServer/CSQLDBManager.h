@@ -10,7 +10,7 @@ using namespace CC_UTILS;
 
 class CSQLWorkerUnit;
 
-enum TSQLWorkDB {swMain=1, swSlave} ;
+enum TSQLWorkDB {swMain=0, swSlave} ;
 
 const int MAX_SQL_WORK_COUNT = 3;
 
@@ -54,13 +54,14 @@ public:
 	virtual ~CSQLWorkerUnit();
 	bool AddWorkJob(int iCmd, int iHandle, int iParam, const std::string &s);
 	PJsonJobNode PopWorkJob();
+public:
+	int m_iCount;
 private:
 	void Clear();
 private:
 	std::mutex m_LockCS;
 	PJsonJobNode m_pFirst;
 	PJsonJobNode m_pLast;
-	int m_iCount;
 	CSingleSQLWorker* m_pWorkThreads[MAX_SQL_WORK_COUNT];
 };
 
