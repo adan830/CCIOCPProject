@@ -6,6 +6,7 @@
 #include "CSQLDBManager.h"
 #include "CAuthFailLog.h"
 #include "CDBServerSocket.h"
+#include "CProtectChildManager.h"
 
 const std::string SQL_LOGINLOG_PROC = "PW_GS_Passport_CreateLoginLog";
 const std::string SQL_SAFECARD_AUTHEN_PROC = "P_GS_Usr_Securitycard_Verify";
@@ -226,10 +227,7 @@ void CSingleSQLWorker::MySQLAuthenRes(Json::Value js, PJsonJobNode pNode, IMySQL
 			std::string sCardId = pMyField->AsString();
 			js["CardID"] = sCardId;
 			bool bIsDeny = false;
-			//------------------------------
-			//------------------------------
-			//------------------------------
-			//isChild: = G_ChildManager.IsChild(CardID, isDeny);
+			bIsChild = pG_ProtectChildManager->IsChild(sCardId, bIsDeny);
 			if (bIsChild)
 			{
 #ifdef WALLOW_ALLOW
@@ -530,8 +528,6 @@ bool CSingleSQLWorker::SQLDB_SafeCardAuthen(PJsonJobNode pNode)
 	return retFlag;
 }
 /************************End Of CSingleSQLWorker********************************************/
-
-
 
 
 /************************Start Of CSQLWorkerUnit******************************************/

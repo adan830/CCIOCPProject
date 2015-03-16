@@ -11,6 +11,7 @@
 #include "CHumanReportManager.h"
 #include "CSecureManager.h"
 #include "CAuthFailLog.h"
+#include "CIWebClientSocket.h"
 
 using namespace CC_UTILS;
 
@@ -23,13 +24,7 @@ CMainThread::CMainThread(const std::string &sServerName) : m_uiSlowRunTick(0), m
 	m_pLogSocket->m_OnConnectEvent = std::bind(&CMainThread::OnAddLabel, this, std::placeholders::_1);
 	pG_SQLDBManager = new CSQLDBManager;
 	pG_DBSocket = new CDBServerSocket(sServerName);
-	/*
-	//---------------------------------------
-	//---------------------------------------
-	//---------------------------------------
-	G_ChildManager := TChildManager.Create(OnChildNotify);
-	G_IWebSocket := TIWebSocket.Create;
-	*/
+	pG_IWebSocket = new CIWebClientSocket();
 	pG_RechargeManager = new CRechargeManager;
 	pG_GiveItemManager = new CGiveItemManager;
 	pG_HumanReportManager = new CHumanReportManager;
@@ -40,22 +35,11 @@ CMainThread::CMainThread(const std::string &sServerName) : m_uiSlowRunTick(0), m
 CMainThread::~CMainThread()
 {
 	WaitThreadExecuteOver();
-	/*
-	//---------------------------------------
-	//---------------------------------------
-	//---------------------------------------
-	FreeAndnil(G_ChildManager);
-	*/
 	delete pG_DBSocket;
 	delete pG_SQLDBManager;
 	delete pG_RechargeManager;
 	delete pG_GiveItemManager;
-	/*
-	//---------------------------------------
-	//---------------------------------------
-	//---------------------------------------
-	FreeObject(G_IWebSocket);
-	*/
+	delete pG_IWebSocket;
 	delete pG_HumanReportManager;
 	delete pG_SecureManager;
 	delete m_pLogSocket;
@@ -78,11 +62,7 @@ void CMainThread::DoExecute()
 			{
 				m_uiSlowRunTick = uiTick;
 				m_pLogSocket->UpdateLabel(std::to_string(pG_SQLDBManager->GetPoolCount()), LABEL_POOL_COUNT_ID);
-				/*
-				//---------------------------------------
-				//---------------------------------------
-				G_IWebSocket.DoHeartbest;
-				*/
+				pG_IWebSocket->DoHeartBeat();
 				pG_HumanReportManager->Run(uiTick);
 				pG_SecureManager->Execute();
 				int iCount1 = pG_SecureManager->GetLoginFailCount();

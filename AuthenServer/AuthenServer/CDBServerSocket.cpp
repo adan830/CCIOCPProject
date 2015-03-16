@@ -8,6 +8,8 @@
 #include "CSQLDBManager.h"
 #include "CRechargeManager.h"
 #include "CGiveItemManager.h"
+#include "CIWebClientSocket.h"
+#include "CProtectChildManager.h"
 
 using namespace CC_UTILS;
 
@@ -129,22 +131,14 @@ void CDBConnector::ProcessReceiveMsg(PServerSocketHeader pHeader, char* pData, i
 		if (sizeof(TGameChildLogin) == iDataLen)
 		{
 			PGameChildLogin pLogin = (PGameChildLogin)pData;
-			//--------------------------------------------
-			//--------------------------------------------
-			//--------------------------------------------
-			//--------------------------------------------
-			//G_ChildManager.Logon(pLogin->szCard_ID, pLogin->szRoleName, m_iServerID);
+			pG_ProtectChildManager->Logon(pLogin->szCard_ID, pLogin->szRoleName, m_iServerID);
 		}
 		break;      
 	case SM_CHILD_LOGOUT:
 		if (sizeof(TGameChildLogin) == iDataLen)
 		{
 			PGameChildLogin pLogin = (PGameChildLogin)pData;
-			//--------------------------------------------
-			//--------------------------------------------
-			//--------------------------------------------
-			//--------------------------------------------
-			//G_ChildManager.Logout(pLogin->szCard_ID, pLogin->szRoleName, m_iServerID);
+			pG_ProtectChildManager->Logout(pLogin->szCard_ID, pLogin->szRoleName, m_iServerID);
 		}
 		break;
 	case SM_REFRESH_RECHARGE:
@@ -400,15 +394,19 @@ m_pLogSocket(nullptr), m_FirstNode(nullptr), m_LastNode(nullptr)
 	m_OnConnect = std::bind(&CDBServerSocket::OnDBConnect, this, std::placeholders::_1);
 	m_OnDisConnect = std::bind(&CDBServerSocket::OnDBDisconnect, this, std::placeholders::_1);
 	m_OnCheckAddress = std::bind(&CDBServerSocket::OnCheckIPAddress, this, std::placeholders::_1);
+
+	pG_ProtectChildManager = new CProtectChildManager();
+	pG_ProtectChildManager->m_OnNotifyEvent = std::bind(&CDBServerSocket::OnChildNotify, this, std::placeholders::_1, std::placeholders::_2);
 	LoadConfig();
 }
 
 CDBServerSocket::~CDBServerSocket()
 {
+	Clear();
 	m_ServerHash.m_RemoveEvent = nullptr;
 	if (m_pLogSocket != nullptr)
 		delete m_pLogSocket;
-	Clear();
+	delete pG_ProtectChildManager;
 }
 
 void CDBServerSocket::SQLJobResponse(int iCmd, int iHandle, int iParam, int iRes, const std::string &str)
@@ -451,10 +449,7 @@ void CDBServerSocket::BroadCastKickOutNow(const std::string &sAccount, int iPara
 			for (vIter = m_ActiveConnects.begin(); vIter != m_ActiveConnects.end(); ++vIter)
 				((CDBConnector*)(*vIter))->SendToClientPeer(SM_KICKOUT_ACCOUNT, 0, sSendAccount);				
 		}
-		//----------------------------------
-		//----------------------------------
-		//----------------------------------
-		//G_IWebSocket.SendToServer(SM_KICKOUT_NOW, nParam, '1', 1);
+		pG_IWebSocket->SendToServerPeer(SM_KICKOUT_NOW, iParam, "1", 1);
 	}
 }
 

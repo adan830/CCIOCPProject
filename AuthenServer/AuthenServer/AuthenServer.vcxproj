@@ -88,6 +88,7 @@
     <ClInclude Include="CHumanReportManager.h" />
     <ClInclude Include="CIWebClientSocket.h" />
     <ClInclude Include="CMainThread.h" />
+    <ClInclude Include="CProtectChildManager.h" />
     <ClInclude Include="CRechargeManager.h" />
     <ClInclude Include="CSecureManager.h" />
     <ClInclude Include="CSQLDBManager.h" />
@@ -133,6 +134,7 @@
     <ClCompile Include="CHumanReportManager.cpp" />
     <ClCompile Include="CIWebClientSocket.cpp" />
     <ClCompile Include="CMainThread.cpp" />
+    <ClCompile Include="CProtectChildManager.cpp" />
     <ClCompile Include="CRechargeManager.cpp" />
     <ClCompile Include="CSecureManager.cpp" />
     <ClCompile Include="CSQLDBManager.cpp" />

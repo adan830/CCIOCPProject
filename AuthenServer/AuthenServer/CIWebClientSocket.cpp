@@ -4,8 +4,11 @@
 **************************************************************************************/
 #include "stdafx.h"
 #include "CIWebClientSocket.h"
+#include "CSQLDBManager.h"
 
 using namespace CC_UTILS;
+
+CIWebClientSocket* pG_IWebSocket;
 
 /************************Start Of CIWebClientSocket******************************************/
 
@@ -77,32 +80,21 @@ bool CIWebClientSocket::SendToServerPeer(unsigned short usIdent, int iParam, con
 
 void CIWebClientSocket::ProcessReceiveMsg(PServerSocketHeader pHeader, const char* pData, int iDataLen)
 {
-	/*
-var
-  str               : ansistring;
-begin
-  case PHeader^.wIdent of
-    SM_PING:
-      begin
-        m_PingCount := 0;
-      end;
-  else
-    SetString(str, Buf, BufLen);
-    if not G_SQLInterFace.AddJob(PHeader^.wIdent, 0, PHeader^.nParam, str) then
-    begin
-      str := 'Error.';
-      SendToServer(PHeader^.wIdent, pHeader^.nParam, PAnsiChar(str), Length(Str));
-    end;
-  end;
-end;
-	*/
-	------
 	switch (pHeader->usIdent)
 	{
 	case SM_PING:
 		m_iPingCount = 0;
 		break;
 	default:
+		//------------------------
+		//------------------------
+		//---------这样转换是否正确
+		std::string str(pData, iDataLen);
+		if (!pG_SQLDBManager->AddWorkJob(pHeader->usIdent, 0, pHeader->iParam, str))
+		{
+			str = "Error";
+			SendToServerPeer(pHeader->usIdent, pHeader->iParam, (void*)str.c_str(), str.length());
+		}
 		break;
 	}
 }

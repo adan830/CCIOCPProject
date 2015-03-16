@@ -35,4 +35,6 @@ private:
 	int m_iPingCount;       
 };
 
+extern CIWebClientSocket* pG_IWebSocket;
+
 #endif //__CC_IWEB_CLIENT_SOCKET_H__

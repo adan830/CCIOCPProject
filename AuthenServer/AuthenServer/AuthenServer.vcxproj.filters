@@ -54,6 +54,9 @@
     <ClInclude Include="CIWebClientSocket.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="CProtectChildManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -120,6 +123,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="CIWebClientSocket.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CProtectChildManager.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
