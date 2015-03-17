@@ -214,6 +214,7 @@ CRechargeManager::CRechargeManager() : m_pFirst(nullptr), m_pLast(nullptr), m_iC
 {
 	std::string sTemp = LoadSQLConfig();
 	m_pWorkThread = new CRechargeSQLWorkThread(this, sTemp);
+	m_pWorkThread->InitialWorkThread();
 }
 
 CRechargeManager::~CRechargeManager()

@@ -25,11 +25,11 @@ CMainThread::CMainThread(const std::string &sServerName) : m_uiSlowRunTick(0), m
 	pG_SQLDBManager = new CSQLDBManager;
 	pG_DBSocket = new CDBServerSocket(sServerName);
 	pG_IWebSocket = new CIWebClientSocket();
-	pG_RechargeManager = new CRechargeManager;
-	pG_GiveItemManager = new CGiveItemManager;
-	pG_HumanReportManager = new CHumanReportManager;
-	pG_SecureManager = new CSecureManager;
-	pG_AuthFailLog = new CAuthFailFileLog;
+	pG_RechargeManager = new CRechargeManager();
+	pG_GiveItemManager = new CGiveItemManager();
+	pG_HumanReportManager = new CHumanReportManager();
+	pG_SecureManager = new CSecureManager();
+	pG_AuthFailLog = new CAuthFailFileLog();
 }
 
 CMainThread::~CMainThread()
@@ -49,6 +49,10 @@ CMainThread::~CMainThread()
 void CMainThread::DoExecute()
 {
 	m_pLogSocket->InitialWorkThread();
+	pG_DBSocket->InitialWorkThread();
+	pG_AuthFailLog->InitialWorkThread();
+	pG_IWebSocket->InitialWorkThread();
+
 	Log("AuthenServer Æô¶¯.");
 	pG_DBSocket->Open();
 	unsigned int uiTick;

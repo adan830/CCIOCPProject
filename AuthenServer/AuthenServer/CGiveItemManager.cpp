@@ -227,6 +227,7 @@ bool CGiveItemSQLWorkThread::DBGiveItemAck(PJsonJobNode pNode)
 CGiveItemManager::CGiveItemManager() : m_pFirst(nullptr), m_pLast(nullptr), m_iCount(0)
 {
 	m_pWorkThread = new CGiveItemSQLWorkThread(this);
+	m_pWorkThread->InitialWorkThread();
 }
 
 CGiveItemManager::~CGiveItemManager()

@@ -71,7 +71,7 @@ public:
 	void InSendItemNow();
 	void BroadCastKickOutNow(const std::string &sAccount, int iParam);
 protected:
-	void DoActive();
+	virtual void DoActive();
 private:
 	bool OnChildNotify(int iServerID, PGameChildInfo p);
 	void ProcResponseMsg();

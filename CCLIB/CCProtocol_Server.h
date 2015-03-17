@@ -91,11 +91,11 @@ typedef enum _TAccountFlag {
 //c++里面enum类型对于集合操作如何处理？？？？？？？？？？？？？？？？？？？？
 //---------------------------------------------
 //---------------------------------------------
-typedef union TAccountFlagInfo
+typedef union _TAccountFlagInfo
 {
 	int iFlag;
 	TAccountFlag FlagSet;
-};
+}TAccountFlagInfo;
 
 typedef struct _TJsonJobNode
 {

@@ -538,6 +538,7 @@ CSQLWorkerUnit::CSQLWorkerUnit(const std::string &s, TSQLWorkDB dbtype) : m_pFir
 	{
 		m_pWorkThreads[i] = new CSingleSQLWorker(this, i, s);
 		m_pWorkThreads[i]->SetWorkType(dbtype);
+		m_pWorkThreads[i]->InitialWorkThread();
 	}
 }
 

@@ -183,9 +183,7 @@ void CDBConnector::Msg_RegisterServer(int iServerID)
 		InitDynCode();
 	}
 	else
-	{
 		Close();
-	}
 }
 
 void CDBConnector::Msg_UserAuthenRequest(int iParam, char* pBuf, unsigned short usBufLen)
