@@ -16,7 +16,7 @@ const int MAX_THREAD_COUNT = 3;
 const int MAX_POOL_COUNT = 3000;
 
 #ifdef TEST
-const std::string SQL_AUTHEN_PROC = 'P_GS_ForTest';
+const std::string SQL_AUTHEN_PROC = "P_GS_ForTest";
 #else
 const std::string SQL_AUTHEN_PROC = "PR_GS_Passport_Login";
 #endif
@@ -286,7 +286,7 @@ bool CSingleSQLWorker::SQLDB_Authen(PJsonJobNode pNode)
 		std::string sIP = root.get("ClientIP", "").asString();
 		std::string sMac = root.get("Mac", "").asString();
 		std::string sAreaID = root.get("AreaID", "").asString();
-		std::string sPwd = ""; //--------------------------------- MD5Print(MD5String(LowerCase(GetStringValue(Field['Pwd'])) + G_PWD_MD5_KEY), True);
+		std::string sPwd = "ED781DB068B6309828465421E725CFDA"; //--------------------------------- MD5Print(MD5String(LowerCase(GetStringValue(Field['Pwd'])) + G_PWD_MD5_KEY), True);
 		std::string sSql = "call " + SQL_AUTHEN_PROC + "(\"" + _EscapeString(sAccount) + "\", \"" + _EscapeString(sPwd) + "\", " + root.get("AppID", "").asString()
 			+ ", " + sAreaID + ", 0, \"" + sIP + "\");";
 		int iAffected = 0;

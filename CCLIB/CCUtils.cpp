@@ -312,137 +312,114 @@ namespace CC_UTILS{
 
 	std::string EncodeString(std::string &str)
 	{
-		/*
-var
-  EncBuf            : PChar;
-  BufLen            : Integer;
-begin
-  BufLen := Length(Str) * 2;
-  EncBuf := AllocMem(BufLen);
-  Encode6BitBuf(PChar(Str), EncBuf, Length(Str), BufLen);
-  Result := StrPas(EncBuf);
-  FreeMem(EncBuf);
-end;
-		*/
-		return "";
+		std::string sRetStr("");
+		std::string sTemp(str);
+		int iBufLen = str.length() * 2;
+		char* pEncBuf = (char*)calloc(iBufLen, sizeof(char));
+		Encode6BitBuf(const_cast<char*>(sTemp.c_str()), pEncBuf, sTemp.length(), iBufLen);
+		sRetStr.assign(pEncBuf);
+		free(pEncBuf);
+		return sRetStr;
 	}
 
 	std::string DecodeString(std::string &str)
 	{
-		/*
-var
-  EncBuf            : PChar;
-  BufLen            : Integer;
-begin
-  BufLen := Length(Str) * 2;
-  EncBuf := AllocMem(BufLen);
-  Decode6BitBuf(PChar(Str), EncBuf, Length(Str), BufLen);
-  Result := StrPas(EncBuf);
-  FreeMem(EncBuf);
-end;
-		*/
-		return "";
+		std::string sRetStr("");
+		std::string sTemp(str);
+		int iBufLen = str.length() * 2;
+		char* pEncBuf = (char*)calloc(iBufLen, sizeof(char));
+		Decode6BitBuf(const_cast<char*>(sTemp.c_str()), pEncBuf, sTemp.length(), iBufLen);
+		sRetStr.assign(pEncBuf);
+		free(pEncBuf);
+		return sRetStr;
 	}
+
+	const unsigned char DecodeMasks[5] = { 0xFC, 0xF8, 0xF0, 0xE0, 0xC0 };
 
 	void Decode6BitBuf(char* pSource, char* pBuf, int iSrcLen, int iBufLen)
 	{
-		/*
-const
-  Masks             : array[2..6] of Byte = ($FC, $F8, $F0, $E0, $C0);
-var
-  I, nBitPos, nMadeBit, nBufPos: Integer;
-  btCh, btTmp, btByte: Byte;
-begin
-  btCh := 0;
-  nBitPos := 2;
-  nMadeBit := 0;
-  nBufPos := 0;
-  btTmp := 0;
-  for I := 0 to nSrcLen - 1 do
-  begin
-    if Integer(sSource[I]) - $3C >= 0 then
-      btCh := Byte(sSource[I]) - $3C
-    else
-    begin
-      nBufPos := 0;
-      Break;
-    end;
-    if nBufPos >= nBufLen then
-      Break;
-    if (nMadeBit + 6) >= 8 then
-    begin
-      btByte := Byte(btTmp or ((btCh and $3F) shr (6 - nBitPos)));
-      pBuf[nBufPos] := Char(btByte);
-      Inc(nBufPos);
-      nMadeBit := 0;
-      if nBitPos < 6 then
-        Inc(nBitPos, 2)
-      else
-      begin
-        nBitPos := 2;
-        Continue;
-      end;
-    end;
-    btTmp := Byte(Byte(btCh shl nBitPos) and Masks[nBitPos]);
-    Inc(nMadeBit, 8 - nBitPos);
-  end;
-  pBuf[nBufPos] := #0;
-end;
-		*/
+		unsigned char ucCh = 0;
+		unsigned char ucTmp = 0;
+		unsigned char ucByte = 0;
+		int iBitPos = 2;
+		int iMadeBit = 0;
+		int iBufPos = 0;
+		for (int i = 0; i < iSrcLen; i++)
+		{
+			if ((int)pSource[i] - 0x3c >= 0)
+				ucCh = (unsigned char)pSource[i] - 0x3C;
+			else
+			{
+				iBufPos = 0;
+				break;
+			}
+			if (iBufPos >= iBufLen)
+				break;
+
+			if (iMadeBit + 6 >= 8)
+			{
+				ucByte = (unsigned char)(ucTmp | ((ucCh & 0x3f) >> (6 - iBitPos)));
+				pBuf[iBufPos] = (unsigned char)(ucByte);
+				++iBufPos;
+				iMadeBit = 0;
+
+				if (iBitPos < 6)
+					iBitPos += 2;
+				else
+				{
+					iBitPos = 2;
+					continue;
+				}		
+			};
+			ucTmp = (unsigned char)((unsigned char)(ucCh << iBitPos) & DecodeMasks[iBitPos-2]);
+			iMadeBit += 8 - iBitPos;
+		}
+		pBuf[iBufPos] = '\0';
 	}
 
 	void Encode6BitBuf(char* pSource, char* pDest, int iSrcLen, int iDestLen)
 	{
-		/*
-var
-  I                 : Integer;
-  nRestCount        : Integer;
-  nDestPos          : Integer;
-  btMade            : Byte;
-  btCh              : Byte;
-  btRest            : Byte;
-begin
-  nRestCount := 0;
-  btRest := 0;
-  nDestPos := 0;
-  for I := 0 to nSrcLen - 1 do
-  begin
-    if nDestPos >= nDestLen then
-      Break;
-    btCh := Byte(pSrc[I]);
-    btMade := Byte((btRest or (btCh shr (2 + nRestCount))) and $3F);
-    btRest := Byte(((btCh shl (8 - (2 + nRestCount))) shr 2) and $3F);
-    Inc(nRestCount, 2);
+		int iRestCount = 0;
+		unsigned char ucRest = 0;
+		unsigned char ucCh;
+		unsigned char ucMade;
+		int iDestPos = 0;
+		for (int i = 0; i < iSrcLen; i++)
+		{
+			if (iDestPos >= iDestLen)
+				break;
+			ucCh = (unsigned char)pSource[i];
+			ucMade = (unsigned char)((ucRest | (ucCh >> (2 + iRestCount))) & 0x3f);
+			ucRest = (unsigned char)(((ucCh << (8 - (2 + iRestCount))) >> 2) & 0x3f);
+			iRestCount += 2;
 
-    if nRestCount < 6 then
-    begin
-      pDest[nDestPos] := Char(btMade + $3C);
-      Inc(nDestPos);
-    end
-    else
-    begin
-      if nDestPos < nDestLen - 1 then
-      begin
-        pDest[nDestPos] := Char(btMade + $3C);
-        pDest[nDestPos + 1] := Char(btRest + $3C);
-        Inc(nDestPos, 2);
-      end
-      else
-      begin
-        pDest[nDestPos] := Char(btMade + $3C);
-        Inc(nDestPos);
-      end;
-      nRestCount := 0;
-      btRest := 0;
-    end;
-  end;
-  if nRestCount > 0 then
-  begin
-    pDest[nDestPos] := Char(btRest + $3C);
-    Inc(nDestPos);
-  end;
-  pDest[nDestPos] := #0;
-end;
-		*/
+			if (iRestCount < 6)
+			{
+				pDest[iDestPos] = (char)(ucMade + 0x3c);
+				++iDestPos;
+			}
+			else
+			{
+				if (iDestPos < iDestLen - 1)
+				{
+					pDest[iDestPos] = (char)(ucMade + 0x3c);
+					pDest[iDestPos + 1] = (char)(ucRest + 0x3c);
+					iDestPos += 2;
+				}
+				else
+				{
+					pDest[iDestPos] = (char)(ucMade + 0x3c);
+					++iDestPos;
+				}
+				iRestCount = 0;
+				ucRest = 0;
+			}
+		}
+		if (iRestCount > 0)
+		{
+			pDest[iDestPos] = (char)(ucRest + 0x3c);
+			++iDestPos;
+		}
+		pDest[iDestPos] = '\0';
 	}
 }

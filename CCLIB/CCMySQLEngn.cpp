@@ -628,8 +628,8 @@ end;
 			iPos = (*vIter).find('=');
 			if (iPos != std::string::npos)
 			{
-				sKey1 = (*vIter).substr(0, iPos - 1);
-				sValue1 = (*vIter).substr(iPos + 1, (*vIter).length());
+				sKey1 = (*vIter).substr(0, iPos);
+				sValue1 = (*vIter).substr(iPos + 1, (*vIter).length() - iPos - 1);
 
 				if (sKey1.compare("Host") == 0)
 					sHostName = sValue1;

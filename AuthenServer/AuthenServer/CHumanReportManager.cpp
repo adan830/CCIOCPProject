@@ -17,7 +17,7 @@ const std::string CREATE_HUMCOUNT_TABLE = "Create Table if not exists HumanCount
 #ifdef TEST
 	const std::string REPORT_DB_HOST = "localhost";
 #else
-	const std::string REPORT_DB_HOST = "192.168.111.111";
+	const std::string REPORT_DB_HOST = "192.168.1.2";
 #endif
 
 CHumanReportManager* pG_HumanReportManager;

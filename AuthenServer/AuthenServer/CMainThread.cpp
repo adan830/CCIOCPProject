@@ -86,12 +86,19 @@ void CMainThread::DoExecute()
 
 void CMainThread::OnAddLabel(void* Sender)
 {
-	m_pLogSocket->AddLabel("Secure£º", 16, 8);                 
-	m_pLogSocket->AddLabel("0", 88, 8, LABEL_SECURE_COUNT_ID);
-	m_pLogSocket->AddLabel("SQL Pool£º", 16, 30);
-	m_pLogSocket->AddLabel("0", 88, 30, LABEL_POOL_COUNT_ID);
-	m_pLogSocket->AddLabel("Children:", 180, 30);
-	m_pLogSocket->AddLabel("0", 248, 30, LABEL_CHILD_COUNT_ID);
+	try
+	{	
+		m_pLogSocket->AddLabel("Secure£º", 16, 8);                 
+		m_pLogSocket->AddLabel("0", 88, 8, LABEL_SECURE_COUNT_ID);
+		m_pLogSocket->AddLabel("SQL Pool£º", 16, 30);
+		m_pLogSocket->AddLabel("0", 88, 30, LABEL_POOL_COUNT_ID);
+		m_pLogSocket->AddLabel("Children:", 180, 30);
+		m_pLogSocket->AddLabel("0", 248, 30, LABEL_CHILD_COUNT_ID);
+	}
+	catch (...)
+	{
+		Log("CMainThread::OnAddLabel,ErrCode=" + std::to_string(GetLastError()), lmtException);
+	}
 }
 /************************End Of CMainThread****************************************************/
 
