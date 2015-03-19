@@ -10,7 +10,7 @@ using namespace CC_UTILS;
 CMainThread* pG_MainThread;
 
 /************************Start Of CMainThread**************************************************/
-CMainThread::CMainThread(const std::string &sServerName)
+CMainThread::CMainThread(const std::string &sServerName) : mmTimer(1)
 {
 	m_pLogSocket = new CLogSocket("");
 	m_pLogSocket->m_OnConnectEvent = std::bind(&CMainThread::OnAddLabel, this, std::placeholders::_1);
@@ -47,25 +47,6 @@ void CMainThread::DoExecute()
 	{
 		WaitForSingleObject(m_Event, 100);
 	}
-
-	/*
-// ==================================== _GetTickCount ==================================== //
-
-procedure IncTick(uTimerID, uMessage: UINT; dwUser, dw1, dw2: DWORD) stdcall;
-begin
-  inc(PDword(dwUser)^);
-end;
-
-var
-  mmHandle          : Cardinal;
-
-initialization
-  mmHandle := timeSetEvent(1, 0, @IncTick, dWord(@_GetTickCount), TIME_PERIODIC or TIME_CALLBACK_FUNCTION);
-
-finalization
-  timeKillEvent(mmHandle);
-end.
-	*/
 }
 
 void CMainThread::OnAddLabel(void* Sender)

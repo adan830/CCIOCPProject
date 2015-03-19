@@ -13,6 +13,7 @@ namespace CC_UTILS{
 
 	extern std::string G_CurrentExeFileName;       //当前程序的完整路径
 	extern std::string G_CurrentExeDir;            //当前程序所在的目录
+	extern unsigned int _ExGetTickCount;           
 
 	//简易的Hash结点
 	typedef struct _THashPortItem
@@ -57,6 +58,19 @@ namespace CC_UTILS{
 		int m_iMemorySize;
 		int m_iMemoryPosition;
 	}TBufferStream, *PBufferStream;
+
+	/**
+	* 微软多媒体API构造的时钟对象
+	*/
+	class CMMTimer
+	{
+	public:
+		CMMTimer(const int time_event_ms);
+		virtual ~CMMTimer();
+	private:
+		unsigned int m_uiHandle;
+		unsigned int m_uiAccuracy;
+	};
 
 	//返回文件的最后修改时间转化成的整数，用以检测文件是否修改
 	int GetFileAge(const std::string &sFileName);

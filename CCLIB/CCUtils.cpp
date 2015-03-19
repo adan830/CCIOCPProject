@@ -13,6 +13,7 @@ namespace CC_UTILS{
 
 	std::string G_CurrentExeFileName;   //当前程序的完整路径
 	std::string G_CurrentExeDir;        //当前程序所在的目录
+	unsigned int _ExGetTickCount;
 
 	/************************Start Of _TSimpleHash******************************************/
 	void _TSimpleHash::DoInitial(int iSize)
@@ -164,6 +165,36 @@ namespace CC_UTILS{
 	}
 	/************************End Of _TBufferStream******************************************/
 
+
+	/************************Start Of CMMTimer******************************************/
+	void __stdcall IncTick(UINT uiTimerID, UINT uiMessage, DWORD_PTR dwUser, DWORD_PTR dw1, DWORD_PTR dw2)
+	{
+		++(*((unsigned int*)dwUser));
+	}
+
+	CMMTimer::CMMTimer(const int time_event_ms)
+	{
+		LPTIMECAPS pts;
+		//从获得系统定时器服务能力的信息
+		if (timeGetDevCaps(pts, sizeof(TIMECAPS)) == TIMERR_NOERROR)
+		{
+			//设置定时器最小分辨率
+			m_uiAccuracy = pts->wPeriodMin;
+			timeBeginPeriod(m_uiAccuracy);
+			m_uiHandle = timeSetEvent(time_event_ms, m_uiAccuracy, IncTick, 
+				(DWORD_PTR)_ExGetTickCount, TIME_PERIODIC | TIME_CALLBACK_FUNCTION);
+		}
+	}
+
+	CMMTimer::~CMMTimer()
+	{
+		if (m_uiHandle > 0)
+		{
+			timeKillEvent(m_uiHandle);
+			timeEndPeriod(m_uiHandle);
+		}
+	}
+	/************************End Of CMMTimer******************************************/
 
 	int GetFileAge(const std::string &sFileName)
 	{

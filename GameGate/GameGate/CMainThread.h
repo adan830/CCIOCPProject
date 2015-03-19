@@ -27,6 +27,8 @@ public:
 	CC_UTILS::CLogSocket* m_pLogSocket;  //日志管理类
 private:
 	void OnAddLabel(void* Sender);
+private:
+	CC_UTILS::CMMTimer mmTimer;
 };
 
 extern CMainThread* pG_MainThread;
