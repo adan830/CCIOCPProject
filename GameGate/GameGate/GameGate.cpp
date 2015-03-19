@@ -1,14 +1,14 @@
 /**************************************************************************************
 @author: 陈昌
-@content: AuthenServer的Main单元，加载CCWindowsService.dll，启动主线程
+@content: GameGate的Main单元，加载CCWindowsService.dll，启动主线程
 **************************************************************************************/
 
 #include "stdafx.h"
 
 using namespace CC_UTILS;
 
-char DEFAULT_SERVICE_NAME[] = "AuthenServer";
-char DEFAULT_DESCRIPTION[] = "LongGet 游戏认证服务程序";
+char DEFAULT_SERVICE_NAME[] = "GameGate";
+char DEFAULT_DESCRIPTION[] = "LongGet 游戏网关程序";
 
 bool DoAppStart(void* Sender)
 {
@@ -37,7 +37,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		if (DoInitialWinSocket())
 		{
 			G_CurrentExeFileName = argv[0];
-			G_CurrentExeDir = "E:\\MyProject\\C++Project\\CCIocpProject\\AuthenServer\\Debug\\";
+			G_CurrentExeDir = "E:\\MyProject\\C++Project\\CCIocpProject\\GameGate\\Debug\\";
 
 			ServiceManagerFunc = (TServiceManagerFunc)GetProcAddress(hWindowsServiceDll, "DoApplicationRun");
 			if (ServiceManagerFunc != nullptr)
