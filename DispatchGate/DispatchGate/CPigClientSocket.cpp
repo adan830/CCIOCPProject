@@ -127,7 +127,7 @@ void CPigClientSocket::OnSocketRead(void* Sender, const char* pBuf, int iCount)
 	}	
 }
 
-void CPigClientSocket::ProcessReceiveMsg(PServerSocketHeader pHeader, const char* pData, int iDataLen)
+void CPigClientSocket::ProcessReceiveMsg(PServerSocketHeader pHeader, char* pData, int iDataLen)
 {
 	switch (pHeader->usIdent)
 	{

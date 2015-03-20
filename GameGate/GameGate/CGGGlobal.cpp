@@ -7,4 +7,5 @@
 #include "CGGGlobal.h"
 
 bool G_BoCheckGPS;
+unsigned char G_PublicGateIdx;      
 

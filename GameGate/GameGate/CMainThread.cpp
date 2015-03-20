@@ -10,8 +10,9 @@ using namespace CC_UTILS;
 CMainThread* pG_MainThread;
 
 /************************Start Of CMainThread**************************************************/
-CMainThread::CMainThread(const std::string &sServerName) : mmTimer(1)
+CMainThread::CMainThread(const std::string &sServerName)
 {
+	mmTimer.Initialize(1);
 	m_pLogSocket = new CLogSocket("");
 	m_pLogSocket->m_OnConnectEvent = std::bind(&CMainThread::OnAddLabel, this, std::placeholders::_1);
 	/*
@@ -26,6 +27,7 @@ CMainThread::~CMainThread()
 {
 	WaitThreadExecuteOver();
 	delete m_pLogSocket;
+	mmTimer.Finalize();
 	/*
 	//---------------------
 	//---------------------

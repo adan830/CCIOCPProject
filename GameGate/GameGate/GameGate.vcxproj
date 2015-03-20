@@ -79,7 +79,10 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CDBClientSocket.h" />
     <ClInclude Include="CGGGlobal.h" />
+    <ClInclude Include="CGSClientSocket.h" />
+    <ClInclude Include="CIMClientSocket.h" />
     <ClInclude Include="CMainThread.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
@@ -100,7 +103,10 @@
     <ClCompile Include="..\..\CCLIB\CCUtils.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="CDBClientSocket.cpp" />
     <ClCompile Include="CGGGlobal.cpp" />
+    <ClCompile Include="CGSClientSocket.cpp" />
+    <ClCompile Include="CIMClientSocket.cpp" />
     <ClCompile Include="CMainThread.cpp" />
     <ClCompile Include="GameGate.cpp" />
     <ClCompile Include="stdafx.cpp">

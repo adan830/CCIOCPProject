@@ -134,7 +134,7 @@ void CCenterClientSocket::OnSocketRead(void* Sender, const char* pBuf, int iCoun
 		Log("CCenterClientSocket Socket Read Error, Code = " + to_string(iErrorCode), lmtError);
 }
 
-void CCenterClientSocket::ProcessReceiveMsg(PServerSocketHeader pHeader, const char* pData, int iDataLen)
+void CCenterClientSocket::ProcessReceiveMsg(PServerSocketHeader pHeader, char* pData, int iDataLen)
 {
 	PServerConnectInfo pInfo;
 	int iCount;

@@ -21,7 +21,7 @@ public:
 	void SendToServerPeer(unsigned short usIdent, int iParam, void* pBuf, unsigned short usBufLen);
 	void DoHeartBeat();
 protected: 
-	virtual void ProcessReceiveMsg(PServerSocketHeader pHeader, const char* pData, int iDataLen);
+	virtual void ProcessReceiveMsg(PServerSocketHeader pHeader, char* pData, int iDataLen);
 private:
 	void OnSocketConnect(void* Sender);
 	void OnSocketDisconnect(void* Sender);

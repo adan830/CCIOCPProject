@@ -166,27 +166,27 @@ namespace CC_UTILS{
 	/************************End Of _TBufferStream******************************************/
 
 
-	/************************Start Of CMMTimer******************************************/
+	/************************Start Of _TMMTimer******************************************/
 	void __stdcall IncTick(UINT uiTimerID, UINT uiMessage, DWORD_PTR dwUser, DWORD_PTR dw1, DWORD_PTR dw2)
 	{
 		++(*((unsigned int*)dwUser));
 	}
 
-	CMMTimer::CMMTimer(const int time_event_ms)
+	void _TMMTimer::Initialize(const int time_event_ms)
 	{
-		LPTIMECAPS pts;
+		TIMECAPS ts;
 		//从获得系统定时器服务能力的信息
-		if (timeGetDevCaps(pts, sizeof(TIMECAPS)) == TIMERR_NOERROR)
+		if (timeGetDevCaps(&ts, sizeof(TIMECAPS)) == TIMERR_NOERROR)
 		{
 			//设置定时器最小分辨率
-			m_uiAccuracy = pts->wPeriodMin;
+			m_uiAccuracy = ts.wPeriodMin;
 			timeBeginPeriod(m_uiAccuracy);
 			m_uiHandle = timeSetEvent(time_event_ms, m_uiAccuracy, IncTick, 
 				(DWORD_PTR)_ExGetTickCount, TIME_PERIODIC | TIME_CALLBACK_FUNCTION);
 		}
 	}
 
-	CMMTimer::~CMMTimer()
+	void _TMMTimer::Finalize()
 	{
 		if (m_uiHandle > 0)
 		{
@@ -194,7 +194,7 @@ namespace CC_UTILS{
 			timeEndPeriod(m_uiHandle);
 		}
 	}
-	/************************End Of CMMTimer******************************************/
+	/************************End Of _TMMTimer******************************************/
 
 	int GetFileAge(const std::string &sFileName)
 	{

@@ -30,6 +30,15 @@
     <ClInclude Include="CGGGlobal.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="CGSClientSocket.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CIMClientSocket.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CDBClientSocket.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -57,6 +66,15 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\..\CCLIB\CCLIBSocket\CCTcpSocketCommon.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CGSClientSocket.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CIMClientSocket.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CDBClientSocket.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

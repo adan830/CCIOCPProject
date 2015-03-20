@@ -143,9 +143,12 @@ const int SM_PLAYER_DISCONNECT = 0x2003;                            // 玩家断线
 const int SM_PLAYER_MSG = 0x2004;                                   // 玩家的消息
 const int SM_MULPLAYER_MSG = 0x2005;                                // 群发的消息
 
+const int SM_FILTER_WORD = 0x2019;                                  // 过滤字信息
+
 const int SM_GIVEITEM_QUERY = 0x2044;                               // 按照虚拟区号自动轮询推送道具信息
 const int SM_GIVEITEM_DB_REQ = 0x2045;                              // 认证服务器向db发送送道具请求
 const int SM_GIVEITEM_DB_ACK = 0x2046;								// db返回给认证服务器送道具结果
+const int SM_SHUTDOWN = 0x2052;                                     // 关闭服务
 const int SM_REFRESH_RECHARGE = 0x2056;								// 通知认证服务立即查询充值
 
 //PigServer相关协议

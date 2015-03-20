@@ -62,15 +62,15 @@ namespace CC_UTILS{
 	/**
 	* 微软多媒体API构造的时钟对象
 	*/
-	class CMMTimer
+	typedef struct _TMMTimer
 	{
 	public:
-		CMMTimer(const int time_event_ms);
-		virtual ~CMMTimer();
+		void Initialize(const int time_event_ms);
+		void Finalize();
 	private:
 		unsigned int m_uiHandle;
 		unsigned int m_uiAccuracy;
-	};
+	}TMMTimer;
 
 	//返回文件的最后修改时间转化成的整数，用以检测文件是否修改
 	int GetFileAge(const std::string &sFileName);

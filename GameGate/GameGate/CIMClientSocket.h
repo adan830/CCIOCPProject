@@ -1,26 +1,27 @@
 /**************************************************************************************
 @author: 陈昌
-@content: AuthenServer作为客户端方连接WebInterfaceServer服务器的端口
+@content: GameGate作为客户端方连接IMServer服务器的端口
 **************************************************************************************/
-#ifndef __CC_IWEB_CLIENT_SOCKET_H__
-#define __CC_IWEB_CLIENT_SOCKET_H__
+#ifndef __CC_IMSERVER_CLIENT_SOCKET_H__
+#define __CC_IMSERVER_CLIENT_SOCKET_H__
 
 #include "stdafx.h"
 
 /**
 *
-* AuthenServer对WebInterfaceServer服务器的连接端口
+* GameGate对IMServer服务器的连接端口
 *
 */
 
-class CIWebClientSocket : public CIOCPClientSocketManager
+class CIMClientSocket : public CIOCPClientSocketManager
 {
 public:
-	CIWebClientSocket();
-	virtual ~CIWebClientSocket();
-	void DoHeartBeat();	
+	CIMClientSocket();
+	virtual ~CIMClientSocket();
 	bool SendToServerPeer(unsigned short usIdent, int iParam, void* pBuf, unsigned short usBufLen);
-	bool SendToServerPeer(unsigned short usIdent, int iParam, const std::string &str);
+	void ConnectToServer(const std::string &sAddr, const int iPort);
+	void ClientDisconnect(unsigned short usHandle);
+	void DoHeartBeat();					    //主线程调用
 protected:
 	virtual void ProcessReceiveMsg(PServerSocketHeader pHeader, char* pData, int iDataLen);
 private:
@@ -28,13 +29,12 @@ private:
 	void OnSocketDisconnect(void* Sender);
 	void OnSocketRead(void* Sender, const char* pBuf, int iCount);
 	void OnSocketError(void* Sender, int& iErrorCode);
-	void LoadConfig();           // 载入配置
-	void SendHeartBeat();        // 发送心跳
+	void SendRegisterServer();              //注册服务器
 private:
-	unsigned int m_uiCheckTick;
-	int m_iPingCount;       
+	int m_iPingCount;
+	unsigned int m_uiLastPingTick;
 };
 
-extern CIWebClientSocket* pG_IWebSocket;
+extern CIMClientSocket* pG_IMSocket;
 
-#endif //__CC_IWEB_CLIENT_SOCKET_H__
+#endif //__CC_IMSERVER_CLIENT_SOCKET_H__

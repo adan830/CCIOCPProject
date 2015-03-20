@@ -26,8 +26,6 @@
 #include "CCLogSocket.h"
 #include "CGGGlobal.h"
 
-
-
 #include "CMainThread.h"
 
 

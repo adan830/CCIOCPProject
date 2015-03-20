@@ -28,7 +28,7 @@ public:
 private:
 	void OnAddLabel(void* Sender);
 private:
-	CC_UTILS::CMMTimer mmTimer;
+	CC_UTILS::TMMTimer mmTimer;
 };
 
 extern CMainThread* pG_MainThread;

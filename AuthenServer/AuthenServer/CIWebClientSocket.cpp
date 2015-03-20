@@ -78,7 +78,7 @@ bool CIWebClientSocket::SendToServerPeer(unsigned short usIdent, int iParam, con
 	return SendToServerPeer(usIdent, iParam, (void*)str.c_str(), str.length());
 }
 
-void CIWebClientSocket::ProcessReceiveMsg(PServerSocketHeader pHeader, const char* pData, int iDataLen)
+void CIWebClientSocket::ProcessReceiveMsg(PServerSocketHeader pHeader, char* pData, int iDataLen)
 {
 	switch (pHeader->usIdent)
 	{

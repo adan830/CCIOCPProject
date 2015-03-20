@@ -10,6 +10,6 @@
 using namespace std;
 
 extern bool G_BoCheckGPS;
-
+extern unsigned char G_PublicGateIdx;          // 本游戏组的编号
 
 #endif //__CC_GAME_GATE_GLOBAL_H__
