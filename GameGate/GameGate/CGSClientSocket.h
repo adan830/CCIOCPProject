@@ -37,6 +37,4 @@ private:
 	unsigned int m_uiLastPingTick;
 };
 
-extern CGSClientSocket* pG_GSSocket;
-
 #endif //__CC_GAMESERVER_CLIENT_SOCKET_H__

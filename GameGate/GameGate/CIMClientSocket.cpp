@@ -7,8 +7,6 @@
 
 using namespace CC_UTILS;
 
-CIMClientSocket* pG_IMSocket;
-
 /************************Start Of CIMClientSocket******************************************/
 
 CIMClientSocket::CIMClientSocket() : m_iPingCount(0), m_uiLastPingTick(_ExGetTickCount)

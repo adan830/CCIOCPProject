@@ -7,8 +7,6 @@
 
 using namespace CC_UTILS;
 
-CGSClientSocket* pG_GSSocket;
-
 /************************Start Of CGSClientSocket******************************************/
 
 CGSClientSocket::CGSClientSocket() : m_bShutDown(false), m_iPingCount(0), m_uiLastPingTick(0)

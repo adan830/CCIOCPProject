@@ -35,6 +35,4 @@ private:
 	unsigned int m_uiLastPingTick;
 };
 
-extern CIMClientSocket* pG_IMSocket;
-
 #endif //__CC_IMSERVER_CLIENT_SOCKET_H__

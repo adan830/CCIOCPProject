@@ -7,8 +7,6 @@
 
 using namespace CC_UTILS;
 
-CDBClientSocket* pG_DBSocket;
-
 /************************Start Of CDBClientSocket******************************************/
 
 CDBClientSocket::CDBClientSocket() : m_iPingCount(0), m_uiLastPingTick(0), m_bEnable(false), m_ForbiddenWords(300)
@@ -207,11 +205,20 @@ begin
   end;
 end;
 	*/
-	return nullptr;
+	char* pRet = nullptr;
+
+	return pRet;
 }
 
 void CDBClientSocket::AddForbiddenWord(char* pBuf, unsigned short usBufLen, int iCount)
 {
+	if (usBufLen <= 0)
+	{
+		m_ForbiddenWords.clear();
+		return;
+	}
+	std::string sTemp;
+	sTemp.assign(pBuf, usBufLen);
 	/*
 var
   tmpList           : TStringList;
