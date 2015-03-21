@@ -53,52 +53,45 @@ end;
 		m_OnError = ErrorCallBack;
 		m_iFieldsCount = mysql_num_fields(Res);
 		m_Fields.reserve(m_iFieldsCount);		
-		std::vector<TMySQLField>::iterator vIter;
 		PMySQLField pField = nullptr;
 		MYSQL_FIELD* pQueryField = nullptr;
 		for (int i = 0; i < m_iFieldsCount; i++)
 		{
 			pQueryField = mysql_fetch_field(Res);
-			------
-		}
-		for (vIter = m_Fields.begin(); vIter != m_Fields.end(); ++vIter)
-		{
-			pQueryField = mysql_fetch_field(Res);
-			(*vIter).Field_Idx = i;
+			pField = new TMySQLField();
+			pField->Field_Idx = i;
 			if (pQueryField != nullptr)
 			{
-				(*vIter).Field_Name = pQueryField->name;
-				(*vIter).Field_Type = pQueryField->type;
-				(*vIter).Field_Length = pQueryField->length;
-				(*vIter)._OnGetValue = std::bind(&CMySQLRecord::GetValue, this, std::placeholders::_1);
+				pField->Field_Name = pQueryField->name;
+				pField->Field_Type = pQueryField->type;
+				pField->Field_Length = pQueryField->length;
+				pField->_OnGetValue = std::bind(&CMySQLRecord::GetValue, this, std::placeholders::_1);
 			}
-			i++;
+			m_Fields.push_back(*pField);
 		}
 
 		m_Values.reserve(m_iFieldsCount);
 		MYSQL_ROW pRow = mysql_fetch_row(Res);
 		unsigned long* pLen = mysql_fetch_lengths(Res);
-		std::vector<std::string>::iterator vIter1;
-		i = 0;
-		for (vIter1 = m_Values.begin(); vIter1 != m_Values.end(); ++vIter1)
+		std::string* pSTemp = nullptr;
+		for (int i = 0; i < m_iFieldsCount; i++)
 		{
 			if (pRow != nullptr)
 			{
-				//----------------------------------------
-				//----------------------------------------
-				//这里的长度是否正确？？？？
-				//----------------------------------------
-				//----------------------------------------
-				(*vIter1).resize(pLen[i] + 1);
-				memcpy_s((void*)(*vIter1).c_str(), pLen[i] + 1, pRow[i], pLen[i] + 1);
-			}
-			i++;
+				pSTemp = new std::string;
+				(*pSTemp).resize(pLen[i] + 1);
+				memcpy_s((void*)(*pSTemp).c_str(), pLen[i] + 1, pRow[i], pLen[i] + 1);
+			}			
 		}
 		mysql_free_result(Res);
 	}
 
 	CMySQLRecord::~CMySQLRecord()
 	{
+		//???????????????????
+		//------------------
+		//------------------
+		//有泄漏吗？？？？？？
 		m_Fields.reserve(0);
 		m_Values.reserve(0);
 	}
@@ -202,22 +195,23 @@ end;
 		m_OnError = ErrorCallBack;
 		m_iFieldsCount = mysql_num_fields(Res);
 		m_Fields.reserve(m_iFieldsCount);
-		MYSQL_FIELD* pField;
-		std::vector<TMySQLField>::iterator vIter;
-		int i = 0;
-		for (vIter = m_Fields.begin(); vIter != m_Fields.end(); ++vIter)
+		PMySQLField pField = nullptr;
+		MYSQL_FIELD* pQueryField = nullptr;
+		for (int i = 0; i < m_iFieldsCount; i++)
 		{
-			pField = mysql_fetch_field(Res);
-			(*vIter).Field_Idx = i;
-			if (pField != nullptr)
+			pQueryField = mysql_fetch_field(Res);
+			pField = new TMySQLField();
+			pField->Field_Idx = i;
+			if (pQueryField != nullptr)
 			{
-				(*vIter).Field_Name = pField->name;
-				(*vIter).Field_Type = pField->type;
-				(*vIter).Field_Length = pField->length;
-				(*vIter)._OnGetValue = std::bind(&CMySQLRecords::GetValue, this, std::placeholders::_1);
+				pField->Field_Name = pQueryField->name;
+				pField->Field_Type = pQueryField->type;
+				pField->Field_Length = pQueryField->length;
+				pField->_OnGetValue = std::bind(&CMySQLRecords::GetValue, this, std::placeholders::_1);
 			}
-			i++;
+			m_Fields.push_back(*pField);
 		}
+
 
 		m_iRecordCount = (int)mysql_num_rows(Res);
 		if (m_iRecordCount > 0)
@@ -226,6 +220,10 @@ end;
 
 	CMySQLRecords::~CMySQLRecords()
 	{
+		//???????????????????
+		//------------------
+		//------------------
+		//有泄漏吗？？？？？？
 		m_Fields.reserve(0);
 		MYSQL_RES* pTemp = nullptr;
 		if (m_Res != nullptr)
