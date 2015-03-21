@@ -47,7 +47,8 @@ void CHumanReportManager::Initialize()
 			Log("Reoprt 数据库连接成功！");
 			int iAffected = 0;
 			IMySQLFields* pDataSet = nullptr;
-			if (m_pMySQLProc->Exec(CREATE_HUMCOUNT_TABLE, pDataSet, iAffected))
+			IMySQLFields** ppDataSet = &pDataSet;
+			if (m_pMySQLProc->Exec(CREATE_HUMCOUNT_TABLE, ppDataSet, iAffected))
 				m_bInitial = true;
 			else
 				Log("Report 数据库创建表失败！", lmtError);
@@ -78,6 +79,7 @@ void CHumanReportManager::SaveHumanCount()
 	std::string sSql;
 	int iAffected = 0;
 	IMySQLFields* pDataSet = nullptr;
+	IMySQLFields** ppDataSet = &pDataSet;
 	std::list<void*>::iterator vIter;
 	CDBConnector* pDBClient;
 	for (vIter = pG_DBSocket->m_ActiveConnects.begin(); vIter != pG_DBSocket->m_ActiveConnects.end(); ++vIter)
@@ -87,7 +89,7 @@ void CHumanReportManager::SaveHumanCount()
 		{
 			sSql = "Insert into Humancount(ServerID, HumanCount, ReportDate) values(" + std::to_string(pDBClient->GetServerID()) + ", "
 				+ std::to_string(pDBClient->GetHumanCount()) + ", Now());";
-			m_pMySQLProc->Exec(sSql, pDataSet, iAffected);
+			m_pMySQLProc->Exec(sSql, ppDataSet, iAffected);
 		}
 	}
 }

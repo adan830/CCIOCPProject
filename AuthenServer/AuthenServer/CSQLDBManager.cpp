@@ -291,7 +291,8 @@ bool CSingleSQLWorker::SQLDB_Authen(PJsonJobNode pNode)
 			+ ", " + sAreaID + ", 0, \"" + sIP + "\");";
 		int iAffected = 0;
 		IMySQLFields* pDataSet = nullptr;
-		if (m_pMySQLProc->Exec(sSql, pDataSet, iAffected))
+		IMySQLFields** ppDataSet = &pDataSet;
+		if (m_pMySQLProc->Exec(sSql, ppDataSet, iAffected))
 		{
 			retFlag = true;
 			if (pDataSet != nullptr)
@@ -464,7 +465,8 @@ bool CSingleSQLWorker::SQLDB_AuthenLog(PJsonJobNode pNode)
 			+ root.get("AreaID", "").asString() + ", 0, \"" + root.get("ClientIP", "").asString() + "\",\"" + root.get("Mac", "").asString() + "\", 1);";
 		int iAffected = 0;
 		IMySQLFields* pDataSet = nullptr;
-		retFlag = m_pMySQLProc->Exec(sLogSQL, pDataSet, iAffected);
+		IMySQLFields** ppDataSet = &pDataSet;
+		retFlag = m_pMySQLProc->Exec(sLogSQL, ppDataSet, iAffected);
 	}
 	return retFlag;
 }
@@ -484,7 +486,8 @@ bool CSingleSQLWorker::SQLDB_SafeCardAuthen(PJsonJobNode pNode)
 			+ root.get("Position", "").asString() + "\", \"" + root.get("PosValue", "").asString() + "\", " + std::to_string(StrToIntDef(root.get("VerifyStyle", "").asString(), 2)) + ");";
 		int iAffected = 0;
 		IMySQLFields* pDataSet = nullptr;
-		if (m_pMySQLProc->Exec(sSql, pDataSet, iAffected))
+		IMySQLFields** ppDataSet = &pDataSet;
+		if (m_pMySQLProc->Exec(sSql, ppDataSet, iAffected))
 		{
 			retFlag = true;
 			if (pDataSet != nullptr)

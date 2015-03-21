@@ -128,10 +128,11 @@ void CRechargeSQLWorkThread::CheckProcExists(void* Sender)
 	std::string sSql("SHOW PROCEDURE STATUS LIKE \"" + Area_Recharge_Proc + "\"");
 	int iAffected = 0;
 	IMySQLFields* pDataSet = nullptr;
-	if ((m_pMySQLProc->Exec(sSql, pDataSet, iAffected)) && (1 == iAffected))
+	IMySQLFields** ppDataSet = &pDataSet;
+	if ((m_pMySQLProc->Exec(sSql, ppDataSet, iAffected)) && (1 == iAffected))
 	{
 		sSql = "SHOW PROCEDURE STATUS LIKE \"" + Recharge_CallBack_Proc + "\"";
-		m_bEnabled = (m_pMySQLProc->Exec(sSql, pDataSet, iAffected)) && (1 == iAffected);
+		m_bEnabled = (m_pMySQLProc->Exec(sSql, ppDataSet, iAffected)) && (1 == iAffected);
 	}
 	if (!m_bEnabled)
 		Log("充值接口不存在", lmtWarning);
@@ -175,8 +176,9 @@ bool CRechargeSQLWorkThread::QueryAreaRecharge(PJsonJobNode pNode)
 	{
 		int iAffected = 0;
 		IMySQLFields* pDataSet = nullptr;
+		IMySQLFields** ppDataSet = &pDataSet;
 		std::string sSql = "call " + Area_Recharge_Proc + "(" + root.get("GameId", "0").asString() + ", " + root.get("AreaId", "0").asString() + ");";
-		if (m_pMySQLProc->Exec(sSql, pDataSet, iAffected))
+		if (m_pMySQLProc->Exec(sSql, ppDataSet, iAffected))
 		{
 			if ((iAffected > 0) && (pDataSet != nullptr))
 			{
@@ -201,8 +203,9 @@ bool CRechargeSQLWorkThread::DBRechargeAck(PJsonJobNode pNode)
 	{
 		int iAffected = 0;
 		IMySQLFields* pDataSet = nullptr;
+		IMySQLFields** ppDataSet = &pDataSet;
 		std::string sSql = "call " + Recharge_CallBack_Proc + "(\"" + root.get("OrderId", "").asString() + "\", \"" + root.get("IP", "").asString() + "\", " + root.get("State", "0").asString() + ");";
-		retFlag = m_pMySQLProc->Exec(sSql, pDataSet, iAffected);
+		retFlag = m_pMySQLProc->Exec(sSql, ppDataSet, iAffected);
 	}
 	return retFlag;
 }

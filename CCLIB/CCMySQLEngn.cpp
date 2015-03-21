@@ -52,20 +52,24 @@ end;
 	{
 		m_OnError = ErrorCallBack;
 		m_iFieldsCount = mysql_num_fields(Res);
-		m_Fields.reserve(m_iFieldsCount);
-		MYSQL_FIELD* pField;
-
+		m_Fields.reserve(m_iFieldsCount);		
 		std::vector<TMySQLField>::iterator vIter;
-		int i = 0;
+		PMySQLField pField = nullptr;
+		MYSQL_FIELD* pQueryField = nullptr;
+		for (int i = 0; i < m_iFieldsCount; i++)
+		{
+			pQueryField = mysql_fetch_field(Res);
+			------
+		}
 		for (vIter = m_Fields.begin(); vIter != m_Fields.end(); ++vIter)
 		{
-			pField = mysql_fetch_field(Res);
+			pQueryField = mysql_fetch_field(Res);
 			(*vIter).Field_Idx = i;
-			if (pField != nullptr)
+			if (pQueryField != nullptr)
 			{
-				(*vIter).Field_Name = pField->name;
-				(*vIter).Field_Type = pField->type;
-				(*vIter).Field_Length = pField->length;
+				(*vIter).Field_Name = pQueryField->name;
+				(*vIter).Field_Type = pQueryField->type;
+				(*vIter).Field_Length = pQueryField->length;
 				(*vIter)._OnGetValue = std::bind(&CMySQLRecord::GetValue, this, std::placeholders::_1);
 			}
 			i++;
@@ -437,10 +441,10 @@ end;
 		return retFlag;
 	}
 
-	bool CMySQLManager::Exec(const std::string &sSQL, IMySQLFields* pDataSet, int &iAffected)
+	bool CMySQLManager::Exec(const std::string &sSQL, IMySQLFields** ppDataSet, int &iAffected)
 	{
 		bool retFlag = false;
-		pDataSet = nullptr;
+		*ppDataSet = nullptr;
 		iAffected = -1;
 		try
 		{
@@ -465,9 +469,9 @@ end;
 						if (iAffected > 0)
 						{
 							if (1 == iAffected)
-								pDataSet = new CMySQLRecord(pRes, m_OnError);
+								*ppDataSet = new CMySQLRecord(pRes, m_OnError);
 							else
-								pDataSet = new CMySQLRecords(pRes, m_OnError);
+								*ppDataSet = new CMySQLRecords(pRes, m_OnError);
 						}
 						else
 							mysql_free_result(pRes);

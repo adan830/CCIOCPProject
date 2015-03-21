@@ -114,7 +114,7 @@ namespace CC_UTILS{
 	  void Close();
 	  bool Open();
 	  bool SelectDB(const std::string &sDBName);
-	  bool Exec(const std::string &sSQL, IMySQLFields* pDataSet, int &iAffected);
+	  bool Exec(const std::string &sSQL, IMySQLFields** ppDataSet, int &iAffected);
 	  unsigned int EscapeString(char* pSource, unsigned int uiSize, char* pDest);
 	  std::string EscapeString(char* pSource, unsigned int uiSize);
 	  std::string GetLastError(unsigned int &uiErrorCode);
