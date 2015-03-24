@@ -64,7 +64,87 @@ void CClientServerSocket::SMServerConfig(int iParam, char* pBuf, unsigned short 
 }
 
 void CClientServerSocket::ProcServerMessage(unsigned short usIdent, unsigned short usHandle, char* pBuf, unsigned short usBufLen)
-{}
+{
+	try
+	{
+		CClientConnector* pClient = nullptr;
+		switch (usIdent)
+		{
+		case SM_PLAYER_MSG:
+			{
+				std::lock_guard<std::mutex> guard(m_LockCS);
+				pClient = (CClientConnector*)ValueOf(usHandle);
+				if (pClient != nullptr)
+					pClient->ReceiveServerMsg(pBuf, usBufLen);
+				else
+					NotifyNotExistClient(usHandle, SM_PLAYER_MSG);
+			}
+			break;
+		case SM_MULPLAYER_MSG:
+			{
+				int iHandlePos = sizeof(unsigned short) * usHandle;
+				if (iHandlePos > usBufLen)
+					return;	
+
+				unsigned short usDataLen = usBufLen - iHandlePos;
+				char* pData = (char*)malloc(usDataLen);
+				try
+				{
+					unsigned short* pHandle = (unsigned short*)pBuf;
+					std::lock_guard<std::mutex> guard(m_LockCS);
+					for (int i = 0; i < usHandle; i++)
+					{
+						pClient = (CClientConnector*)ValueOf(*pHandle);
+						if (pClient != nullptr)
+						{
+							memcpy(pData, pBuf + iHandlePos, usDataLen);
+							pClient->ReceiveServerMsg(pData, usDataLen);
+						}
+						else
+							NotifyNotExistClient(*pHandle, SM_MULPLAYER_MSG);
+						++pHandle;
+					}
+					free(pData);
+				}
+				catch (...)
+				{
+					free(pData);
+				}
+			}
+			break;
+		case SM_BROADCAST_MSG:
+			{
+				char* pData = (char*)malloc(usBufLen);
+				try
+				{
+					std::lock_guard<std::mutex> guard(m_LockCS);
+					std::list<void*>::iterator vIter;
+					for (vIter = m_ActiveConnects.begin(); vIter != m_ActiveConnects.end(); ++vIter)
+					{
+						pClient = (CClientConnector*)*vIter;
+						if ((pClient != nullptr) && (pClient->m_ObjectID != 0))
+						{
+							memcpy(pData, pBuf, usBufLen);
+							pClient->ReceiveServerMsg(pData, usBufLen);
+						}
+					}
+					free(pData);
+				}
+				catch (...)
+				{
+					free(pData);
+				}
+			}
+			break;
+		default:
+			break;
+		}
+	}
+	catch (...)
+	{
+		Log("ProcServerMessage: " + std::to_string(usIdent), lmtException);
+	}
+}
 
 void CClientServerSocket::ClientManage(unsigned short usIdent, unsigned short usHandle, char* pBuf, unsigned short usBufLen, bool bInGame)
 {}
