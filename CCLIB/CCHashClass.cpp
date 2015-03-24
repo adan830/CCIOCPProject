@@ -13,6 +13,7 @@ namespace CC_UTILS{
 		m_pLastListNode(nullptr), m_pCurrentQueueNode(nullptr)
 	{
 		m_TopBuckets = new PIntHashItem[uiSize];
+		memset(m_TopBuckets, 0, sizeof(PIntHashItem)* uiSize);
 	}	
 
 	CIntegerHash::~CIntegerHash()
@@ -215,6 +216,7 @@ namespace CC_UTILS{
 		m_pLastListNode(nullptr), m_pCurrentQueueNode(nullptr)
 	{
 		m_TopBuckets = new PStrHashItem[uiSize];
+		memset(m_TopBuckets, 0, sizeof(PStrHashItem)* uiSize);
 	}
 
 	CStringHash::~CStringHash()

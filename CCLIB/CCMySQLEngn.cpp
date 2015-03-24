@@ -79,9 +79,10 @@ end;
 			if (pRow != nullptr)
 			{
 				pSTemp = new std::string;
-				(*pSTemp).resize(pLen[i] + 1);
-				memcpy_s((void*)(*pSTemp).c_str(), pLen[i] + 1, pRow[i], pLen[i] + 1);
-			}			
+				(*pSTemp).resize(pLen[i]);
+				memcpy_s((void*)(*pSTemp).c_str(), pLen[i], pRow[i], pLen[i]);
+			}	
+			m_Values.push_back(*pSTemp);
 		}
 		mysql_free_result(Res);
 	}
@@ -156,15 +157,9 @@ end;
 		{
 			if ((iFieldIdx >= 0) && (iFieldIdx < m_iFieldsCount))
 			{
-				if (m_Fields[iFieldIdx].Field_Type = MYSQL_TYPE_BIT)
+				if (MYSQL_TYPE_BIT == m_Fields[iFieldIdx].Field_Type)
 				{
-					//---------------------------------
-					//---------------------------------
-					//---------------------------------
-					//if m_Values[FieldIdx] = #1 then
-					char sTemp[5];					
-					sprintf_s(sTemp, 5, "%c", 1);
-					if (0 == m_Values[iFieldIdx].compare(sTemp))     
+					if (0 == m_Values[iFieldIdx].compare("\x1"))
 						sRet = "1";
 					else
 						sRet = "0";
@@ -305,26 +300,14 @@ end;
 		std::string sRet("");
 		if ((m_CurrentRows != nullptr) && (iFieldIdx >= 0) && (iFieldIdx < m_iFieldsCount))
 		{
-			//-----------------------------------------
-			//-----------------------------------------
-			//---------这里的取值----------------------
 			sRet = *(m_CurrentRows->data[iFieldIdx]);
-			if (m_Fields[iFieldIdx].Field_Type = MYSQL_TYPE_BIT)
+			if (MYSQL_TYPE_BIT == m_Fields[iFieldIdx].Field_Type)
 			{
-				/*************
-				  if Result = #1 then
-					Result := '1'
-				  else if Result = #0 then
-					Result := '0';
-				*************/
-				char sTemp[5];
-				sprintf_s(sTemp, 5, "%c", 1);
-				if (0 == sRet.compare(sTemp))
+				if (0 == sRet.compare("\x1"))
 					sRet = "1";
 				else
 				{
-					sprintf_s(sTemp, 5, "%c", 0);
-					if (0 == sRet.compare(sTemp))
+					if (0 == sRet.compare("\x1"))
 						sRet = "0";
 				}					
 			}

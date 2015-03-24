@@ -285,7 +285,7 @@ bool CMainIOCPWorker :: Start(const std::string& sIP, int iPort)
 			else
 				Addr.sin_addr.s_addr = inet_addr(sIP.c_str());
 
-			if (Addr.sin_addr.s_addr = (ULONG)INADDR_NONE)
+			if ((ULONG)INADDR_NONE == Addr.sin_addr.s_addr)
 			{
 				PHOSTENT HostEnt = gethostbyname(sIP.c_str());
 				if (HostEnt != nullptr) 
@@ -530,7 +530,7 @@ bool CClientConnector :: IsBlock(int iMaxBlockSize)
 	bool retflag = (m_iTotalBufferLen > iMaxBlockSize);
 	if (retflag)
 	{
-		if (m_uiBufferFullTick = 0)
+		if (0 == m_uiBufferFullTick)
 		{
 			m_uiBufferFullTick = GetTickCount();
 			retflag = false;
