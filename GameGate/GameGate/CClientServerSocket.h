@@ -18,9 +18,16 @@
 class CPlayerClientConnector : public CClientConnector
 {
 public:
-
+	CPlayerClientConnector();
+	virtual ~CPlayerClientConnector();
+	void SendToClientPeer(unsigned short usIdent, unsigned int uiIdx, void* pBuf, unsigned short usBufLen);
+	void DelayClose(int iReason = -1);
+	void OnDisconnect();
 protected:
-
+	void SendActGood(unsigned short usAct, unsigned short usActParam);       // 没用上
+	void UpdateCDTime(unsigned char bCDType, unsigned int uiCDTime);		 //没用上更新CD
+	procedure SocketRead(const Buf; Count: integer); override;
+	procedure Execute(Tick: cardinal); override;
 private:
 
 private:
@@ -84,17 +91,9 @@ private:
     function CheckServerPkg(Ident: Word; Buf: PAnsiChar; BufLen: integer): Boolean;
     procedure SendMsg(const sMsg: AnsiString; MsgType: TMesssageType = msHint; Color: Byte = Byte(-1); BackColor: Byte = Byte(-1));
   protected
-    procedure SendActGood(Act, ActParam: Word);             // 没用上
-    procedure UpdateCDTime(CDType: Byte; CDTime: Cardinal); //没用上更新CD
-  protected
-    procedure SocketRead(const Buf; Count: integer); override;
-    procedure Execute(Tick: cardinal); override;
-    procedure OnCreate; override;
-    procedure OnDestroy; override;
+
   public
-    procedure SendToClient(wIdent: Word; dwidx: DWord; Buf: PAnsiChar; BufLen: Word);
-    procedure DelayClose(nReason: Integer = -1);
-    procedure OnDisconnect;
+
   end;
 */
 
