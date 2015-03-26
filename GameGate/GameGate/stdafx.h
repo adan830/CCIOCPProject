@@ -25,6 +25,7 @@
 #include "CCIniFileParser.h"
 #include "CCLogSocket.h"
 #include "CGGGlobal.h"
+#include "CCProtocol_Client.h"
 
 #include "CMainThread.h"
 

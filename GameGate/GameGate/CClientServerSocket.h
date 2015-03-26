@@ -26,10 +26,15 @@ public:
 protected:
 	void SendActGood(unsigned short usAct, unsigned short usActParam);       // 没用上
 	void UpdateCDTime(unsigned char bCDType, unsigned int uiCDTime);		 //没用上更新CD
-	procedure SocketRead(const Buf; Count: integer); override;
-	procedure Execute(Tick: cardinal); override;
+	virtual void Execute(unsigned int uiTick);
+	virtual void SocketRead(const char* pBuf, int iCount);
 private:
-
+	bool CheckGuildWords(char* pBuf, unsigned short usBufLen);
+	bool CheckInputWords(char* pBuf, unsigned short usBufLen);
+	void ProcessReceiveMsg(char* pHeader, char* pBuf, int iBufLen);
+	void ReceiveServerMsg(char* pBuf, unsigned short usBufLen);
+	bool CheckServerPkg(unsigned short usIdent, char* pBuf, unsigned short usBufLen);
+	void SendMsg(const std::string &sMsg, TMesssageType msgType = msHint, unsigned char ucColor = 255, unsigned char ucBackColor = 255);
 private:
 
 };
@@ -84,12 +89,7 @@ private:
     function NeedQueueCount(bCDType: Byte): Boolean;
     procedure OpenWindow(wtype: TClientWindowType; nParam: integer; const msg: ansistring = '');
   private
-    function CheckGuildWords(Buf: PAnsiChar; BufLen: Word): Boolean;
-    function CheckInputWords(Buf: PAnsiChar; BufLen: Word): Boolean;
-    procedure MsgProcess(Buf: PAnsiChar; BufLen: Word);     // 处理协议
-    procedure ReceiveServerMsg(Buf: PansiChar; BufLen: Word);
-    function CheckServerPkg(Ident: Word; Buf: PAnsiChar; BufLen: integer): Boolean;
-    procedure SendMsg(const sMsg: AnsiString; MsgType: TMesssageType = msHint; Color: Byte = Byte(-1); BackColor: Byte = Byte(-1));
+
   protected
 
   public

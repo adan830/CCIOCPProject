@@ -127,6 +127,16 @@ typedef struct _TNextGateInfo
 	int iGatePort;
 }TNextGateInfo, *PNextGateInfo;
 
+//	SCM_SYSTEM_MESSAGE
+enum TMesssageType{
+	//ÏµÍ³¹«¸æ¡¢×é¶ÓÏûÏ¢¡¢ĞĞ»áÏûÏ¢¡¢Ë½ÁÄÏûÏ¢¡¢¹ö¶¯ÏûÏ¢¡¢ÌáÊ¾¿òÏûÏ¢¡¢
+	msSystem = 0, msGroup, msGuild, msWhisper, msRoll, msDialog,
+	//¹ÖÎïÃ°Åİ¡¢¸½½üº°»°(°××Ö)¡¢¼Ò×å¡¢À®°Èº°»°¡¢ÌáÊ¾ĞÅÏ¢¡¢×ó²à±ßÌõÏûÏ¢£¬ÖĞÑëÏûÏ¢¡¢ÏµÍ³ºì×Ö¹«¸æ(´øÀ®°È)¡¢µ÷ÊÔĞÅÏ¢
+	msMonster, msCry, msClan, msLoudSpeaker, msHint, msLeftSide, msCenter, msGMSystem, msDebug
+};
+//bMsgType=msLeftSideÊ± nObjID±íÊ¾ÀàĞÍ£¬¾ßÌåÀàĞÍ¼ûÕ½¶·ĞÅÏ¢·ÖÀà¶¨Òå
+//bMsgType=msLoudSpeakerÊ± nObjID±íÊ¾ÀàĞÍ£¬0:ÆÕÍ¨À®°È 1£º¶¥ĞĞÏÔÊ¾À®°È
+
 #pragma pack()
 
 
@@ -170,7 +180,10 @@ const int CM_PWDPROTECT_CHG = 4120;                          //¶ş¼¶ÃÜÂë±£»¤×´Ì¬Ç
 const int SCM_OPEN_WINDOW = 14;                             // ¿ªÆô´°¿Ú
 const int SCM_CLOSE_WINDOW = 15;                            // ·şÎñ¶ËÇëÇó¹Ø±Õ´°¿Ú
 const int SCM_RESSERVER_INFO = 18;                          // ×ÊÔ´·şÎñÆ÷µÄIP
+
+
 const int SCM_SELECT_SERVER = 5011;                         // Ñ¡Çø
+const int SCM_SYSTEM_MESSAGE = 5017;                        // ÏûÏ¢
 
 
 
