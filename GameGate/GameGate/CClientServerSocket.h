@@ -10,6 +10,21 @@
 #include "CGSClientSocket.h"
 #include "CIMClientSocket.h"
 
+typedef struct _TClientActionNode
+{
+	TActionType ActType;		// 动作类型
+	unsigned char ucCDType;		// 1 ~ 100
+	unsigned short usBufLen;	// 数据长度
+	unsigned int uiCDTime;		// 需要的CD时间
+	char* szBuf;				
+	PClientActionNode pPrevNode;
+	PClientActionNode pNextNode;
+}TClientActionNode, *PClientActionNode;
+
+typedef std::function<bool(unsigned short usIdent, int iSocketHandle, char* pBuf, unsigned short usBufLen)> TOnSendToServer;
+
+const int MAX_CD_ID = 250;
+
 /**
 *
 * GameGate监听的单个PlayerClient的连接对象
@@ -35,67 +50,54 @@ private:
 	void ReceiveServerMsg(char* pBuf, unsigned short usBufLen);
 	bool CheckServerPkg(unsigned short usIdent, char* pBuf, unsigned short usBufLen);
 	void SendMsg(const std::string &sMsg, TMesssageType msgType = msHint, unsigned char ucColor = 255, unsigned char ucBackColor = 255);
+	void OpenWindow(TClientWindowType wtype, int iParam, const std::string &sMsg);
+	bool NeedQueueCount(unsigned char ucCDType);
+	void InitDynCode(unsigned char ucEdIdx = 0);
+	void GPSCheck();										// 检测动作
+	TActionType AnalyseIdent(char* pBuf, unsigned short usBufLen, unsigned char &ucCDType, unsigned int &uiCDTime); // 分析客户端到服务器的数据
+	bool AcceptNextAction();
+	void Stiffen(TActionType aType);							// 开始一个硬直时间
+	void IncStiffen(unsigned int uiIncValue);					// 增加一个硬直时间
+	void AddToDelayQueue(PClientActionNode pNode);				// 增加到延迟队列
+	void ProcDelayQueue();										// 处理延时队列结点
+	bool IsCoolDelayPass(PClientActionNode pNode);				// 检测动作cd
+	void SCMSkillList(char* pBuf, unsigned short usBufLen);		// 接收技能表
+	void SCMAddSkill(char* pBuf, unsigned short usBufLen);		// 新增技能
+	void SCMUpdateCDTime(char* pBuf, unsigned short usBufLen);	// 更新CD
 private:
+	TOnSendToServer m_OnSendToServer;
+	unsigned int uiPackageIdx;
+	int m_iObjectID;
+	std::string m_sRoleName;
+	std::string m_sAccount;
+	bool m_bTrace;
+	bool m_bGM;
+	unsigned short m_usLastCMCmd;
+	unsigned short m_usLastSCMCmd;
+	unsigned int m_uiLastPackageTick;
+	unsigned int m_uiCloseTick;
+	PClientActionNode m_pFirst;
+	PClientActionNode m_pLast;
+	int m_iQueueCount;
+	unsigned int m_LastCDTicks[MAX_CD_ID];
+	CC_UTILS::PCodingFunc m_EnCodeFunc; //加密函数
+	CC_UTILS::PCodingFunc m_DeCodeFunc; //解密函数	
+	bool m_bDisconnected;
+	bool m_bDeath;
+	bool m_bNormalClose;
+	int m_iMapID;
+	unsigned short m_usHitSpeed;
+	/*
+	m_GPS_Request: Boolean;                                 // 已经
+	m_GPS_Request_Start: Cardinal;
+	m_GPS_Action_Count: integer;
+	m_CSAuthObject: TCSAuthObject;                          // 反外挂，检测对象
+	*/
+	unsigned int m_uiLastActionTick;
+	unsigned short m_usStiffTime;
 
-};
-
-/*
-  TConnecter = class(TCustomClient)
-  private
-    m_ReceiveBuffer: TBufferStream;
-    m_DelayCS: TRTLCriticalSection;
-    m_OnSendToServer: TOnSendToServer;
-    m_PackageIdx: Cardinal;
-    m_ObjectID: Integer;
-    m_RoleName: AnsiString;
-    m_Account: AnsiString;
-    m_BoTrace: Boolean;
-    m_BoGM: Boolean;
-    m_LastPackageTick: Cardinal;
-    m_LastCMCmd: Word;
-    m_LastSCMCmd: Word;
-    m_CloseTick: Cardinal;
     m_SkillTable: TList;
-    m_First, m_Last: PClientActionNode;
-    m_QueueCount: integer;
-    m_LastCD_Ticks: array[1..MAX_CD_ID] of Cardinal;
-    m_EnCode, m_DeCode: TCodingProc;
-    m_DisConnected: Boolean;                                //是否断开
-    m_BoDeath: Boolean;                                     //是否死亡
-    m_BoNormalClose: Boolean;                               //是否正常关闭
-    m_MapID: Integer;
-    m_HitSpeed: Word;
-    procedure InitDynCode(EdIdx: Byte = 0);
-  private
-    m_GPS_Request: Boolean;                                 // 已经
-    m_GPS_Request_Start: Cardinal;
-    m_GPS_Action_Count: integer;
-    m_CSAuthObject: TCSAuthObject;                          // 反外挂，检测对象
-    procedure GPSCheck();                                   // 需要检测的动作
-  private
-    m_LastActionTick: Cardinal;
-    m_StiffTime: Word;                                      // 动作的硬直时间
-    function AcceptNextAction: Boolean;
-    procedure Stiffen(aType: TActionType);                  // 开始一个硬直时间
-    procedure IncStiffen(IncValue: Cardinal);               // 增加一个硬直时间
-    function AnalyseIdent(Buf: PAnsiChar; BufLen: Word;     // 分析上行的数据
-      var bCDType: Byte; var cdTime: Cardinal): TActionType;
-    procedure AddToDelayQueue(nNode: PClientActionNode);    // 增加到延迟队列
-    procedure ProcDelayQueue;                               // 处理
-    function CoolDelayPass(nNode: PClientActionNode): Boolean; // CD能否通过
-    procedure scmSkillList(Buf: PAnsiChar; BufLen: Word);   // 接收技能表
-    procedure scmAddSkill(Buf: PAnsiChar; BufLen: Word);    // 新增的技能
-    procedure scmUpdateCDTime(Buf: PAnsiChar; BufLen: Word); // 更新CoolDelay
-    function NeedQueueCount(bCDType: Byte): Boolean;
-    procedure OpenWindow(wtype: TClientWindowType; nParam: integer; const msg: ansistring = '');
-  private
-
-  protected
-
-  public
-
-  end;
-*/
+};
 
 /**
 *

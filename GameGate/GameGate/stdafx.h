@@ -26,6 +26,7 @@
 #include "CCLogSocket.h"
 #include "CGGGlobal.h"
 #include "CCProtocol_Client.h"
+#include "CCServerEnDeCode.h"
 
 #include "CMainThread.h"
 

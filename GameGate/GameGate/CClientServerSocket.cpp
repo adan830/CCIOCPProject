@@ -9,6 +9,48 @@ using namespace CC_UTILS;
 
 CClientServerSocket* pG_ClientServerSocket;
 
+const
+MAX_GPS_TIME = 60 * 1000;                            // 最长1分钟需要返回
+MAX_GPS_PACKAGE_COUNT = 20;                               // 至多等20包需要返回
+MAX_GPS_ACTION_COUNT = 100;                               // 最多100个动作就需要检测
+
+MAX_DELAY_PACKAGE = 100;
+
+
+SKILL_Z_TY = 1005;                                 //跳跃
+SKILL_Z_YM = 1006;                                 //野蛮
+
+//行会操作字协议
+GOP_CREATE_TITLE = 6;                                    // 创建称号 strOpStr1为新称号名称
+GOP_RENAME_TITLE = 7;                                    // 称号改名 strOpStr1为旧称号，strOpStr2为新称号
+GOP_MODIFY_NOTICE = 12;                                   // 修改行会通告
+
+// CD常量
+CD_ATTACK_TIME = 760;                                  //物理攻击公共CD
+CD_MAGIC_TIME = 1300;                                 //魔法攻击公共CD
+CD_MOVE_TIME = 600;                                  //位移公共CD
+CD_USEITEM_TIME = 200;
+CD_CLICKNPC_TIME = 1000;
+CD_GUILDOP_TIME = 500;
+CD_SAY_TIME = 2000;
+CD_RUSH_TIME = 540;
+CD_EMAIL_TIME = 1000;
+
+// 硬直时间常量
+STIFF_MOVE = 600;
+STIFF_ATTACK = 480;
+STIFF_MAGIC1 = 820;
+STIFF_MAGIC2 = 820;
+STIFF_SHOOT1 = 820;
+STIFF_SHOOT2 = 880;
+STIFF_JUMP = 720;
+STIFF_PUSH = 270;
+STIFF_DEFAULT = 600;
+STIFF_RUSH = 500;
+
+//服务端与客户端容错时间
+SEVER_CLIENT_DIFF_TIME = 20;
+
 /************************Start Of CClientConnector******************************************/
 
 /************************End Of CClientConnector******************************************/
