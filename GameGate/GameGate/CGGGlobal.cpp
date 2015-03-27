@@ -7,5 +7,6 @@
 #include "CGGGlobal.h"
 
 bool G_BoCheckGPS;
-unsigned char G_PublicGateIdx;      
+unsigned char G_PublicGateIdx;      // 本游戏组的编号
+unsigned char G_LocalGateIdx;       // 本地编号
 

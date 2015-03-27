@@ -160,6 +160,7 @@ protected:
 	void SetMaxBlockSize(const int iSize){ m_iMaxBlockSize = iSize; }
 protected:
 	std::mutex m_LockCS;                     // 临界区操作使用的互斥锁，子类特殊条件会使用
+	int m_iDelayFreeHandleCount;			 // 当前正在延时释放的客户端句柄数量
 private: 
 	void DoReady(void* Sender);
 	void DoSocketClose(void* Sender);
@@ -178,7 +179,6 @@ private:
 	PDelayFreeNode m_DFNFirst;               // 延时释放的头节点
 	PDelayFreeNode m_DFNLast;				 // 延时释放的尾节点
 	unsigned short m_usNewCreateHandle;		 // 最新创建的Handle编号，保存
-	int m_iDelayFreeHandleCount;			 // 当前正在延时释放的客户端句柄数量
 	CC_UTILS::TSimpleHash m_QueryClientHash; // 用于查询客户端连接的简易hash，只存放对象指针，不负责创建释放对象
 };
 

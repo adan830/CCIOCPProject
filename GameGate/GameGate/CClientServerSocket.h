@@ -17,9 +17,18 @@ typedef struct _TClientActionNode
 	unsigned short usBufLen;	// 数据长度
 	unsigned int uiCDTime;		// 需要的CD时间
 	char* szBuf;				
-	PClientActionNode pPrevNode;
-	PClientActionNode pNextNode;
+	_TClientActionNode* pPrevNode;
+	_TClientActionNode* pNextNode;
 }TClientActionNode, *PClientActionNode;
+
+typedef struct _TSkillCoolDelay
+{
+	TActionType ActType;
+	unsigned char ucCDType;
+	unsigned short usSkillID;
+	unsigned int uiCDTime;
+}TSkillCoolDelay, *PSkillCoolDelay;
+
 
 typedef std::function<bool(unsigned short usIdent, int iSocketHandle, char* pBuf, unsigned short usBufLen)> TOnSendToServer;
 
@@ -38,6 +47,7 @@ public:
 	void SendToClientPeer(unsigned short usIdent, unsigned int uiIdx, void* pBuf, unsigned short usBufLen);
 	void DelayClose(int iReason = -1);
 	void OnDisconnect();
+	friend class CClientServerSocket;
 protected:
 	void SendActGood(unsigned short usAct, unsigned short usActParam);       // 没用上
 	void UpdateCDTime(unsigned char bCDType, unsigned int uiCDTime);		 //没用上更新CD
@@ -53,7 +63,6 @@ private:
 	void OpenWindow(TClientWindowType wtype, int iParam, const std::string &sMsg);
 	bool NeedQueueCount(unsigned char ucCDType);
 	void InitDynCode(unsigned char ucEdIdx = 0);
-	void GPSCheck();										// 检测动作
 	TActionType AnalyseIdent(char* pBuf, unsigned short usBufLen, unsigned char &ucCDType, unsigned int &uiCDTime); // 分析客户端到服务器的数据
 	bool AcceptNextAction();
 	void Stiffen(TActionType aType);							// 开始一个硬直时间
@@ -63,7 +72,7 @@ private:
 	bool IsCoolDelayPass(PClientActionNode pNode);				// 检测动作cd
 	void SCMSkillList(char* pBuf, unsigned short usBufLen);		// 接收技能表
 	void SCMAddSkill(char* pBuf, unsigned short usBufLen);		// 新增技能
-	void SCMUpdateCDTime(char* pBuf, unsigned short usBufLen);	// 更新CD
+	void SCMUpdateCDTime(char* pBuf, unsigned short usBufLen);	// 更新CD									
 private:
 	TOnSendToServer m_OnSendToServer;
 	unsigned int uiPackageIdx;
@@ -87,16 +96,18 @@ private:
 	bool m_bNormalClose;
 	int m_iMapID;
 	unsigned short m_usHitSpeed;
+	unsigned int m_uiLastActionTick;
+	unsigned short m_usStiffTime;
+	std::vector<PSkillCoolDelay> m_SkillCDTable;
+private:	
 	/*
+	//GPS相关
+	void GPSCheck();
 	m_GPS_Request: Boolean;                                 // 已经
 	m_GPS_Request_Start: Cardinal;
 	m_GPS_Action_Count: integer;
 	m_CSAuthObject: TCSAuthObject;                          // 反外挂，检测对象
 	*/
-	unsigned int m_uiLastActionTick;
-	unsigned short m_usStiffTime;
-
-    m_SkillTable: TList;
 };
 
 /**
@@ -116,7 +127,7 @@ public:
 public:
 	CGSClientSocket* m_pGameServer;
 	CDBClientSocket* m_pDBServer;
-	std::string m_InternetIP;
+	std::string m_sInternetIP;
 protected:
 	virtual void DoActive();
 private:

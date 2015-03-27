@@ -18,6 +18,33 @@ typedef struct _TClientSocketHead
 	unsigned int uiIdx;		    	    // 包序号,后续数据可能会被压缩
 }TClientSocketHead, *PClientSocketHead;
 
+// 动作类型
+enum TActionType{
+	acNone = 0,
+	acStand,
+	acWalk,
+	acRun,
+	acJump,
+	acRush,
+	acBackStep,
+	acAttack1,
+	acAttack2,
+	acMagic1,
+	acMagic2,
+	acShoot1,
+	acShoot2,
+	acAttack0,
+	acAttacked,
+	acDie,
+	acStone,
+	acBorn,
+	acLRush,
+	acRRush,
+	acIconSmall,
+	acIconBig,
+	acstepBack
+};
+
 //客户端的窗口类型
 enum TClientWindowType{
 	cwInValid = 0,                                          // 无效窗口
