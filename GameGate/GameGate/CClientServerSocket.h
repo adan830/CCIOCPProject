@@ -98,7 +98,7 @@ private:
 	unsigned short m_usHitSpeed;
 	unsigned int m_uiLastActionTick;
 	unsigned short m_usStiffTime;
-	std::vector<PSkillCoolDelay> m_SkillCDTable;
+	std::list<PSkillCoolDelay> m_SkillCDTable;
 private:	
 	/*
 	//GPS相关
@@ -131,9 +131,6 @@ public:
 protected:
 	virtual void DoActive();
 private:
-	/*
-	procedure OnClientDisConnect(SockHandle: Word);   ----- 函数不用独立出来
-	*/
 	void LoadConfig();
 	CClientConnector* OnCreateClientSocket(const std::string &sIP);
 	void OnClientError(void* Sender, int& iErrorCode);

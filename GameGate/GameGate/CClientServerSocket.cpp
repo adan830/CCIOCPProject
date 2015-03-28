@@ -10,6 +10,9 @@ using namespace CC_UTILS;
 
 CClientServerSocket* pG_ClientServerSocket;
 
+enum TBoardStatus { bsRun=0, bsMinRun };						    // GG的状态信息
+int G_BoardStatus[2];
+
 const int MAX_GPS_TIME = 60 * 1000;									// 最长1分钟需要返回
 const int MAX_GPS_PACKAGE_COUNT = 20;                               // 至多等20包需要返回
 const int MAX_GPS_ACTION_COUNT = 100;                               // 最多100个动作就需要检测
@@ -49,6 +52,104 @@ const int STIFF_RUSH = 500;
 const int SEVER_CLIENT_DIFF_TIME = 20;
 
 /************************Start Of CClientConnector******************************************/
+
+CPlayerClientConnector::CPlayerClientConnector() : m_OnSendToServer(nullptr), m_iObjectID(0), m_pFirst(nullptr), m_pLast(nullptr),
+	m_EnCodeFunc(nullptr), m_DeCodeFunc(nullptr), m_bDisconnected(false), m_bDeath(false), m_bNormalClose(false)
+{
+}
+
+CPlayerClientConnector::~CPlayerClientConnector()
+{
+	PSkillCoolDelay pSkillCD = nullptr;
+	std::list<PSkillCoolDelay>::iterator vIter;
+	for (vIter = m_SkillCDTable.begin(); vIter != m_SkillCDTable.end(); ++vIter)
+	{
+		pSkillCD = (PSkillCoolDelay)*vIter;
+		if (pSkillCD != nullptr)
+		{
+			delete pSkillCD;
+			pSkillCD = nullptr;
+		}
+	}
+}
+
+void CPlayerClientConnector::SendToClientPeer(unsigned short usIdent, unsigned int uiIdx, void* pBuf, unsigned short usBufLen)
+{}
+
+void CPlayerClientConnector::DelayClose(int iReason)
+{}
+
+void CPlayerClientConnector::OnDisconnect()
+{}
+
+void CPlayerClientConnector::SendActGood(unsigned short usAct, unsigned short usActParam)
+{}
+
+void CPlayerClientConnector::UpdateCDTime(unsigned char bCDType, unsigned int uiCDTime)
+{}
+
+void CPlayerClientConnector::Execute(unsigned int uiTick)
+{}
+
+void CPlayerClientConnector::SocketRead(const char* pBuf, int iCount)
+{}
+
+bool CPlayerClientConnector::CheckGuildWords(char* pBuf, unsigned short usBufLen)
+{}
+
+bool CPlayerClientConnector::CheckInputWords(char* pBuf, unsigned short usBufLen)
+{}
+
+void CPlayerClientConnector::ProcessReceiveMsg(char* pHeader, char* pBuf, int iBufLen)
+{}
+
+void CPlayerClientConnector::ReceiveServerMsg(char* pBuf, unsigned short usBufLen)
+{}
+
+bool CPlayerClientConnector::CheckServerPkg(unsigned short usIdent, char* pBuf, unsigned short usBufLen)
+{}
+
+void CPlayerClientConnector::SendMsg(const std::string &sMsg, TMesssageType msgType, unsigned char ucColor, unsigned char ucBackColor)
+{}
+
+void CPlayerClientConnector::OpenWindow(TClientWindowType wtype, int iParam, const std::string &sMsg)
+{}
+
+bool CPlayerClientConnector::NeedQueueCount(unsigned char ucCDType)
+{}
+
+void CPlayerClientConnector::InitDynCode(unsigned char ucEdIdx)
+{}
+
+TActionType CPlayerClientConnector::AnalyseIdent(char* pBuf, unsigned short usBufLen, unsigned char &ucCDType, unsigned int &uiCDTime)
+{}
+
+bool CPlayerClientConnector::AcceptNextAction()
+{}
+
+void CPlayerClientConnector::Stiffen(TActionType aType)
+{}
+
+void CPlayerClientConnector::IncStiffen(unsigned int uiIncValue)
+{}
+
+void CPlayerClientConnector::AddToDelayQueue(PClientActionNode pNode)
+{}
+
+void CPlayerClientConnector::ProcDelayQueue()
+{}
+
+bool CPlayerClientConnector::IsCoolDelayPass(PClientActionNode pNode)
+{}
+
+void CPlayerClientConnector::SCMSkillList(char* pBuf, unsigned short usBufLen)
+{}
+
+void CPlayerClientConnector::SCMAddSkill(char* pBuf, unsigned short usBufLen)
+{}
+
+void CPlayerClientConnector::SCMUpdateCDTime(char* pBuf, unsigned short usBufLen)
+{}
 
 /************************End Of CClientConnector******************************************/
 
@@ -186,10 +287,68 @@ void CClientServerSocket::ProcServerMessage(unsigned short usIdent, unsigned sho
 }
 
 void CClientServerSocket::ClientManage(unsigned short usIdent, unsigned short usHandle, char* pBuf, unsigned short usBufLen, bool bInGame)
-{}
+{
+	CPlayerClientConnector* pClient = nullptr;
+	switch (usIdent)
+	{
+	case SM_PLAYER_CONNECT:
+		{
+			std::lock_guard<std::mutex> guard(m_LockCS);
+			pClient = (CPlayerClientConnector*)ValueOf(usHandle);
+			if (pClient != nullptr)
+			{
+				if (bInGame)
+				{
+					pClient->m_OnSendToServer = std::bind(&CGSClientSocket::SendToServerPeer, m_pGameServer, 
+						std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+				}
+				else
+				{
+					pClient->m_OnSendToServer = std::bind(&CDBClientSocket::SendToServerPeer, m_pDBServer,
+						std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+				}					
+			}
+			else if (m_ActiveConnects.size() > 0)
+			{
+				NotifyNotExistClient(usHandle, SM_PLAYER_CONNECT);
+			}				
+		}
+		break;
+	case SM_PLAYER_DISCONNECT:
+		{
+			std::lock_guard<std::mutex> guard(m_LockCS);
+			pClient = (CPlayerClientConnector*)ValueOf(usHandle);
+			if (pClient != nullptr)
+			{
+				int iReason = 0;
+				if ((pBuf != nullptr) && (usBufLen >= sizeof(int)))
+					iReason = *(int*)pBuf;
+				pClient->DelayClose(iReason);
+			}
+		}
+		break;
+	default:
+		Log("收到未知协议，Ident=" + std::to_string(usIdent), lmtWarning);
+		break;
+	}
+}
 
 void CClientServerSocket::GameServerShutDown()
-{}
+{
+	CPlayerClientConnector* pClient = nullptr;
+	std::lock_guard<std::mutex> guard(m_LockCS);
+	std::list<void*>::iterator vIter;
+	for (vIter = m_ActiveConnects.begin(); vIter != m_ActiveConnects.end(); ++vIter)
+	{
+		pClient = (CPlayerClientConnector*)*vIter;
+		if (pClient != nullptr)
+		{
+			pClient->OpenWindow(cwMessageBox, 0, "服务器停机维护，连接将断开");
+			pClient->m_bNormalClose = true;
+			pClient->DelayClose(-11);
+		}
+	}
+}
 
 void CClientServerSocket::DoActive()
 {
@@ -197,31 +356,18 @@ void CClientServerSocket::DoActive()
 	if (_ExGetTickCount - m_uiSlowerTick >= 1000)
 	{
 		m_uiSlowerTick = _ExGetTickCount;
-		if ()
-
+		if (G_BoardStatus[bsMinRun] < m_iLoopCount)
+			G_BoardStatus[bsMinRun] = m_iLoopCount;
+		G_BoardStatus[bsRun] = m_iLoopCount;
+		m_iLoopCount = 0;
+		UpdateLabel("Run:" + std::to_string(G_BoardStatus[bsRun]) + "/" + std::to_string(G_BoardStatus[bsMinRun]), LABEL_RUN_ID);
+		if (!m_bListenOK)
+			return;
 
 		m_pDBServer->DoHeartBeat();
 		m_pGameServer->DoHeartBeat();
 		m_pIMServer->DoHeartBeat();
 	}
-	/*
-  inc(m_LoopCount);
-  if _GetTickCount - m_SlowerTick >= 1000 then              // 慢速执行
-  begin
-    m_SlowerTick := _GetTickCount;
-    if G_BoardStatus[bsMinRun] < m_LoopCount then
-      G_BoardStatus[bsMinRun] := m_LoopCount;
-    G_BoardStatus[bsRun] := m_LoopCount;
-    m_LoopCount := 0;
-
-    UpdateLabel(Format('Run:%d/%d', [G_BoardStatus[bsRun], G_BoardStatus[bsMinRun]]), LABEL_RUN_ID);
-    if not m_ListenOk then
-      Exit;
-    m_DBSocket.DoHeartbest;
-    m_GameServer.DoHeartbeat;
-    m_IMServer.DoHeartbest;
-  end;
-	*/
 }
 
 void CClientServerSocket::LoadConfig()
