@@ -141,108 +141,77 @@ std::string CSingleSQLWorker::_EscapeString(const std::string &str)
 	return m_pMySQLProc->EscapeString(const_cast<char*>(str.c_str()), str.length());
 }
 
-void CSingleSQLWorker::MySQLAuthenRes(Json::Value js, PJsonJobNode pNode, IMySQLFields* pDataSet, TAccountFlagInfo AccountFlag)
+void CSingleSQLWorker::MySQLAuthenRes(Json::Value &js, PJsonJobNode pNode, IMySQLFields* pDataSet, TAccountFlagInfo AccountFlag)
 {
 	try
 	{
 		bool bIsChild = false;
 		PMySQLField pMyField = nullptr;
 
-		Json::FastWriter writerTest;
-		std::string sTempTest;
-		sTempTest = writerTest.write(js);
-
 		//账号
 		pMyField = pDataSet->FieldByName("Account");
 		if (pMyField != nullptr)
 			js["UniqueID"] = pMyField->AsString();
-
-		sTempTest = writerTest.write(js);
 
 		pMyField = pDataSet->FieldByName("CreateTime");
 		//创建时间
 		if (pMyField != nullptr)
 			js["CreateTime"] = pMyField->AsDateTime();
 
-		sTempTest = writerTest.write(js);
-
 		//上次登陆ip
 		pMyField = pDataSet->FieldByName("Usr_LastIP");
 		if (pMyField != nullptr)
 			js["LastLoginIP"] = pMyField->AsString();
-
-		sTempTest = writerTest.write(js);
 
 		//上次登陆时间
 		pMyField = pDataSet->FieldByName("Usr_LastTime");
 		if (pMyField != nullptr)
 			js["LastLoginTime"] = pMyField->AsDateTime();
 
-		sTempTest = writerTest.write(js);
-
 		//帐号等级
 		pMyField = pDataSet->FieldByName("Usr_Level");
 		if (pMyField != nullptr)
 			js["AccountLevel"] = pMyField->AsString();
-
-		sTempTest = writerTest.write(js);
 
 		//安全等级
 		pMyField = pDataSet->FieldByName("Usr_SecurityLevel");
 		if (pMyField != nullptr)
 			js["SecurityLevel"] = pMyField->AsString();
 
-		sTempTest = writerTest.write(js);
-
 		//通过防沉迷
 		pMyField = pDataSet->FieldByName("Usr_IsSecurityGame");
 		if (pMyField != nullptr)
 			js["IsSecurityGame"] = pMyField->AsString();
-
-		sTempTest = writerTest.write(js);
 
 		//通过邮件认证
 		pMyField = pDataSet->FieldByName("Usr_IsSecurityEmail");
 		if (pMyField != nullptr)
 			js["IsSecurityEmail"] = pMyField->AsString();
 
-		sTempTest = writerTest.write(js);
-
 		//通过手机认证
 		pMyField = pDataSet->FieldByName("Usr_IsSecurityMobile");
 		if (pMyField != nullptr)
 			js["IsSecurityMobile"] = pMyField->AsString();
-
-		sTempTest = writerTest.write(js);
 
 		//通行证激活等级
 		pMyField = pDataSet->FieldByName("c_KeyLevel");
 		if (pMyField != nullptr)
 			js["ActivityFlag"] = pMyField->AsString();
 
-		sTempTest = writerTest.write(js);
-
 		//启用密保卡
 		pMyField = pDataSet->FieldByName("Usr_IsSecurityCard");
 		if (pMyField != nullptr)
 			js["SafeCard"] = pMyField->AsString();
-
-		sTempTest = writerTest.write(js);
 
 		//支付密码认证 0: 不开启 1: 开启
 		pMyField = pDataSet->FieldByName("Usr_IsSecurityPay");
 		if (pMyField != nullptr)
 			js["NeedPayPwd"] = pMyField->AsString();
 
-		sTempTest = writerTest.write(js);
-
 		//支付密码 格式: md5(密码小写)
 		pMyField = pDataSet->FieldByName("Usr_PaySecurityKey");
 		if (pMyField != nullptr)
 			js["PayPwd"] = pMyField->AsString();
-
-		sTempTest = writerTest.write(js);
-		Log("test " + sTempTest, lmtError);
 
 		//名人认证级别 0: 未认证
 		pMyField = pDataSet->FieldByName("Usr_Certification");
@@ -297,13 +266,12 @@ void CSingleSQLWorker::MySQLAuthenRes(Json::Value js, PJsonJobNode pNode, IMySQL
 		{
 			Json::FastWriter writer;
 			std::string sTemp = writer.write(js);
-			Log("test End " + sTemp, lmtError);
 			pG_SQLDBManager->AddWorkJob(SM_USER_AUTHEN_LOG, pNode->iHandle, pNode->iParam, sTemp);
 		}
 	}
 	catch (...)
 	{
-		Log("MySQLAuthenRes: ");
+		Log("MySQLAuthenRes pNode->sJsonText :" + pNode->sJsonText);
 	}
 }
 
@@ -365,7 +333,7 @@ bool CSingleSQLWorker::SQLDB_Authen(PJsonJobNode pNode)
 				//Include(AccountFlag.FlagSet, accNoSafeAccount);
 				iRetCode = 1;
 			}
-			MySQLAuthenRes(root, pNode, pDataSet, info);
+			MySQLAuthenRes(root, pNode, pDataSet, info);		
 			break;
 		case -1:
 			root["Message"] = MSG_AUTHEN_ERROR;

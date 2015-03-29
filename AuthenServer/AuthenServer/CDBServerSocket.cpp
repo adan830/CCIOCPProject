@@ -548,7 +548,9 @@ void CDBServerSocket::ProcResponseMsg()
 					}
 					pDB = (CDBConnector*)ValueOf(pNode->iHandle);
 					if (pDB != nullptr)
-						pDB->SQLWorkCallBack(SM_USER_AUTHEN_RES, pNode->iParam, pNode->sJsonText);
+					{
+						pDB->SQLWorkCallBack(SM_USER_AUTHEN_RES, pNode->iParam, pNode->sJsonText);						
+					}						
 					break;
 				case SM_SAFECARD_AUTHEN_REQ:
 					if ((0 == pNode->iRes) || (1 == pNode->iRes))
