@@ -41,8 +41,10 @@ public:
 protected:
 	virtual void Execute(unsigned int uiTick){}
 	virtual void SocketRead(const char* pBuf, int iCount){}
-	int ParseSocketReadData(int iType, const char* pBuf, int iCount);                                     //由子类覆盖的SocketRead函数调用
-	virtual void ProcessReceiveMsg(PServerSocketHeader pHeader, char* pData, int iDataLen){};             //处理具体的消息包数据，子类实现
+	int ParseSocketReadData(int iType, const char* pBuf, int iCount);                       //由子类覆盖的SocketRead函数调用
+	virtual void ProcessReceiveMsg(char* pHeader, char* pData, int iDataLen){};             //处理具体的消息包数据，子类实现
+protected:
+	CC_UTILS::PBufferStream m_pReceiveBuffer;      // 处理socket数据接收的buffer
 private:
 	void UpdateActive();
 	void Clear();
@@ -67,7 +69,6 @@ private:
 	unsigned int m_uiActiveTick;
 	unsigned int m_uiLastSendTick;
 	unsigned int m_uiBufferFullTick;	// 客户端发送缓冲区堆积满数据多久后踢掉
-	CC_UTILS::PBufferStream m_pReceiveBuffer;      // 处理socket数据接收的buffer
 friend class CIOCPServerSocketManager;
 };
 

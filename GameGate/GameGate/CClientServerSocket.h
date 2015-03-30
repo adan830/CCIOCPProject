@@ -53,10 +53,10 @@ protected:
 	void UpdateCDTime(unsigned char bCDType, unsigned int uiCDTime);		 //没用上更新CD
 	virtual void Execute(unsigned int uiTick);
 	virtual void SocketRead(const char* pBuf, int iCount);
+	virtual void ProcessReceiveMsg(char* pHeader, char* pBuf, int iBufLen);	
 private:
 	bool CheckGuildWords(char* pBuf, unsigned short usBufLen);
 	bool CheckInputWords(char* pBuf, unsigned short usBufLen);
-	void ProcessReceiveMsg(char* pHeader, char* pBuf, int iBufLen);
 	void ReceiveServerMsg(char* pBuf, unsigned short usBufLen);
 	bool CheckServerPkg(unsigned short usIdent, char* pBuf, unsigned short usBufLen);
 	void SendMsg(const std::string &sMsg, TMesssageType msgType = msHint, unsigned char ucColor = 255, unsigned char ucBackColor = 255);
@@ -75,7 +75,7 @@ private:
 	void SCMUpdateCDTime(char* pBuf, unsigned short usBufLen);	// 更新CD									
 private:
 	TOnSendToServer m_OnSendToServer;
-	unsigned int uiPackageIdx;
+	unsigned int m_uiPackageIdx;
 	int m_iObjectID;
 	std::string m_sRoleName;
 	std::string m_sAccount;

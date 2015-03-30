@@ -35,7 +35,7 @@ public:
 protected:
 	virtual void Execute(unsigned int uiTick);
 	virtual void SocketRead(const char* pBuf, int iCount);
-	virtual void ProcessReceiveMsg(PServerSocketHeader pHeader, char* pData, int iDataLen);
+	virtual void ProcessReceiveMsg(char* pHeader, char* pData, int iDataLen);
 private:
 	void InitDynCode();
 	void Msg_Ping(int iCount);

@@ -152,27 +152,30 @@ void CDBConnector::SocketRead(const char* pBuf, int iCount)
 		Log("TDBServer Socket Read Error, Code = " + to_string(iErrorCode), lmtError);
 }
 
-void CDBConnector::ProcessReceiveMsg(PServerSocketHeader pHeader, char* pData, int iDataLen)
+void CDBConnector::ProcessReceiveMsg(char* pHeader, char* pData, int iDataLen)
 {
-	switch (pHeader->usIdent)
+	unsigned short usIdent = ((PServerSocketHeader)pHeader)->usIdent;
+	unsigned short usBehindLen = ((PServerSocketHeader)pHeader)->usBehindLen;
+	int iParam = ((PServerSocketHeader)pHeader)->iParam;
+	switch (usIdent)
 	{
 	case SM_PING:
-		SendHeartBeat(pHeader->iParam);
+		SendHeartBeat(iParam);
 		break;
 	case SM_REGISTER:
-		if (0 == pHeader->usBehindLen)
-			RegisterDBServer(pHeader->iParam);
+		if (0 == usBehindLen)
+			RegisterDBServer(iParam);
 		else
 			Log("DBServer版本错误", lmtError);
 		break;
 	case SM_SELECT_SERVER:
-		pG_GateSocket->SMSelectServer(pHeader->iParam, pData, iDataLen);
+		pG_GateSocket->SMSelectServer(iParam, pData, iDataLen);
 		break;
 	case SM_SERVER_CONFIG:
-		ReceiveConfig(pHeader->iParam, pData, iDataLen);
+		ReceiveConfig(iParam, pData, iDataLen);
 		break;
 	default:
-		Log("收到未知DBServer协议，Ident=" + to_string(pHeader->usIdent), lmtWarning);
+		Log("收到未知DBServer协议，Ident=" + to_string(usIdent), lmtWarning);
 		break;
 	}
 }

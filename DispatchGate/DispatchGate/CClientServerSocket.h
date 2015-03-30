@@ -30,10 +30,10 @@ public:
 protected:
 	virtual void Execute(unsigned int uiTick);
 	virtual void SocketRead(const char* pBuf, int iCount);
+	virtual void ProcessReceiveMsg(char* pHeader, char* pData, int iDataLen);
 private:
 	void CMSelectServer(char* pBuf, unsigned short usBufLen);
-	void CMCloseWindow(char* pBuf, unsigned short usBufLen);
-	void ProcessReceiveMsg(char* pHeader, char* pData, int iDataLen);
+	void CMCloseWindow(char* pBuf, unsigned short usBufLen);	
 private:
 	unsigned int m_uiLastConnectTick;
 	unsigned int m_uiForceCloseTick;

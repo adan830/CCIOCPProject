@@ -101,22 +101,22 @@ namespace CC_UTILS{
 	void Encode6BitBuf(char* pSource, char* pDest, int iSrcLen, int iDestLen);
 
 	//格式化字符串,返回unicode
-	inline std::wstring FormatWStr(LPCWSTR szFormat, ...);
+	std::wstring FormatWStr(LPCWSTR szFormat, ...);
 
 	//格式化字符串,返回普通字符串
-	inline std::string FormatStr(LPCSTR szFormat, ...);
+	std::string FormatStr(LPCSTR szFormat, ...);
 
 	//宽字符串转化为大写
-	inline std::wstring WStrUpper(const std::wstring& str);
+	std::wstring WStrUpper(const std::wstring& str);
 
 	//普通字符串转化为大写
-	inline std::string StrUpper(const std::string& str);
+	std::string StrUpper(const std::string& str);
 
 	//宽字符串转化为小写
-	inline std::wstring WStrLower(const std::wstring& str);
+	std::wstring WStrLower(const std::wstring& str);
 
 	//普通字符串转化为小写
-	inline std::string StrLower(const std::string& str);
+	std::string StrLower(const std::string& str);
 }
 
 /*

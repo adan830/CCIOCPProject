@@ -94,38 +94,40 @@ void CDBConnector::SocketRead(const char* pBuf, int iCount)
 		Log("TDBServer Socket Read Error, Code = " + std::to_string(iErrorCode), lmtError);
 }
 
-void CDBConnector::ProcessReceiveMsg(PServerSocketHeader pHeader, char* pData, int iDataLen)
+void CDBConnector::ProcessReceiveMsg(char* pHeader, char* pData, int iDataLen)
 {
 	//½âÃÜ
 	if ((m_DeCodeFunc != nullptr) && (iDataLen > 0))
 		m_DeCodeFunc((CC_UTILS::PBYTE)pData, iDataLen);
 
-	switch (pHeader->usIdent)
+	unsigned short usIdent = ((PServerSocketHeader)pHeader)->usIdent;
+	int iParam = ((PServerSocketHeader)pHeader)->iParam;
+	switch (usIdent)
 	{
 	case SM_PING: 
-		Msg_Ping(pHeader->iParam);
+		Msg_Ping(iParam);
 		break;
     case SM_REGISTER: 
-		Msg_RegisterServer(pHeader->iParam);
+		Msg_RegisterServer(iParam);
 		break;
 	case SM_USER_AUTHEN_REQ:
 		if (m_iServerID > 0)
-			Msg_UserAuthenRequest(pHeader->iParam, pData, iDataLen);
+			Msg_UserAuthenRequest(iParam, pData, iDataLen);
 		else
-			OnAuthenFail(pHeader->iParam, 13, MSG_AUTHEN_ERROR, 0, 0);
+			OnAuthenFail(iParam, 13, MSG_AUTHEN_ERROR, 0, 0);
 		break;
 	case SM_SAFECARD_AUTHEN_REQ:
 		if (m_iServerID > 0)
-			Msg_SafeCardAuthen(pHeader->iParam, pData, iDataLen);
+			Msg_SafeCardAuthen(iParam, pData, iDataLen);
 		break;
 	case SM_USER_REGIST_REQ:
 		if (m_iServerID > 0)
-			Msg_NewAccountRequest(pHeader->iParam, pData, iDataLen);
+			Msg_NewAccountRequest(iParam, pData, iDataLen);
 		break;
 	case SM_RECHARGE_DB_ACK:
 	case SM_GIVEITEM_DB_ACK:
 		if (m_iServerID > 0)
-			Msg_DBResponse(pHeader->usIdent, pHeader->iParam, pData, iDataLen);
+			Msg_DBResponse(usIdent, iParam, pData, iDataLen);
 		break;
 	case SM_CHILD_LOGON:
 		if (sizeof(TGameChildLogin) == iDataLen)

@@ -6,7 +6,6 @@
 #include "CCUtils.h"
 #include <io.h>
 #include <direct.h>
-#include <Windows.h>
 #pragma comment(lib, "version.lib")
 #pragma comment(lib, "winmm.lib")
 
@@ -456,7 +455,7 @@ namespace CC_UTILS{
 	}
 
 	//格式化字符串,返回unicode
-	inline std::wstring FormatWStr(LPCWSTR szFormat, ...)
+	std::wstring FormatWStr(LPCWSTR szFormat, ...)
 	{
 		va_list args;
 		va_start(args, szFormat);
@@ -472,7 +471,7 @@ namespace CC_UTILS{
 	}
 
 	//格式化字符串,返回普通字符串
-	inline std::string FormatStr(LPCSTR szFormat, ...)
+	std::string FormatStr(LPCSTR szFormat, ...)
 	{
 		va_list args;
 		va_start(args, szFormat);
@@ -488,7 +487,7 @@ namespace CC_UTILS{
 	}
 
 	//宽字符串转化为大写
-	inline std::wstring WStrUpper(const std::wstring& str)
+	std::wstring WStrUpper(const std::wstring& str)
 	{
 		std::wstring strRet = str;
 		std::wstring::iterator itr = strRet.begin();
@@ -501,7 +500,7 @@ namespace CC_UTILS{
 	}
 
 	//普通字符串转化为大写
-	inline std::string StrUpper(const std::string& str)
+	std::string StrUpper(const std::string& str)
 	{
 		std::string strRet = str;
 		std::string::iterator itr = strRet.begin();
@@ -514,7 +513,7 @@ namespace CC_UTILS{
 	}
 
 	//宽字符串转化为小写
-	inline std::wstring WStrLower(const std::wstring& str)
+	std::wstring WStrLower(const std::wstring& str)
 	{
 		std::wstring strRet = str;
 		std::wstring::iterator itr = strRet.begin();
@@ -527,7 +526,7 @@ namespace CC_UTILS{
 	}
 
 	//普通字符串转化为小写
-	inline std::string StrLower(const std::string& str)
+	std::string StrLower(const std::string& str)
 	{
 		std::string strRet = str;
 		std::string::iterator itr = strRet.begin();

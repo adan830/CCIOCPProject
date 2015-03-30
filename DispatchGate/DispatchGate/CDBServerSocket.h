@@ -39,7 +39,7 @@ public:
 	bool CheckClientIP(const std::string& sIP);
 protected:
 	virtual void SocketRead(const char* pBuf, int iCount);
-	virtual void ProcessReceiveMsg(PServerSocketHeader pHeader, char* pData, int iDataLen);
+	virtual void ProcessReceiveMsg(char* pHeader, char* pData, int iDataLen);
 private:
 	void SendHeartBeat(int iCount);                // ÐÄÌø·µ»Ø
 	void RegisterDBServer(int iServerID);          // ×¢²áDBServer

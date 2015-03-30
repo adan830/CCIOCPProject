@@ -574,7 +574,7 @@ int CClientConnector::ParseSocketReadData(int iType, const char* pBuf, int iCoun
 			if (iOffset + iPackageLen > iTempBufLen)
 				break;
 			//处理收到的数据包，子类实现
-			ProcessReceiveMsg(pHeader, pTempBuf + sizeof(TServerSocketHeader), pHeader->usBehindLen);
+			ProcessReceiveMsg((char*)pHeader, pTempBuf + sizeof(TServerSocketHeader), pHeader->usBehindLen);
 			//移动指针，继续加载socket读入的数据
 			iOffset += iPackageLen;
 			pTempBuf += iPackageLen;

@@ -154,6 +154,31 @@ typedef struct _TNextGateInfo
 	int iGatePort;
 }TNextGateInfo, *PNextGateInfo;
 
+// SCM_ACTFAIL
+typedef struct _TPkgActFail
+{
+	int iObjID;
+	unsigned short usX;
+	unsigned short usY;
+	unsigned char ucDir;
+	unsigned short usAct;
+}TPkgActFail, *PPkgActFail;
+
+// SCM_ACTGOOD
+typedef struct _TPkgActGood
+{
+	int iObjID;						//执行对象ID
+	unsigned short usAct;			//执行动作
+	unsigned short usParam;			//执行参数，若是技能则为技能ID
+}TPkgActGood, *PPkgActGood;
+
+// SCM_CDTIME_UPDATE
+typedef struct _TPkgCDTimeChg
+{
+	unsigned char ucCDType;
+	unsigned int uiCDTime;
+}TPkgCDTimeChg, *PPkgCDTimeChg;
+
 //	SCM_SYSTEM_MESSAGE
 enum TMesssageType{
 	//系统公告、组队消息、行会消息、私聊消息、滚动消息、提示框消息、
@@ -208,9 +233,17 @@ const int SCM_OPEN_WINDOW = 14;                             // 开启窗口
 const int SCM_CLOSE_WINDOW = 15;                            // 服务端请求关闭窗口
 const int SCM_RESSERVER_INFO = 18;                          // 资源服务器的IP
 
+const int SCM_ACTGOOD = 209;                                //执行成功
+const int SCM_ACTFAIL = 210;                                //执行失败
+
+const int SCM_CDTIME_UPDATE = 312;                          //CD更新
 
 const int SCM_SELECT_SERVER = 5011;                         // 选区
 const int SCM_SYSTEM_MESSAGE = 5017;                        // 消息
+
+//其它常量定义
+
+const int ENCODE_START_LEN = 6;
 
 
 

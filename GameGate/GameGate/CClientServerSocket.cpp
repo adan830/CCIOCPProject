@@ -74,70 +74,222 @@ CPlayerClientConnector::~CPlayerClientConnector()
 }
 
 void CPlayerClientConnector::SendToClientPeer(unsigned short usIdent, unsigned int uiIdx, void* pBuf, unsigned short usBufLen)
-{}
+{
+	int iDataLen = sizeof(TClientSocketHead)+usBufLen;
+	char* pData = (char*)malloc(iDataLen);
+	if (pData != nullptr)
+	{
+		try
+		{
+			((PClientSocketHead)pData)->uiSign = CS_SEGMENTATION_CLIENTSIGN;
+			((PClientSocketHead)pData)->usPackageLen = iDataLen;
+			((PClientSocketHead)pData)->usIdent = usIdent;
+			((PClientSocketHead)pData)->uiIdx = uiIdx;			
+			if (usBufLen > 0)
+			{
+				memcpy(pData + sizeof(TClientSocketHead), pBuf, usBufLen);
+				if (m_EnCodeFunc != nullptr)
+					m_EnCodeFunc((CC_UTILS::PBYTE)(&pData[ENCODE_START_LEN]), iDataLen - ENCODE_START_LEN);
+			}
+
+			SendBuf(pData, iDataLen);
+			free(pData);
+		}
+		catch (...)
+		{
+			free(pData);
+		}
+	}
+}
 
 void CPlayerClientConnector::DelayClose(int iReason)
-{}
+{
+	m_uiCloseTick = _ExGetTickCount;
+	if ((iReason != 0) && (!m_bNormalClose) && (!m_bDisconnected) && (!m_bDeath))
+		Log(m_sRoleName + " " + GetRemoteAddress() + " 被服务器断开,Reason=" + std::to_string(iReason), lmtWarning);
+	m_bNormalClose = true;
+}
 
 void CPlayerClientConnector::OnDisconnect()
-{}
+{
+	m_bDisconnected = true;
+#ifdef TEST
+	if ((!m_bNormalClose) && (m_iObjectID != 0) && (m_sRoleName != ""))
+		Log(CC_UTILS::FormatStr("%s[%s]异常断开,Map=%d Cmd=%d/%d NoData=%d秒", m_sRoleName, 
+		GetRemoteAddress(), m_iMapID, m_usLastCMCmd, m_usLastSCMCmd, (_ExGetTickCount - m_uiLastPackageTick) / 1000), lmtWarning);
+#endif
+}
 
 void CPlayerClientConnector::SendActGood(unsigned short usAct, unsigned short usActParam)
-{}
+{
+	TPkgActGood actGood;
+	actGood.iObjID = m_iObjectID;
+	actGood.usAct = usAct;
+	actGood.usParam = usActParam;
+	SendToClientPeer(SCM_ACTGOOD, 0, &actGood, sizeof(TPkgActGood));
+}
 
 void CPlayerClientConnector::UpdateCDTime(unsigned char bCDType, unsigned int uiCDTime)
-{}
+{
+	TPkgCDTimeChg pkg;
+	pkg.ucCDType = bCDType;
+	pkg.uiCDTime = uiCDTime;
+	SendToClientPeer(SCM_CDTIME_UPDATE, _ExGetTickCount, &pkg, sizeof(TPkgCDTimeChg));
+}
 
 void CPlayerClientConnector::Execute(unsigned int uiTick)
-{}
+{
+	if (m_uiCloseTick > 0)
+	{
+		if (_ExGetTickCount - m_uiCloseTick > 3000)
+		{
+			m_bNormalClose = true;
+			Close();
+		}
+	}
+	else
+		ProcDelayQueue();	
+}
 
 void CPlayerClientConnector::SocketRead(const char* pBuf, int iCount)
-{}
+{
+	if (m_uiCloseTick > 0)
+		return;
+	m_uiLastPackageTick = _ExGetTickCount;
+
+	int iErrorCode = 0;
+	m_pReceiveBuffer->Write(pBuf, iCount);
+	char* pTempBuf = (char*)m_pReceiveBuffer->GetMemPoint();
+	int iTempBufLen = m_pReceiveBuffer->GetPosition();
+	int iOffset = 0;
+	int iPackageLen = 0;
+	PClientSocketHead pHeader = nullptr;
+	while (iTempBufLen - iOffset >= sizeof(TClientSocketHead))
+	{
+		pHeader = (PClientSocketHead)pTempBuf;
+		if (CS_SEGMENTATION_CLIENTSIGN == pHeader->uiSign)
+		{
+			iPackageLen = pHeader->usPackageLen;
+			//单个数据包超长或者小于正常长度则扔掉
+			if ((iPackageLen >= MAXWORD) || (iPackageLen < sizeof(TClientSocketHead)))
+			{
+				iOffset = iTempBufLen;
+				iErrorCode = 1;
+				break;
+			}
+			//加载m_pReceiveBuffer数据时，解析最新的包长度iPackageLen在当前位移iOffset上超出iTempBufLen
+			if (iOffset + iPackageLen > iTempBufLen)
+				break;
+
+			if (m_DeCodeFunc != nullptr)
+				m_DeCodeFunc((CC_UTILS::PBYTE)(&pBuf[ENCODE_START_LEN]), iPackageLen - ENCODE_START_LEN);
+
+			if (0 == m_uiPackageIdx)
+				m_uiPackageIdx = pHeader->uiIdx;
+			else
+			{
+				++m_uiPackageIdx;
+				if (m_uiPackageIdx != pHeader->uiIdx)
+				{
+					Log(CC_UTILS::FormatStr("%s[%s] Package Index Error.", m_sRoleName, GetRemoteAddress()), lmtWarning);
+					break;
+				}
+			}
+
+			//处理收到的数据包，子类实现
+			ProcessReceiveMsg((char*)pHeader, pTempBuf + sizeof(TClientSocketHead), pHeader->usPackageLen - sizeof(TClientSocketHead));
+			//移动指针，继续加载socket读入的数据
+			iOffset += iPackageLen;
+			pTempBuf += iPackageLen;
+		}
+		else
+		{	//向下寻找包头
+			iErrorCode = 2;
+			iOffset += 1;
+			pTempBuf += 1;
+		}
+	}
+	m_pReceiveBuffer->Reset(iOffset);
+	if (iErrorCode > 0)
+	{
+		Log(CC_UTILS::FormatStr("CPlayerClientConnector Socket Read Error, Code =%d  %s %s", 
+			iErrorCode, m_sRoleName, GetRemoteAddress()), lmtWarning);
+	}
+}
 
 bool CPlayerClientConnector::CheckGuildWords(char* pBuf, unsigned short usBufLen)
-{}
+{
+
+}
 
 bool CPlayerClientConnector::CheckInputWords(char* pBuf, unsigned short usBufLen)
-{}
+{
+
+}
 
 void CPlayerClientConnector::ProcessReceiveMsg(char* pHeader, char* pBuf, int iBufLen)
-{}
+{
+
+}
 
 void CPlayerClientConnector::ReceiveServerMsg(char* pBuf, unsigned short usBufLen)
-{}
+{
+
+}
 
 bool CPlayerClientConnector::CheckServerPkg(unsigned short usIdent, char* pBuf, unsigned short usBufLen)
-{}
+{
+
+}
 
 void CPlayerClientConnector::SendMsg(const std::string &sMsg, TMesssageType msgType, unsigned char ucColor, unsigned char ucBackColor)
-{}
+{
+
+}
 
 void CPlayerClientConnector::OpenWindow(TClientWindowType wtype, int iParam, const std::string &sMsg)
-{}
+{
+
+}
 
 bool CPlayerClientConnector::NeedQueueCount(unsigned char ucCDType)
-{}
+{
+
+}
 
 void CPlayerClientConnector::InitDynCode(unsigned char ucEdIdx)
-{}
+{
+
+}
 
 TActionType CPlayerClientConnector::AnalyseIdent(char* pBuf, unsigned short usBufLen, unsigned char &ucCDType, unsigned int &uiCDTime)
-{}
+{
+
+}
 
 bool CPlayerClientConnector::AcceptNextAction()
-{}
+{
+
+}
 
 void CPlayerClientConnector::Stiffen(TActionType aType)
-{}
+{
+
+}
 
 void CPlayerClientConnector::IncStiffen(unsigned int uiIncValue)
-{}
+{
+
+}
 
 void CPlayerClientConnector::AddToDelayQueue(PClientActionNode pNode)
-{}
+{
+
+}
 
 void CPlayerClientConnector::ProcDelayQueue()
-{}
+{
+}
 
 bool CPlayerClientConnector::IsCoolDelayPass(PClientActionNode pNode)
 {}
