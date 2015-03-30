@@ -6,6 +6,7 @@
 #include "CCUtils.h"
 #include <io.h>
 #include <direct.h>
+#include <Windows.h>
 #pragma comment(lib, "version.lib")
 #pragma comment(lib, "winmm.lib")
 
