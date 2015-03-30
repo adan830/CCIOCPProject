@@ -8,7 +8,7 @@
 using namespace CC_UTILS;
 
 char DEFAULT_SERVICE_NAME[] = "GameGate";
-char DEFAULT_DESCRIPTION[] = "LongGet 游戏网关程序";
+char DEFAULT_DESCRIPTION[] = "GAME 游戏网关程序";
 
 bool DoAppStart(void* Sender)
 {

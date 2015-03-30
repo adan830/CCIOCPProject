@@ -8,7 +8,7 @@
 using namespace CC_UTILS;
 
 char DEFAULT_SERVICE_NAME[] = "DispatchGate";
-char DEFAULT_DESCRIPTION[] = "LongGet 游戏登录网关服务";
+char DEFAULT_DESCRIPTION[] = "GAME 游戏登录网关服务";
 
 bool DoAppStart(void* Sender)
 {
