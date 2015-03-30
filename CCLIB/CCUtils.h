@@ -95,10 +95,55 @@ namespace CC_UTILS{
 	int ForceCreateDirectories(std::string& sDir);
 
 	//字符串加解密功能块
-	std::string EncodeString(std::string &str);
-	std::string DecodeString(std::string &str);
+	std::string EncodeString(std::string& str);
+	std::string DecodeString(std::string& str);
 	void Decode6BitBuf(char* pSource, char* pBuf, int iSrcLen, int iBufLen);
 	void Encode6BitBuf(char* pSource, char* pDest, int iSrcLen, int iDestLen);
+
+	//格式化字符串,返回unicode
+	inline std::wstring FormatWStr(LPCWSTR szFormat, ...);
+
+	//格式化字符串,返回普通字符串
+	inline std::string FormatStr(LPCSTR szFormat, ...);
+
+	//宽字符串转化为大写
+	inline std::wstring WStrUpper(const std::wstring& str);
+
+	//普通字符串转化为大写
+	inline std::string StrUpper(const std::string& str);
+
+	//宽字符串转化为小写
+	inline std::wstring WStrLower(const std::wstring& str);
+
+	//普通字符串转化为小写
+	inline std::string StrLower(const std::string& str);
 }
+
+/*
+安全删除对象指针
+*/
+#ifndef SAFE_DELETE
+#define SAFE_DELETE(p)	{ if (p) { delete (p); (p)=NULL; }}
+#endif
+
+/*
+增加标志
+*/
+#ifndef ADD_FLAG
+#define ADD_FLAG(body, flag) body|=(flag)
+#endif
+/*
+删除标志
+*/
+#ifndef DEL_FLAG
+#define DEL_FLAG(body, flag) body&=~(flag)
+#endif
+
+/*
+是否包含标志
+*/
+#ifndef HAS_FLAG
+#define HAS_FLAG(body, flag) ((body & (flag)) != 0)
+#endif
 
 #endif //__CC_UTILS_H__

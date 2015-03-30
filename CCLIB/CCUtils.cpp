@@ -342,7 +342,7 @@ namespace CC_UTILS{
 	}
 
 
-	std::string EncodeString(std::string &str)
+	std::string EncodeString(std::string& str)
 	{
 		std::string sRetStr("");
 		std::string sTemp(str);
@@ -354,7 +354,7 @@ namespace CC_UTILS{
 		return sRetStr;
 	}
 
-	std::string DecodeString(std::string &str)
+	std::string DecodeString(std::string& str)
 	{
 		std::string sRetStr("");
 		std::string sTemp(str);
@@ -453,5 +453,89 @@ namespace CC_UTILS{
 			++iDestPos;
 		}
 		pDest[iDestPos] = '\0';
+	}
+
+	//格式化字符串,返回unicode
+	inline std::wstring FormatWStr(LPCWSTR szFormat, ...)
+	{
+		va_list args;
+		va_start(args, szFormat);
+
+		int len = _vscwprintf(szFormat, args);
+		std::wstring str;
+		str.resize(len);
+		_vsnwprintf(&str[0], len, szFormat, args);
+
+		va_end(args);
+
+		return str;
+	}
+
+	//格式化字符串,返回普通字符串
+	inline std::string FormatStr(LPCSTR szFormat, ...)
+	{
+		va_list args;
+		va_start(args, szFormat);
+
+		int len = _vscprintf(szFormat, args);
+		std::string str;
+		str.resize(len);
+		_vsnprintf(&str[0], len, szFormat, args);
+
+		va_end(args);
+
+		return str;
+	}
+
+	//宽字符串转化为大写
+	inline std::wstring WStrUpper(const std::wstring& str)
+	{
+		std::wstring strRet = str;
+		std::wstring::iterator itr = strRet.begin();
+		while (itr != strRet.end())
+		{
+			*itr = toupper(*itr);
+			++itr;
+		}
+		return strRet;
+	}
+
+	//普通字符串转化为大写
+	inline std::string StrUpper(const std::string& str)
+	{
+		std::string strRet = str;
+		std::string::iterator itr = strRet.begin();
+		while (itr != strRet.end())
+		{
+			*itr = toupper(*itr);
+			++itr;
+		}
+		return strRet;
+	}
+
+	//宽字符串转化为小写
+	inline std::wstring WStrLower(const std::wstring& str)
+	{
+		std::wstring strRet = str;
+		std::wstring::iterator itr = strRet.begin();
+		while (itr != strRet.end())
+		{
+			*itr = tolower(*itr);
+			++itr;
+		}
+		return strRet;
+	}
+
+	//普通字符串转化为小写
+	inline std::string StrLower(const std::string& str)
+	{
+		std::string strRet = str;
+		std::string::iterator itr = strRet.begin();
+		while (itr != strRet.end())
+		{
+			*itr = tolower(*itr);
+			++itr;
+		}
+		return strRet;
 	}
 }
