@@ -77,6 +77,13 @@ typedef struct _TGameChildInfo
 	int iOnLineSecond;
 }TGameChildInfo, *PGameChildInfo;
 
+// 角色信息
+typedef struct _TRoleInfo
+{
+	char szRoleName[ACCOUNT_MAX_LEN];
+	int iFlag;
+}TRoleInfo, *PRoleInfo;
+
 // 帐号标记枚举类型
 typedef enum _TAccountFlag {
 	//未知0x1、绑定安全卡0x2、简单密码0x4、非安全账号0x8, 密码保护

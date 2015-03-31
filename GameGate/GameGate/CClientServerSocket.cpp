@@ -219,12 +219,74 @@ void CPlayerClientConnector::SocketRead(const char* pBuf, int iCount)
 
 bool CPlayerClientConnector::CheckGuildWords(char* pBuf, unsigned short usBufLen)
 {
-
+	bool retFlag = false;
+	if ((pBuf != nullptr) && (usBufLen >= sizeof(TPkgGuildOpRec)))
+	{
+		char* ps = nullptr;
+		char* pf = nullptr;
+		PPkgGuildOpRec pPkg = (PPkgGuildOpRec)pBuf;
+		switch (pPkg->ucOpID)
+		{
+		case GOP_CREATE_TITLE:
+			pPkg->strOpStr1[GUILD_OP_MAX_LEN - 1] = '\0';
+			ps = pPkg->strOpStr1;
+			break;
+		case GOP_RENAME_TITLE:
+		case GOP_MODIFY_NOTICE:
+			pBuf += sizeof(TPkgGuildOpRec);
+			usBufLen -= sizeof(TPkgGuildOpRec);
+			if (usBufLen > 0)
+				ps = pBuf;
+			break;
+		default:
+			break;
+		}
+		if (ps != nullptr)
+		{
+			pf = pG_ClientServerSocket->m_pDBServer->IsIncludeForbiddenWord(ps);
+			if (pf != nullptr)
+			{
+				SendMsg(CC_UTILS::FormatStr("º¬ÓÐÎ¥½û×Ö[%s],ÉèÖÃÊ§°Ü£¡", pf));
+				retFlag = true;
+			}
+		}
+	}
+	return retFlag;
 }
 
 bool CPlayerClientConnector::CheckInputWords(char* pBuf, unsigned short usBufLen)
 {
-
+	/*
+var
+  pf                : PAnsichar;
+  sMsg              : AnsiString;
+begin
+  Result := False;
+  if Assigned(Buf) and (BufLen > 0) then
+  begin
+    SetString(sMsg, Buf, BufLen);
+    sMsg := AnsiString(PAnsiChar(sMsg));
+    if Length(sMsg) < 1 then
+      Exit;
+    if IsNumber(sMsg) then
+      Exit;
+    pf := G_ServerSocket.m_DBSocket.IncludeForbiddenWord(PAnsiChar(sMsg));
+    if assigned(pf) then
+    begin
+      SendMsg(Format('º¬ÓÐÎ¥½û×Ö[%s]£¬ÊäÈë´íÎó¡£', [pf]));
+      Result := True;
+    end
+    else
+    begin
+      if IsEmptyChinese(sMsg) then
+      begin
+        SendMsg('º¬ÓÐ·Ç·¨×Ö·û£¬ÊäÈë´íÎó¡£');
+        Result := True;
+      end;
+    end;
+  end;
+end;
+	*/
 }
 
 void CPlayerClientConnector::ProcessReceiveMsg(char* pHeader, char* pBuf, int iBufLen)
@@ -234,12 +296,100 @@ void CPlayerClientConnector::ProcessReceiveMsg(char* pHeader, char* pBuf, int iB
 
 void CPlayerClientConnector::ReceiveServerMsg(char* pBuf, unsigned short usBufLen)
 {
-
+	if (usBufLen >= sizeof(TClientSocketHead))
+	{
+		PClientSocketHead pHead = (PClientSocketHead)pBuf;
+		char* pData = pBuf + sizeof(TClientSocketHead);
+		int iDataLen = pHead->usPackageLen - sizeof(TClientSocketHead);
+		if (CheckServerPkg(pHead->usIdent, pData, iDataLen))
+		{
+			m_usLastSCMCmd = pHead->usIdent;
+			if (m_EnCodeFunc != nullptr)
+				m_EnCodeFunc((CC_UTILS::PBYTE)(&pBuf[ENCODE_START_LEN]), usBufLen - ENCODE_START_LEN);
+			SendBuf(pBuf, usBufLen);
+		}
+	}
+	else
+		Log("Error BufLen = " + std::to_string(usBufLen));
 }
 
 bool CPlayerClientConnector::CheckServerPkg(unsigned short usIdent, char* pBuf, unsigned short usBufLen)
 {
+	char* pTraceBuf = nullptr;
+	//·ÇGMºÅ¸ú×Ù
+	if (m_bTrace && (!m_bGM) && (m_sRoleName != ""))
+	{
+		pTraceBuf = (char*)malloc(usBufLen + sizeof(unsigned short));
+		*((unsigned short*)pTraceBuf) = usIdent;
+		memcpy(pTraceBuf + sizeof(unsigned short), pBuf, usBufLen);
+		TracertPackage(m_sRoleName, pTraceBuf, sizeof(unsigned short)+usBufLen);
+	}
 
+	bool bRetFlag = true;
+
+	switch (usIdent)
+	{
+    case SCM_QUIT:
+		m_bNormalClose = true;
+		break;
+    case SCM_DIE:
+		if (usBufLen >= sizeof(TPkgAction))
+		{
+			if (m_iObjectID == ((PPkgAction)pBuf)->iObjID)
+				m_bDeath = true;
+		}
+		break;
+    case SCM_MAPINFO:
+		if (usBufLen >= sizeof(TPkgMapInfo))
+			m_iMapID = (PPkgMapInfo(pBuf))->iMapID;
+		break;
+    case SCM_RELIVE:
+		if ((usBufLen >= sizeof(int)) && (*((int*)pBuf) == m_iObjectID))
+			m_bDeath = false;
+		break;
+    case SCM_SKILL_LIST:
+		SCMSkillList(pBuf, usBufLen);
+		break;
+    case SCM_SKILL_ADD:
+		SCMAddSkill(pBuf, usBufLen);
+		break;
+    case SCM_LOGON:
+		m_iObjectID = *((int*)pBuf);
+		break;
+    case SCM_AUTHEN_RESULT:
+		if (usBufLen >= sizeof(TAuthenResponse))
+			m_sAccount = ((PAuthenResponse)pBuf)->szUniqueID;
+		break;
+    case SCM_ROLE_INFO:
+		if (usBufLen >= sizeof(TRoleInfo))
+		{
+			m_sRoleName = ((PRoleInfo)pBuf)->szRoleName;
+			m_bTrace = (((PRoleInfo)pBuf)->iFlag & 0x1) != 0;
+#ifdef TEST
+			m_bGM = (((PRoleInfo)pBuf)->iFlag & 0x2) != 0;
+#endif
+			if (m_bGM)
+				m_bTrace = true;
+		}
+		bRetFlag = false;
+		break;
+	case SCM_BACKSTEP:
+	case SCM_L_RUSH:
+	case SCM_R_RUSH:
+		if (*((int*)pBuf) == m_iObjectID)
+			IncStiffen(STIFF_PUSH);
+		break;
+    case SCM_JUMP:
+		if (*((int*)pBuf) == m_iObjectID)
+			IncStiffen(STIFF_JUMP);
+		break;
+    case SCM_CDTIME_UPDATE:
+		SCMUpdateCDTime(pBuf, usBufLen);
+		break;
+	default:
+		break;
+	}
+	return bRetFlag;
 }
 
 void CPlayerClientConnector::SendMsg(const std::string &sMsg, TMesssageType msgType, unsigned char ucColor, unsigned char ucBackColor)
@@ -259,7 +409,11 @@ bool CPlayerClientConnector::NeedQueueCount(unsigned char ucCDType)
 
 void CPlayerClientConnector::InitDynCode(unsigned char ucEdIdx)
 {
-
+	PEnDeRecord p = GetCode();
+	SendToClientPeer(SCM_ENCODE, _ExGetTickCount, p->pEnBuffer, p->usEnBufferLen);
+	SendToClientPeer(SCM_DECODE, _ExGetTickCount, p->pDeBuffer, p->usDeBufferLen);
+	m_EnCodeFunc = PCodingFunc(p->pEnBuffer);
+	m_DeCodeFunc = PCodingFunc(p->pDeBuffer);
 }
 
 TActionType CPlayerClientConnector::AnalyseIdent(char* pBuf, unsigned short usBufLen, unsigned char &ucCDType, unsigned int &uiCDTime)
@@ -269,7 +423,7 @@ TActionType CPlayerClientConnector::AnalyseIdent(char* pBuf, unsigned short usBu
 
 bool CPlayerClientConnector::AcceptNextAction()
 {
-
+	return _ExGetTickCount - m_uiLastActionTick >= m_usStiffTime;
 }
 
 void CPlayerClientConnector::Stiffen(TActionType aType)
@@ -284,11 +438,22 @@ void CPlayerClientConnector::IncStiffen(unsigned int uiIncValue)
 
 void CPlayerClientConnector::AddToDelayQueue(PClientActionNode pNode)
 {
+	std::lock_guard<std::mutex> guard(m_LockQueueCS);
+	pNode->pNextNode = nullptr;
+	pNode->pPrevNode = m_pLast;
+	if (pNode->pPrevNode != nullptr)
+		pNode->pPrevNode->pNextNode = pNode;
+	else
+		m_pFirst = pNode;
+	m_pLast = pNode;
 
+	if (NeedQueueCount(pNode->ucCDType))
+		++m_iQueueCount;
 }
 
 void CPlayerClientConnector::ProcDelayQueue()
 {
+
 }
 
 bool CPlayerClientConnector::IsCoolDelayPass(PClientActionNode pNode)

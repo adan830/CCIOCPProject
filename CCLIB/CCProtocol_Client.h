@@ -130,6 +130,20 @@ enum TClientWindowType{
 	cwYearCeremony                                          // Äê¶ÈÊ¢µä
 };
 
+// SCM_AUTHEN_RESULT
+typedef struct _TAuthenResponse
+{
+	int iResult;   //1 ³É¹¦ ÆäËû Ê§°Ü                                      
+	//------------------------
+	//------------------------
+	//--- int64ÔõÃ´¶¨Òå±È½ÏºÃ
+	_int64 dbLastLoginTime;
+	char szUniqueID[ACCOUNT_MAX_LEN];
+	char szLastLoginIP[IP_ADDRESS_MAX_LEN+1];
+	char szMsg[51];
+	char szLoginIP[IP_ADDRESS_MAX_LEN + 1];
+}TAuthenResponse, *PAuthenResponse;
+
 // CM_SELECT_SERVER
 typedef struct _TCMSelectServer
 {
@@ -172,6 +186,24 @@ typedef struct _TPkgActGood
 	unsigned short usParam;			//Ö´ĞĞ²ÎÊı£¬ÈôÊÇ¼¼ÄÜÔòÎª¼¼ÄÜID
 }TPkgActGood, *PPkgActGood;
 
+// CM_WALK, CM_RUN, CM_TURN¡¢SCM_WALK, SCM_RUN¡¢ SCM_TURN¡¢SCM_RUSH¡¢SCM_BACKSTEP
+typedef struct _TPkgAction
+{
+	int iObjID;
+	unsigned short usX;
+	unsigned short usY;
+	unsigned char ucDir;
+}TPkgAction, *PPkgAction;
+
+// SCM_MAPINFO
+typedef struct _TPkgMapInfo
+{
+	int iMapID;
+	int iFileID;
+	int iMapObjID;    //³¡¾°¶ÔÏóID
+	char szMapDesc[MAP_NAME_MAX_LEN];
+}TPkgMapInfo, *PPkgMapInfo;
+
 // SCM_CDTIME_UPDATE
 typedef struct _TPkgCDTimeChg
 {
@@ -188,6 +220,16 @@ enum TMesssageType{
 };
 //bMsgType=msLeftSideÊ± nObjID±íÊ¾ÀàĞÍ£¬¾ßÌåÀàĞÍ¼ûÕ½¶·ĞÅÏ¢·ÖÀà¶¨Òå
 //bMsgType=msLoudSpeakerÊ± nObjID±íÊ¾ÀàĞÍ£¬0:ÆÕÍ¨À®°È 1£º¶¥ĞĞÏÔÊ¾À®°È
+
+
+//ĞĞ»á²Ù×÷Í¨ÓÃ½á¹¹£¬¶ÔÓ¦×Ö¶ÎÒâÒåÓëOpIDÎª×ÓĞ­ÒéºÅ¹Ò¹³
+typedef struct _TPkgGuildOpRec
+{
+	char strOpStr1[GUILD_OP_MAX_LEN];
+	unsigned char ucOpID;
+	int iParam;
+}TPkgGuildOpRec, *PPkgGuildOpRec;
+
 
 #pragma pack()
 
@@ -229,17 +271,46 @@ const int CM_PWDPROTECT_CHG = 4120;                          //¶ş¼¶ÃÜÂë±£»¤×´Ì¬Ç
 
 //·şÎñÆ÷¶Ë·¢¸øÓÎÏ·¿Í»§¶ËµÄÏûÏ¢
 
+const int SCM_AUTHEN_RESULT = 13;                           // ÈÏÖ¤
 const int SCM_OPEN_WINDOW = 14;                             // ¿ªÆô´°¿Ú
 const int SCM_CLOSE_WINDOW = 15;                            // ·şÎñ¶ËÇëÇó¹Ø±Õ´°¿Ú
 const int SCM_RESSERVER_INFO = 18;                          // ×ÊÔ´·şÎñÆ÷µÄIP
+const int SCM_ROLE_INFO = 19;                               // ½ÇÉ«ĞÅÏ¢
+const int SCM_QUIT = 20;                                    // ÍË³ö
 
-const int SCM_ACTGOOD = 209;                                //Ö´ĞĞ³É¹¦
-const int SCM_ACTFAIL = 210;                                //Ö´ĞĞÊ§°Ü
 
-const int SCM_CDTIME_UPDATE = 312;                          //CD¸üĞÂ
+const int SCM_MAPINFO = 100;                                // µØÍ¼ĞÅÏ¢
+const int SCM_SKILL_LIST = 102;                             // ¼¼ÄÜÁĞ±í
+const int SCM_SKILL_ADD = 103;                              // ¸üĞÂ¼¼ÄÜĞÅÏ¢£¬ÈôÊÇ²»´æÔÚÔòÌí¼Ó
 
-const int SCM_SELECT_SERVER = 5011;                         // Ñ¡Çø
-const int SCM_SYSTEM_MESSAGE = 5017;                        // ÏûÏ¢
+
+const int SCM_ACTGOOD = 209;                                // Ö´ĞĞ³É¹¦
+const int SCM_ACTFAIL = 210;                                // Ö´ĞĞÊ§°Ü
+const int SCM_DIE = 214;                                    // ËÀÍö  
+const int SCM_BACKSTEP = 216;                               // ºóÍË
+const int SCM_JUMP = 220;                                   //Ìø
+const int SCM_L_RUSH = 221;                                 //Ç°³å(×ó½Å)
+const int SCM_R_RUSH = 222;                                 //Ç°³å(ÓÒ½Å)
+
+
+const int SCM_CDTIME_UPDATE = 312;                          // CD¸üĞÂ
+
+const int SCM_RELIVE = 318;                                 // ¸´»î
+
+
+
+const int SCM_ENCODE = 5008;                                 // ±àÂë
+const int SCM_DECODE = 5009;                                 // ½âÂë
+const int SCM_SELECT_AREA = 5011;                            // Ñ¡Çø
+const int SCM_SYSTEM_MESSAGE = 5017;                         // ÏûÏ¢
+const int SCM_CAN_ENTER = 5022;                              // ¿ÉÒÔ½øÈëÓÎÏ·
+const int SCM_GPS_CHECK_REQUEST = 6100;                      // ·´Íâ¹Ò¼ì²é
+const int SCM_LOGON = 6101;                                  // Ö÷½Ç½øÈëÓÎÏ·
+const int SCM_APPEAR = 6202;                                 // NPC³öÏÖ
+const int SCM_HUMAN_APPEAR = 6203;                           // ½ÇÉ«³öÏÖ
+const int SCM_ITEM_APPEAR = 6204;                            // µØÍ¼µôÎï³öÏÖ
+const int SCM_HP_CHANGE = 6300;                              // ÆäËûÄ¿±êµÄ½¡¿µÖµ¸Ä±ä
+
 
 //ÆäËü³£Á¿¶¨Òå
 

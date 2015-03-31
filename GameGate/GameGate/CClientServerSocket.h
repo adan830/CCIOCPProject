@@ -88,6 +88,7 @@ private:
 	PClientActionNode m_pFirst;
 	PClientActionNode m_pLast;
 	int m_iQueueCount;
+	std::mutex m_LockQueueCS;
 	unsigned int m_LastCDTicks[MAX_CD_ID];
 	CC_UTILS::PCodingFunc m_EnCodeFunc; //加密函数
 	CC_UTILS::PCodingFunc m_DeCodeFunc; //解密函数	
