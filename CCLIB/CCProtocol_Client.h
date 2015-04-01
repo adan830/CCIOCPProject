@@ -316,6 +316,19 @@ const int SCM_HP_CHANGE = 6300;                              // 其他目标的健康值
 
 const int ENCODE_START_LEN = 6;
 
+//共享CD定义
+const int CD_DENY = 0;										 //禁止
+const int CD_NOT_DELAY = 1;                                  //普通(即无CD)
+const int CD_ATTACK = 2;									 //物理攻击公共CD ID
+const int CD_MAGIC = 3;										 //魔法攻击公共CD ID
+const int CD_MOVE = 4;										 //位移公共CD ID
+const int CD_SAY = 5;										 //喊话CD
+const int CD_CLICK_NPC = 6;                                  //点击NPC
+const int CD_USEITEM = 7;                                    //使用物品
+const int CD_RELATION_OP = 8;                                //关系操作
+const int CD_RUSH = 9;										 //前冲CD
+const int CD_EMAIL = 250;									 //邮件
+
 
 
 #endif //__CC_PROTOCOL_CLIENT_H__

@@ -404,7 +404,20 @@ void CPlayerClientConnector::OpenWindow(TClientWindowType wtype, int iParam, con
 
 bool CPlayerClientConnector::NeedQueueCount(unsigned char ucCDType)
 {
-
+	bool bRetFlag = true;
+	switch (ucCDType)
+	{
+	case CD_NOT_DELAY:
+	case CD_SAY:
+	case CD_CLICK_NPC:
+	case CD_USEITEM:
+	case CD_RELATION_OP:
+		bRetFlag = false;
+		break;
+	default:
+		break;
+	}
+	return bRetFlag;
 }
 
 void CPlayerClientConnector::InitDynCode(unsigned char ucEdIdx)
@@ -453,7 +466,39 @@ void CPlayerClientConnector::AddToDelayQueue(PClientActionNode pNode)
 
 void CPlayerClientConnector::ProcDelayQueue()
 {
+	std::lock_guard<std::mutex> guard(m_LockQueueCS);
+	if (m_iQueueCount > MAX_DELAY_PACKAGE)
+	{
+		Log(m_sRoleName + " 被强行断开", lmtMessage);
+		m_bNormalClose = true;
+		Close();
+		return;
+	}
 
+	PClientActionNode pNode = m_pFirst;
+	PClientActionNode pNext = nullptr;
+	while (pNode != nullptr)
+	{
+		pNext = pNode->pNextNode;
+		if (IsCoolDelayPass(pNode))
+		{
+			if (pNode->pPrevNode != nullptr)
+				pNode->pPrevNode->pNextNode = pNode->pNextNode;
+			else
+				m_pFirst = pNode->pNextNode;
+			if (pNode->pNextNode != nullptr)
+				pNode->pNextNode->pPrevNode = pNode->pPrevNode;
+			else
+				m_pLast = pNode->pPrevNode;
+
+			if (NeedQueueCount(pNode->ucCDType))
+				--m_iQueueCount;
+
+			free(pNode->szBuf);
+			delete(pNode);
+		}
+		pNode = pNext;
+	}
 }
 
 bool CPlayerClientConnector::IsCoolDelayPass(PClientActionNode pNode)
