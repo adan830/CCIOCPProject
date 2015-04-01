@@ -399,7 +399,38 @@ void CPlayerClientConnector::SendMsg(const std::string &sMsg, TMesssageType msgT
 
 void CPlayerClientConnector::OpenWindow(TClientWindowType wtype, int iParam, const std::string &sMsg)
 {
-
+	TClientWindowRec winInfo;
+	if ("" == sMsg)
+	{
+		winInfo.WinType = wtype;
+		winInfo.Param = iParam;
+		SendToClientPeer(SCM_OPEN_WINDOW, 0, &winInfo, sizeof(TClientWindowRec));
+	}
+	else
+	{
+		int iMsgLen = sMsg.length();
+		if (iMsgLen > 0)
+			++iMsgLen;
+		int iBufLen = sizeof(TClientWindowRec)+iMsgLen;
+		char* pBuf = (char*)malloc(iBufLen);
+		try
+		{
+			((PClientWindowRec)pBuf)->WinType = wtype;
+			((PClientWindowRec)pBuf)->Param = iParam;
+			((PClientWindowRec)pBuf)->TransID = 0;
+			if (iMsgLen > 0)
+			{
+				memcpy(pBuf+sizeof(TClientWindowRec), sMsg.c_str(), iMsgLen-1);
+				pBuf[iBufLen - 1] = '\0';
+			}
+			SendToClientPeer(SCM_OPEN_WINDOW, 0, pBuf, iBufLen);
+			free(pBuf);
+		}
+		catch (...)
+		{
+			free(pBuf);
+		}
+	}
 }
 
 bool CPlayerClientConnector::NeedQueueCount(unsigned char ucCDType)
@@ -502,16 +533,24 @@ void CPlayerClientConnector::ProcDelayQueue()
 }
 
 bool CPlayerClientConnector::IsCoolDelayPass(PClientActionNode pNode)
-{}
+{
+
+}
 
 void CPlayerClientConnector::SCMSkillList(char* pBuf, unsigned short usBufLen)
-{}
+{
+
+}
 
 void CPlayerClientConnector::SCMAddSkill(char* pBuf, unsigned short usBufLen)
-{}
+{
+
+}
 
 void CPlayerClientConnector::SCMUpdateCDTime(char* pBuf, unsigned short usBufLen)
-{}
+{
+
+}
 
 /************************End Of CClientConnector******************************************/
 
