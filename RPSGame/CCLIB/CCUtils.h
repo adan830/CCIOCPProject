@@ -100,12 +100,6 @@ namespace CC_UTILS{
 	void Decode6BitBuf(char* pSource, char* pBuf, int iSrcLen, int iBufLen);
 	void Encode6BitBuf(char* pSource, char* pDest, int iSrcLen, int iDestLen);
 
-	//格式化字符串,返回unicode
-	std::wstring FormatWStr(LPCWSTR szFormat, ...);
-
-	//格式化字符串,返回普通字符串
-	std::string FormatStr(LPCSTR szFormat, ...);
-
 	//宽字符串转化为大写
 	std::wstring WStrUpper(const std::wstring& str);
 

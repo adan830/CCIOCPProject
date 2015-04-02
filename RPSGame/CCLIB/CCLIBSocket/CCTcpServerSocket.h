@@ -9,7 +9,7 @@
 #include <list>
 #include "CCUtils.h"
 #include "CCTcpSocketCommon.h"
-#include "CCProtocol_Server.h"
+#include "CCGameGlobal.h"
 
 //用于管理延时释放客户端的链表结构
 typedef struct _TDelayFreeNode

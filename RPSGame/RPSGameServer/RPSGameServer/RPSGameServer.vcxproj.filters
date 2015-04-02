@@ -15,24 +15,42 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\CCLIB\CCLIBSocket\CCTcpServerSocket.h">
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\CCLIB\CCLIBSocket\CCTcpSocketCommon.h">
+    <ClInclude Include="targetver.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\CCLIB\CCUtils.h">
+    <ClInclude Include="CClientServerSocket.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CMainThread.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\CCLIB\CCLIBSocket\CCTcpSocketCommon.cpp">
+    <ClCompile Include="stdafx.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="RPSGameServer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CClientServerSocket.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CMainThread.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\CCLIB\CCLIBSocket\CCTcpClientSocket.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\..\CCLIB\CCLIBSocket\CCTcpServerSocket.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="GameServerMain.cpp">
+    <ClCompile Include="..\..\CCLIB\CCLIBSocket\CCTcpSocketCommon.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\..\CCLIB\CCUtils.cpp">

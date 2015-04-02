@@ -8,7 +8,7 @@
 #include <mutex>
 #include "CCUtils.h"
 #include "CCTcpSocketCommon.h"
-#include "CCProtocol_Server.h"
+#include "CCGameGlobal.h"
 
 /**
 *  
