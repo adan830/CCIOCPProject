@@ -5,7 +5,6 @@
 #include "CCTcpClientSocket.h"
 #pragma comment(lib, "ws2_32.lib")
 
-const int NETWORK_EVENT_RECEIVE_BUFFER_SIZE = 16 * 1024;					// 网络事件模型下的接收buffer大小
 const int MAX_CACHE_SIZE    = 16 * 1024;							        // 每个节点的发送区大小
 
 /************************Start Of CIOCPClientSocketManager******************************************/
@@ -34,10 +33,12 @@ int CIOCPClientSocketManager :: SendBuf(const char* pBuf, int iCount)
 	unsigned int sendLen = 0;
 	if ((iCount > 0) && (m_TotalBufferlen < MAX_CLIENT_SEND_BUFFER_SIZE))
 	{
+		{
 		std::lock_guard<std::mutex> guard(m_LockCS); 
 		sendLen = iCount;
 		m_TotalBufferlen += iCount;
 		m_SendList.AddBufferToList(pBuf, iCount);
+		}
 		if (m_BoConnected && (!m_Sending))
 			PrepareSend(0, 0);
 	}
@@ -102,7 +103,6 @@ bool CIOCPClientSocketManager :: DoInitialize()
 				Addr.sin_family = PF_INET;
 				Addr.sin_port = htons(INADDR_ANY);           
 				Addr.sin_addr.s_addr = inet_addr(m_LocalAddress.c_str()); 
-				//注释：std命名空间下面也有 bind函数，具体的使用再研究？？？？
 				retflag = ((bind(m_CSocket, (sockaddr *)&Addr, sizeof(Addr)) == 0));
 			}
 		}
@@ -349,14 +349,6 @@ void CIOCPClientSocketManager :: PrepareSend(int iUntreated, int iTransfered)
 			memset(&m_SendBlock.Overlapped, 0, sizeof(m_SendBlock.Overlapped));
 			if (WSASend(m_CSocket, &m_SendBlock.wsaBuffer, 1, (LPDWORD)&iTransfered, 0, &m_SendBlock.Overlapped, nullptr) == SOCKET_ERROR)
 			{
-				/*
-				//----------------------------------------
-				//----------------------------------------
-				//----------------------------------------
-				//seSend状态下，如果是ERROR_IO_PENDING报错，表示 等待I/O，稍后就会返回 
-				这时m_Sending状态应该为true
-				//但之前这里出现错误，回头还需要再调试！！！！！！！！！！！！！！！！！
-				*/
 				if (DoError(seSend))
 					return;
 			}

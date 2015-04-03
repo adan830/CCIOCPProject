@@ -49,7 +49,7 @@ void CGameClientSocket::SendToServerPeer(unsigned short usIdent, int iParam, voi
 		}
 		catch (...)
 		{
-			SendDebugString("GetLastError " + std::to_string(GetLastError()));
+			SendDebugString("GetLastError " + std::to_string(GetLastError()) + " usIdent :" + std::to_string(usIdent));
 			free(pData);
 		}
 	}
@@ -131,8 +131,10 @@ void CGameClientSocket::ProcessPlayAckMsg(void* pBuf, int iBufLen)
 	if (iBufLen >= sizeof(TGamePlayAckPkg))
 	{
 		PGamePlayerAckPkg p = (PGamePlayerAckPkg)pBuf;
-		Log("Round " + std::to_string(p->iRoundCount) + " : client [" + G_RPS_STRING[p->iClientChoose] + "] -> server [" + G_RPS_STRING[p->iServerChoose] + "] " + G_RPS_CONCLUSION[p->iConclusion]);
-		Log("Statistics : client win[" + std::to_string(p->iTotalWins) + "] loose[" + std::to_string(p->iTotalLooses) + "] tie[" + std::to_string(p->iTotalTies) + "]");
+		Log("Round " + std::to_string(p->iRoundCount) + " : client [" + G_RPS_STRING[p->iClientChoose] + 
+			"] -> server [" + G_RPS_STRING[p->iServerChoose] + "] " + G_RPS_CONCLUSION[p->iConclusion]);
+		Log("Statistics : client win[" + std::to_string(p->iTotalWins) + "] loose[" + 
+			std::to_string(p->iTotalLooses) + "] tie[" + std::to_string(p->iTotalTies) + "]");
 	}
 }
 

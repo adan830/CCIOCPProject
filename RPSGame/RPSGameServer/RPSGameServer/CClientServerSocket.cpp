@@ -7,13 +7,12 @@
 
 using namespace CC_UTILS;
 
-const int MAX_CONNECT_TIMEOUT = 30 * 1000;                // 最长的连接时间
 const int DELAY_DISCONNECT_TIME = 3000;                   // 延时断开时间
 
 CClientServerSocket* pG_GameSocket;
 
 /************************Start Of CRPSClient********************************************************/
-CRPSClient::CRPSClient() :m_uiLastConnectTick(GetTickCount()), m_uiForceCloseTick(0), m_iCurrentRound(0), m_iTotalWins(0), m_iTotalLosses(0), m_iTotalTies(0)
+CRPSClient::CRPSClient() : m_uiForceCloseTick(0), m_iCurrentRound(0), m_iTotalWins(0), m_iTotalLosses(0), m_iTotalTies(0)
 {
 	SendDebugString("CRPSClient Create");
 }
@@ -31,14 +30,10 @@ void CRPSClient::ForceClose()
 void CRPSClient::Execute(unsigned int uiTick)
 {
 	CClientConnector::Execute(uiTick);
-	if (((uiTick > m_uiLastConnectTick) && (uiTick - m_uiLastConnectTick > MAX_CONNECT_TIMEOUT)) ||
-		((m_uiForceCloseTick > 0) && (uiTick > m_uiForceCloseTick) && (uiTick - m_uiForceCloseTick > DELAY_DISCONNECT_TIME)))
+	if ((m_uiForceCloseTick > 0) && (uiTick > m_uiForceCloseTick) && (uiTick - m_uiForceCloseTick > DELAY_DISCONNECT_TIME))
 	{
 		Close();
 	}
-
-	if (uiTick < m_uiLastConnectTick)
-		m_uiLastConnectTick = uiTick;
 }
 
 void CRPSClient::ProcessReceiveMsg(char* pHeader, char* pData, int iDataLen)
@@ -62,7 +57,6 @@ void CRPSClient::ProcessReceiveMsg(char* pHeader, char* pData, int iDataLen)
 
 void CRPSClient::SocketRead(const char* pBuf, int iCount)
 {
-	Log("reading debug info", lmtError);
 	if (m_uiForceCloseTick > 0)
 		return;
 	int iErrorCode = ParseSocketReadData(1, pBuf, iCount);

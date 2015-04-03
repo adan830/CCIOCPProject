@@ -331,10 +331,12 @@ int CIOCPClientSocketManager :: SendBuf(const char* pBuf, int iCount)
 	unsigned int sendLen = 0;
 	if ((iCount > 0) && (m_TotalBufferlen < MAX_CLIENT_SEND_BUFFER_SIZE))
 	{
-		std::lock_guard<std::mutex> guard(m_LockCS); 
-		sendLen = iCount;
-		m_TotalBufferlen += iCount;
-		m_SendList.AddBufferToList(pBuf, iCount);
+		{
+			std::lock_guard<std::mutex> guard(m_LockCS); 
+			sendLen = iCount;
+			m_TotalBufferlen += iCount;
+			m_SendList.AddBufferToList(pBuf, iCount);
+		}
 		if (m_BoConnected && (!m_Sending))
 			PrepareSend(0, 0);
 	}

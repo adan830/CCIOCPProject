@@ -78,7 +78,7 @@ void CMainThread::DoExecute()
 		}
 		catch (...)
 		{
-
+			Log("CMainThread::DoExecute Exception!", lmtException);
 		}
 		WaitForSingleObject(m_Event, 10);
 	}

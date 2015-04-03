@@ -35,7 +35,6 @@ void CSubIOCPWorker :: DoExecute()
 			ULONG_PTR key = NULL;
 			PBlock pRBlock = nullptr;
 			int Ret = GetQueuedCompletionStatus(*m_pHIOCP, (LPDWORD)&uiBytesTansfered, &key, (LPOVERLAPPED*)&pRBlock, INFINITE);
-			//PostQueuedCompletionStatus发送的关闭消息
 			if (SHUTDOWN_FLAG == (unsigned int)(pRBlock))
 			{
 				SendDebugString(m_sThreadName + ":receive SHUTDOWN_FLAG");
@@ -44,22 +43,12 @@ void CSubIOCPWorker :: DoExecute()
 
 			if (NULL != key)
 			{
-				/*
-				MSDN:
-				BOOL GetQueuedCompletionStatus(HANDLE CompletionPort, LPDWORD lpNumberOfBytes, PULONG_PTR lpCompletionKey, LPOVERLAPPED *lpOverlapped, DWORD dwMilliseconds);
-				1.如果函数从完成端口取出一个成功I/O操作的完成包，返回值为非0。函数在指向lpNumberOfBytesTransferred, lpCompletionKey, and lpOverlapped的参数中存储相关信息。
-				2.如果 *lpOverlapped为空并且函数没有从完成端口取出完成包，返回值则为0。函数则不会在lpNumberOfBytes and lpCompletionKey所指向的参数中存储信息。
-				3.如果 *lpOverlapped不为空并且函数从完成端口出列一个失败I/O操作的完成包，返回值为0。函数在指向lpNumberOfBytesTransferred, lpCompletionKey, and lpOverlapped的参数指针中存储相关信息。
-				*/
 				if ((0 == Ret) || (uiBytesTansfered == 0))
 				{
-					//因为key!=NULL  所以不会是第二个情况
-					//这里主要处理第三种情况，关闭socket
 					if (nullptr != m_OnSocketClose)
 						m_OnSocketClose((void*)key);
 					continue;
 				}
-				//处理接收和发送
 				CClientConnector* client = (CClientConnector*)key;
 				switch (pRBlock->Event)
 				{
@@ -125,7 +114,6 @@ int CALLBACK ConditionFunc(
 	int iPort = ntohs(((PSOCKADDR_IN)(lpCallerId->buf))->sin_port);
 	int iIPAddress = inet_addr(sIPAddress.c_str());
 	CIOCPServerSocketManager* pServer = (CIOCPServerSocketManager*)dwCallbackData;
-	//这里只判断远端连接的IP地址是否合法
 	if ((pServer != nullptr) && (pServer->DoCheckConnect(sIPAddress)))
 		return CF_ACCEPT;
 	else
@@ -139,7 +127,6 @@ m_OnSocketAccept(nullptr), m_Parent(parent), m_hIOCP(0), m_Socket(INVALID_SOCKET
 
 CMainIOCPWorker :: ~CMainIOCPWorker()
 {
-	//先关闭端口，才能让保证WSAAccept返回
 	if (m_Socket != INVALID_SOCKET)
 	{
 		closesocket(m_Socket);
@@ -151,8 +138,6 @@ CMainIOCPWorker :: ~CMainIOCPWorker()
 void CMainIOCPWorker :: DoExecute()
 {
 	SetThreadLocale(0X804);
-	//listen的第二个参数是等待连接队列的最大长度，默认值一般是5，在windows下最大可以设置到200（或者更高，根据不同版本而定）
-	//作为服务器端，一个accept的能力有限，一次只能处理一个连接请求，后面来的没被立即处理的连接也被系统压到一个稍后处理队列里了，后面投递的accept请求都会得到很快返回
 	int iError = 0;
 	if (listen(m_Socket, 5) != 0)
 	{
@@ -164,7 +149,6 @@ void CMainIOCPWorker :: DoExecute()
 	}
 	else
 	{
-		//监听端口开启后，创建子工作对象---内部线程
 		MakeWorkers();
 	}
 
@@ -182,7 +166,6 @@ void CMainIOCPWorker :: DoExecute()
 			SOCKADDR_IN ToAddress; 			
 			memset(&ToAddress, 0, sizeof(ToAddress));
 			int iAddressLen = sizeof(ToAddress);
-			//有条件地接受一个连接基于状态函数的返回值,选择创建或加入一个套接字组
 			stClientSocket = WSAAccept(m_Socket, (sockaddr*)&ToAddress, &iAddressLen, &ConditionFunc, (unsigned int)m_Parent);
 			if (IsTerminated())
 				break;
@@ -241,10 +224,6 @@ void CMainIOCPWorker :: Close()
 
 	if (m_SubWorkers != nullptr)
 	{
-		//注：这里在关闭子线程的时候要先统一ShutDown，后释放CSubIOCPWorker对象指针
-		//在释放CSubIOCPWorker的时候是判断线程执行完毕或者等待m_Event信号量
-		//如果ShutDown的同时释放，则可能导致没有发送足够的SHUTDOWN_FLAG到完成端口，
-		//从而导致子线程还处于休眠状态
 		for (int i=m_iSubThreadCount-1; i>=0; i--)
 		{
 			if (m_SubWorkers[i] != nullptr)
@@ -413,7 +392,6 @@ void CClientConnector :: PrepareSend(int iUntreated, int iTransfered)
 			if (WSASend(m_Socket, &m_SendBlock.wsaBuffer, 1, (LPDWORD)&iTransfered, 0, &m_SendBlock.Overlapped, nullptr) == SOCKET_ERROR)
 			{
 				int iErrorCode = WSAGetLastError();
-				//ERROR_IO_PENDING -- 重叠I/O返回的标志啊,表示现在等待I/O，稍后就会返回
 				if (iErrorCode != ERROR_IO_PENDING)
 				{
 					if (nullptr != m_OnSocketError)
@@ -508,14 +486,8 @@ void CClientConnector :: DoActive(unsigned int uiTick)
 	if ((uiTick - m_uiLastSendTick >= 40) || (m_iTotalBufferLen >= MAX_IOCP_BUFFER_SIZE))
 	{
 		m_uiLastSendTick = uiTick;
-		{
-			//------------------------------------------
-			//------------------------------------------
-			//std::lock_guard<std::mutex> guard(m_LockCS);
-			//------------------引发异常-------------------
-			if (!m_bSending)
-				PrepareSend(0, 0);
-		}
+		if (!m_bSending)
+			PrepareSend(0, 0);
 	}
 	Execute(uiTick);
 }
@@ -537,7 +509,6 @@ bool CClientConnector :: IsBlock(int iMaxBlockSize)
 		}
 		else if (GetTickCount() < m_uiBufferFullTick + MAX_BLOCK_CONTINUE_TIME)
 		{
-			//对于网络较差的远端，在大流量数据冲击的时候，给予一定的缓冲时间
 			retflag = false;
 		}
 	}
@@ -613,7 +584,6 @@ void CIOCPServerSocketManager :: Open()
 {
 	if (nullptr == m_MainWorker)
 	{
-		//它的InitialWorkThread是在它的Start方法中自己调用的
 		CMainIOCPWorker *pWorker;
 		pWorker = new CMainIOCPWorker(this);
 		pWorker->m_OnSocketError = std::bind(&CIOCPServerSocketManager::DoAcceptError, this, std::placeholders::_1, std::placeholders::_2);
@@ -641,7 +611,7 @@ void CIOCPServerSocketManager :: Close()
 		return;
 
 	m_MainWorker = nullptr;	
-	TOnCreateClient funOldCreateClient = m_OnCreateClient;		//关闭过程中卸载掉m_OnCreateClient，防止触发DoSocketAccept后插入操作
+	TOnCreateClient funOldCreateClient = m_OnCreateClient;		
 	m_OnCreateClient = nullptr;
 	{
 		std::lock_guard<std::mutex> guard(m_LockCS);
@@ -725,7 +695,7 @@ void CIOCPServerSocketManager :: DoExecute()
 		}
 		WaitForSingleObject(m_Event, 1);
 	}
-	//主执行体结束后关闭掉相应资源
+
 	Close();
 }
 

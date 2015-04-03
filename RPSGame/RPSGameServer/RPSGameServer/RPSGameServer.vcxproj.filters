@@ -44,9 +44,6 @@
     <ClCompile Include="CMainThread.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\CCLIB\CCLIBSocket\CCTcpClientSocket.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\CCLIB\CCLIBSocket\CCTcpServerSocket.cpp">
       <Filter>源文件</Filter>
     </ClCompile>

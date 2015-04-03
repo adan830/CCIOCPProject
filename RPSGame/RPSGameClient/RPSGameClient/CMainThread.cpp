@@ -36,7 +36,7 @@ void CMainThread::DoExecute()
 		try
 		{
 			uiTick = GetTickCount();
-			if (uiTick - m_uiSlowRunTick >= 10000)
+			if (uiTick - m_uiSlowRunTick >= 1000)
 			{
 				m_uiSlowRunTick = uiTick;
 				pG_ClientSocket->DoHeartBeat();

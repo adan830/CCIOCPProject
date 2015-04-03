@@ -27,7 +27,6 @@ private:
 	void CMPlayReq(const int iClientChoose);
 	int CheckGamePlayConclusion(const int iClientChoose, const int iServerChoose);
 private:
-	unsigned int m_uiLastConnectTick;
 	unsigned int m_uiForceCloseTick;
 	int m_iCurrentRound;
 	int m_iTotalWins;

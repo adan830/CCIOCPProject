@@ -14,6 +14,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		{
 			Sleep(1000);
 		}
+		delete pG_MainThread;
 	}
 	else
 	{
