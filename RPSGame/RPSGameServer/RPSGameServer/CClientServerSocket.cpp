@@ -124,6 +124,7 @@ CClientServerSocket::~CClientServerSocket()
 
 void CClientServerSocket::LoadConfig(CWgtIniFile* pIniFileParser)
 {
+	/*
 	if (pIniFileParser != nullptr)
 	{
 		int iPort = pIniFileParser->getInteger("Setup", "GatePort", DEFAULT_GameGate_PORT);
@@ -135,6 +136,14 @@ void CClientServerSocket::LoadConfig(CWgtIniFile* pIniFileParser)
 			Log("Server Listening Port = " + std::to_string(iPort), lmtMessage);
 			Open();
 		}
+	}
+	*/
+	if (!IsActive())
+	{
+		m_sLocalIP = "0.0.0.0";
+		m_iListenPort = DEFAULT_GameGate_PORT;
+		Log("Server Listening Port = " + std::to_string(DEFAULT_GameGate_PORT), lmtMessage);
+		Open();
 	}
 }
 
