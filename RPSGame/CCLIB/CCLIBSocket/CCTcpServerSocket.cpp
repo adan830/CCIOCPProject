@@ -776,7 +776,7 @@ void CIOCPServerSocketManager :: DoSocketClose(void* Sender)
 			m_bDelayFree = true;
 
 			if (nullptr != m_OnDisConnect)
-				m_OnDisConnect(this);
+				m_OnDisConnect(Sender);
 			((CClientConnector*)Sender)->Close();
 			((CClientConnector*)Sender)->Clear();
 			m_ActiveConnects.erase(vIter);

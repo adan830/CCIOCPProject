@@ -24,11 +24,15 @@ protected:
 	virtual void SocketRead(const char* pBuf, int iCount);
 	virtual void ProcessReceiveMsg(char* pHeader, char* pData, int iDataLen);
 private:
-	void CMSelectServer(char* pBuf, unsigned short usBufLen);
-	void CMCloseWindow(char* pBuf, unsigned short usBufLen);	
+	void CMPlayReq(const int iClientChoose);
+	int CheckGamePlayConclusion(const int iClientChoose, const int iServerChoose);
 private:
 	unsigned int m_uiLastConnectTick;
 	unsigned int m_uiForceCloseTick;
+	int m_iCurrentRound;
+	int m_iTotalWins;
+	int m_iTotalLosses;
+	int m_iTotalTies;
 };
 
 /**

@@ -6,6 +6,19 @@
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+	if (DoInitialWinSocket())
+	{
+		pG_MainThread = new CMainThread();
+		pG_MainThread->InitialWorkThread();
+		while (true)
+		{
+			Sleep(1000);
+		}
+	}
+	else
+	{
+		std::cout << "DoInitialWinSocket Fail!" << std::endl;
+	}
 	return 0;
 }
 

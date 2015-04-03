@@ -16,6 +16,7 @@ CMainThread* pG_MainThread;
 CMainThread::CMainThread() : m_uiSlowRunTick(0), m_uiCheckConfigTick(0), m_iConfigFileAge(0)
 {
 	pG_GameSocket = new CClientServerSocket();
+	srand(time(0));
 }
 
 CMainThread::~CMainThread()
@@ -29,11 +30,9 @@ void CMainThread::CheckConfig(const unsigned int uiTick)
 	if ((0 == m_uiCheckConfigTick) || (uiTick - m_uiCheckConfigTick >= 30 * 1000))
 	{
 		m_uiCheckConfigTick = uiTick;
-		/***************************************************
-		 * just simple for running test without config file
-		 * I comment the config file loading code
-		***************************************************/
-		/*
+		/*********************************************
+		 for running without config, I just comment below
+		 *********************************************
 		std::string sConfigFileName("./config.ini");
 		int iAge = GetFileAge(sConfigFileName);
 		if ((iAge != -1) && (iAge != m_iConfigFileAge))
@@ -54,7 +53,7 @@ void CMainThread::CheckConfig(const unsigned int uiTick)
 				delete pIniFileParser;
 			}
 		}
-		*/
+		*********************************************/
 		pG_GameSocket->LoadConfig(nullptr);
 	}
 }

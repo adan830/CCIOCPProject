@@ -455,38 +455,6 @@ namespace CC_UTILS{
 		pDest[iDestPos] = '\0';
 	}
 
-	//格式化字符串,返回unicode
-	std::wstring FormatWStr(LPCWSTR szFormat, ...)
-	{
-		va_list args;
-		va_start(args, szFormat);
-
-		int len = _vscwprintf(szFormat, args);
-		std::wstring str;
-		str.resize(len);
-		_vsnwprintf(&str[0], len, szFormat, args);
-
-		va_end(args);
-
-		return str;
-	}
-
-	//格式化字符串,返回普通字符串
-	std::string FormatStr(LPCSTR szFormat, ...)
-	{
-		va_list args;
-		va_start(args, szFormat);
-
-		int len = _vscprintf(szFormat, args);
-		std::string str;
-		str.resize(len);
-		_vsnprintf(&str[0], len, szFormat, args);
-
-		va_end(args);
-
-		return str;
-	}
-
 	//宽字符串转化为大写
 	std::wstring WStrUpper(const std::wstring& str)
 	{
