@@ -53,7 +53,7 @@ protected:
 	void UpdateCDTime(unsigned char bCDType, unsigned int uiCDTime);		 //没用上更新CD
 	virtual void Execute(unsigned int uiTick);
 	virtual void SocketRead(const char* pBuf, int iCount);
-	virtual void ProcessReceiveMsg(char* pHeader, char* pBuf, int iBufLen);	
+	virtual void ProcessReceiveMsg(char* pHeader, char* pData, int iDataLen);
 private:
 	bool CheckGuildWords(char* pBuf, unsigned short usBufLen);
 	bool CheckInputWords(char* pBuf, unsigned short usBufLen);
@@ -99,7 +99,7 @@ private:
 	unsigned short m_usHitSpeed;
 	unsigned int m_uiLastActionTick;
 	unsigned short m_usStiffTime;
-	std::list<PSkillCoolDelay> m_SkillCDTable;
+	std::vector<PSkillCoolDelay> m_SkillCDTable;
 private:	
 	/*
 	//GPS相关

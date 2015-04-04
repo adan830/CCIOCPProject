@@ -8,6 +8,7 @@
 #include <iostream>
 #include <fstream>
 #include "JsonObjectBase.h"
+#include <mutex>
 
 using namespace std;
 
@@ -63,6 +64,8 @@ int _tmain(int argc, _TCHAR* argv[])
 		std::cout << test2.saveData.bFlag1 << " " << test2.saveData.bFlag2 << " " << test2.saveData.sName1 << " " << test2.saveData.sName2 << std::endl;
 		*/
 
+
+		/*
 		TSaveTestData tempData;
 		tempData.iNum1 = 100;
 		tempData.iNum2 = 900;
@@ -105,7 +108,7 @@ int _tmain(int argc, _TCHAR* argv[])
 			<< test2.saveDataEx.IntArrayData[1] << "-" << test2.saveDataEx.IntArrayData[99] << std::endl;
 		std::cout << test2.saveDataEx.dataExArray[0].iNum1 << "-" << test2.saveDataEx.dataExArray[0].iNum2 << "-" << test2.saveDataEx.dataExArray[5].iNum1 << "-"
 			<< test2.saveDataEx.dataExArray[5].iNum2 << "-" << test2.saveDataEx.dataExArray[9].sName1 << "-" << test2.saveDataEx.dataExArray[9].sName2 << std::endl;
-
+		*/
 		char c;
 		std::cin >> c;		
 	}

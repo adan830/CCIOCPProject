@@ -18,6 +18,13 @@ typedef struct _TClientSocketHead
 	unsigned int uiIdx;		    	    // °üĞòºÅ,ºóĞøÊı¾İ¿ÉÄÜ»á±»Ñ¹Ëõ
 }TClientSocketHead, *PClientSocketHead;
 
+//ÏûÏ¢Í·£¬ÓÃÓÚ·¢ËÍ¿Í»§¶Ë·¢ËÍ½á¹¹Êı×éµÄÏûÏ¢°ü
+typedef struct _TRecordMsgHead
+{
+	unsigned short usRecordSize;		//½á¹¹´óĞ¡
+	unsigned short usRecordCount;		//ÊıÁ¿
+}TRecordMsgHead, *PRecordMsgHead;
+
 // ¶¯×÷ÀàĞÍ
 enum TActionType{
 	acNone = 0,
@@ -42,7 +49,7 @@ enum TActionType{
 	acRRush,
 	acIconSmall,
 	acIconBig,
-	acstepBack
+	acStepBack
 };
 
 //¿Í»§¶ËµÄ´°¿ÚÀàĞÍ
@@ -204,6 +211,31 @@ typedef struct _TPkgMapInfo
 	char szMapDesc[MAP_NAME_MAX_LEN];
 }TPkgMapInfo, *PPkgMapInfo;
 
+//¼¼ÄÜ»ù±¾ĞÅÏ¢
+typedef struct _TClientMagicInfo
+{
+	char szMagicName[SKILL_NAME_MAX_LEN];		//¼¼ÄÜÃû³Æ
+	unsigned short usMagicID;					//¼¼ÄÜ±àºÅ
+	unsigned short usEffect;					//¼¼ÄÜÆğÊÖÌØĞ§
+	unsigned short usNeedMP;					//¼¼ÄÜºÄÀ¶
+	unsigned char ucCDType;						//CDÀàĞÍ
+	unsigned char ucPriority;					//¼¼ÄÜÓÅÏÈ¼¶
+	unsigned char ucSkillLv;					//¼¼ÄÜµ±Ç°µÈ¼¶
+	unsigned int uiCurExp;						//µ±Ç°ÊìÁ·¶È
+	unsigned int uiNextNeedExp;					//ÏÂÒ»¼¶ĞèÒªµÄÊìÁ·¶È
+	unsigned char ucHotKey;						//¿ì½İ¼ü
+	unsigned short usStatus;					//×´Ì¬
+	unsigned char ucActType;					//Ê©·¨¶¯×÷ÀàĞÍTActionType
+	unsigned char ucLockType;					//Ëø¶¨ÀàĞÍ
+	unsigned char ucMagicFlag;					//¼¼ÄÜ±êÊ¾ 0£ºÖ÷¶¯¼¼ÄÜ 1£º±»¶¯¼¼ÄÜ 2£º¿ª¹Ø¼¼ÄÜ
+	unsigned short usFeature;					//ÍâÏÔ
+	unsigned int uiCurPower;					//±¾¼¶ÍşÁ¦
+	unsigned int uiNextPower;					//ÏÂ¼¶ÍşÁ¦
+	unsigned int uiCDTime;						//CDÊ±¼ä
+	unsigned short usNextNeedLv;				//ÏÂÒ»¼¶ĞèÒªµÄÈËÎïµÈ¼¶
+	unsigned char ucShowPriority;				//¼¼ÄÜÏÔÊ¾ÓÅÏÈ¼¶£¬¼¼ÄÜÁĞ±íÖĞµÄÅÅÁĞ
+}TClientMagicInfo, *PClientMagicInfo;
+                                                                                                  
 // SCM_CDTIME_UPDATE
 typedef struct _TPkgCDTimeChg
 {
@@ -220,6 +252,16 @@ enum TMesssageType{
 };
 //bMsgType=msLeftSideÊ± nObjID±íÊ¾ÀàĞÍ£¬¾ßÌåÀàĞÍ¼ûÕ½¶·ĞÅÏ¢·ÖÀà¶¨Òå
 //bMsgType=msLoudSpeakerÊ± nObjID±íÊ¾ÀàĞÍ£¬0:ÆÕÍ¨À®°È 1£º¶¥ĞĞÏÔÊ¾À®°È
+
+typedef struct _TPkgMsgHead
+{
+	int iObjID;
+	unsigned char ucColor;	    //Ç°¾°É«
+	unsigned char ucBackColor;  //±³¾°É«£¬255ÎŞ±³¾°
+	unsigned char ucMsgType;    //ÏûÏ¢ÀàĞÍ
+	unsigned char ucMsgLen;     //ÏûÏ¢³¤¶È
+	//ÏûÏ¢ÄÚÈİ
+}TPkgMsgHead, *PPkgMsgHead;
 
 
 //ĞĞ»á²Ù×÷Í¨ÓÃ½á¹¹£¬¶ÔÓ¦×Ö¶ÎÒâÒåÓëOpIDÎª×ÓĞ­ÒéºÅ¹Ò¹³
@@ -271,6 +313,7 @@ const int CM_PWDPROTECT_CHG = 4120;                          //¶ş¼¶ÃÜÂë±£»¤×´Ì¬Ç
 
 //·şÎñÆ÷¶Ë·¢¸øÓÎÏ·¿Í»§¶ËµÄÏûÏ¢
 
+const int SCM_PING = 10;                                    // ĞÄÌø»Ø¸´
 const int SCM_AUTHEN_RESULT = 13;                           // ÈÏÖ¤
 const int SCM_OPEN_WINDOW = 14;                             // ¿ªÆô´°¿Ú
 const int SCM_CLOSE_WINDOW = 15;                            // ·şÎñ¶ËÇëÇó¹Ø±Õ´°¿Ú
@@ -316,6 +359,42 @@ const int SCM_HP_CHANGE = 6300;                              // ÆäËûÄ¿±êµÄ½¡¿µÖµ
 
 const int ENCODE_START_LEN = 6;
 
+//ÑÕÉ«¶¨Òå
+const int C_WHITE = 0;                                    //°×
+const int C_GREEN = 1;                                    //ÂÌ
+const int C_RED = 2;									  //ºì
+const int C_BLUE = 3;                                     //À¶
+const int C_PURPLE = 4;                                   //×Ï
+const int C_GOLD = 5;                                     //½ğ
+const int C_YELLOW = 6;									  //»Æ
+const int C_GRAYER = 7;                                   //»ÒÉ«
+const int C_BLACK = 8;                                    //ºÚ
+const int C_ORANGE = 9;                                   //³È
+const int C_SLAVE_1 = 10;                                 //1¼¶±¦±¦ÑÕÉ«
+const int C_SLAVE_2 = 11;                                 //2¼¶±¦±¦ÑÕÉ«
+const int C_SLAVE_3 = 12;                                 //3¼¶±¦±¦ÑÕÉ«
+const int C_SLAVE_4 = 13;                                 //4¼¶±¦±¦ÑÕÉ«
+const int C_SLAVE_5 = 14;                                 //5¼¶±¦±¦ÑÕÉ«
+const int C_SLAVE_6 = 15;                                 //6¼¶±¦±¦ÑÕÉ«
+const int C_MSG_WHITE = 16;                               // ÁÄÌì °×
+const int C_MSG_GREEN = 17;                               // ÁÄÌì ÂÌ
+const int C_MSG_RED = 18;                                 // ÁÄÌì ºì
+const int C_MSG_BLUE = 19;                                // ÁÄÌì À¶
+const int C_MSG_PURPLE = 20;                              // ÁÄÌì ·Ûºì
+const int C_MSG_GOLD = 21;                                // ÁÄÌì ½ğ
+const int C_MSG_SIMPLE_PURPLE = 22;                       // ÁÄÌì Ç³·Ûºì
+const int C_MASTERWORK_GOLD = 23;                         // Ğ¡¼«Æ·³ÈÉ« $FF8C00
+const int C_MASTERWORK_BLUE = 24;                         // Ğ¡¼«Æ·À¼É« $1E90FF
+const int C_DRESS_SLIVER = 33;                            //Òø»ÒÉ«	$FFC0C0C0
+const int C_DRESS_SKYBLUE = 34;                           //ÌìÀ¶É«  $FF87CEEB
+const int C_DRESS_GOLD = 35;                              //½ğÉ«    $FFFFD700
+const int C_DRESS_LIGHTGREEN = 36;                        //µ­ÂÌÉ«  $FF90EE90
+const int C_DRESS_MEDIUMPUERPLE = 37;                     //ÖĞ×ÏÉ«  $FF9370DB
+const int C_DRESS_ORANGERED = 38;                         //³ÈºìÉ« FFFF4500
+const int C_DRESS_DARKRED = 39;                           //ÉîºìÉ« FF8B0000
+const int C_LOUDSPEAKER_TOP_BACK = 40;                    //ÖÃ¶¥À®°È±³¾°É«
+const int C_LOUDSPEAKER_TOP_MSG = 41;                     //ÖÃ¶¥À®°ÈÇ°¾°É«
+
 //¹²ÏíCD¶¨Òå
 const int CD_DENY = 0;										 //½ûÖ¹
 const int CD_NOT_DELAY = 1;                                  //ÆÕÍ¨(¼´ÎŞCD)
@@ -328,6 +407,73 @@ const int CD_USEITEM = 7;                                    //Ê¹ÓÃÎïÆ·
 const int CD_RELATION_OP = 8;                                //¹ØÏµ²Ù×÷
 const int CD_RUSH = 9;										 //Ç°³åCD
 const int CD_EMAIL = 250;									 //ÓÊ¼ş
+
+inline void GetMsgColor(TMesssageType msgType, unsigned char &ucColor, unsigned char ucBackColor, bool bIncludeLink = true)
+{
+	if (255 == ucColor)
+	{
+		ucColor = C_WHITE;
+		switch (msgType)
+		{
+		case msSystem:
+			ucColor = C_BLACK;
+			break;
+		case msGroup:
+			ucColor = C_MSG_BLUE;
+			break;
+		case msGuild:
+			ucColor = C_MSG_GREEN;
+			break;
+		case msWhisper:
+			ucColor = C_MSG_PURPLE;
+			break;
+		case msRoll:
+			ucColor = C_YELLOW;
+			break;
+		case msDialog:
+		case msMonster:
+		case msCry:
+			ucColor = C_MSG_WHITE;
+			break;
+		case msLoudSpeaker:
+			ucColor = C_WHITE;
+			break;
+		case msHint:
+			ucColor = C_MSG_WHITE;
+			break;
+		case msLeftSide:
+			ucColor = C_GREEN;
+			break;
+		case msCenter:
+		case msGMSystem:
+		case msDebug:
+			ucColor = C_WHITE;
+			break;
+		default:
+			break;
+		}
+	}
+
+	if (bIncludeLink && ((msWhisper == msgType) || (msLoudSpeaker == msgType) || (msCry == msgType)))
+		ucColor = ucColor | 0x80;
+
+	if (255 == ucBackColor)
+	{
+		switch (msgType)
+		{
+		case msLoudSpeaker: 
+			ucBackColor = C_MSG_PURPLE;
+			break;
+		case msGMSystem:
+			ucBackColor = C_RED;
+			break;
+		case msSystem:
+			ucBackColor = C_YELLOW;
+		default:
+			break;
+		}
+	}
+}
 
 
 

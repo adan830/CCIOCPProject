@@ -9,6 +9,9 @@
 #include <vector>
 #include <cstdint>
 
+#define _WINSOCKAPI_
+#include <Windows.h>
+
 namespace CC_UTILS{
 
 	extern std::string G_CurrentExeFileName;       //当前程序的完整路径

@@ -48,6 +48,13 @@ typedef struct _TServerConnectInfo
 	int iConnectCount;
 }TServerConnectInfo, *PServerConnectInfo;
 
+// 玩家连接信息
+typedef struct _TPlayerConnectRec
+{
+	int iSessionID;
+	int iIntAddr;
+}TPlayerConnectRec, *PPlayerConnectRec;
+
 // Pig查询区组信息
 typedef struct _TPigQueryServerInfo
 {

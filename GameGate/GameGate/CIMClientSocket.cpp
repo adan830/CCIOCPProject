@@ -4,6 +4,7 @@
 **************************************************************************************/
 #include "stdafx.h"
 #include "CIMClientSocket.h"
+#include "CClientServerSocket.h"
 
 using namespace CC_UTILS;
 
@@ -91,11 +92,8 @@ void CIMClientSocket::ProcessReceiveMsg(PServerSocketHeader pHeader, char* pData
 		m_iPingCount = 0;
 		break;
 	default:
-		//----------------------------
-		//----------------------------
-		//----------------------------
-		//if Assigned(G_ServerSocket) then
-		//	G_ServerSocket.ProcServerMessage(Ident, nParam, Buf, BufLen);
+		if (pG_ClientServerSocket != nullptr)
+			pG_ClientServerSocket->ProcServerMessage(pHeader->usIdent, pHeader->iParam, pData, iDataLen);
 		break;
 	}
 }

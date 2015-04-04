@@ -4,6 +4,7 @@
 **************************************************************************************/
 #include "stdafx.h"
 #include "CGSClientSocket.h"
+#include "CClientServerSocket.h"
 
 using namespace CC_UTILS;
 
@@ -90,23 +91,14 @@ void CGSClientSocket::ProcessReceiveMsg(PServerSocketHeader pHeader, char* pData
 		m_iPingCount = 0;
 	case SM_PLAYER_CONNECT:
 	case SM_PLAYER_DISCONNECT:
-		//----------------------------
-		//----------------------------
-		//----------------------------
-		//G_ServerSocket.ClientManage(Ident, nParam, Buf, BufLen, True);
+		pG_ClientServerSocket->ClientManage(pHeader->usIdent, pHeader->iParam, pData, iDataLen, true);
 		break;
 	case SM_SHUTDOWN:
-		//----------------------------
-		//----------------------------
-		//----------------------------
-		//G_ServerSocket.GameServerShutDown;
+		pG_ClientServerSocket->GameServerShutDown();
 		m_bShutDown = true;
 		break;
 	default:
-		//----------------------------
-		//----------------------------
-		//----------------------------
-		//G_ServerSocket.ProcServerMessage(Ident, nParam, Buf, BufLen);
+		pG_ClientServerSocket->ProcServerMessage(pHeader->usIdent, pHeader->iParam, pData, iDataLen);
 		break;
 	}
 }
@@ -116,13 +108,8 @@ void CGSClientSocket::OnSocketConnect(void* Sender)
 	Log("GameServer(" + m_Address + ":" + std::to_string(m_Port) + ") Connected.");
 	m_bShutDown = false;
 	SendRegisterServer();
-	/*
-	//-------------------------
-	//-------------------------
-	//-------------------------
-  if Assigned(G_ServerSocket) and Assigned(G_ServerSocket.DBSocket) then
-    G_ServerSocket.DBSocket.BoEnable := True;
-	*/
+	if ((pG_ClientServerSocket != nullptr) && (pG_ClientServerSocket->m_pDBServer != nullptr))
+		pG_ClientServerSocket->m_pDBServer->SetEnable(true);
 }
 
 void CGSClientSocket::OnSocketDisconnect(void* Sender)

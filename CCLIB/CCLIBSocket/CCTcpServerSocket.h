@@ -144,6 +144,7 @@ public:
 	bool IsActive(){ return (m_MainWorker != nullptr); }
     void DoExecute();							 //子类不重载此方法
 	bool DoCheckConnect(const std::string& sRemoteAddress);
+	int GetClientCount(){ return m_QueryClientHash.GetItemCount(); }
 public:
 	std::string m_sLocalIP;					 // 本地IP
 	int m_iListenPort;	     				 // 监听端口

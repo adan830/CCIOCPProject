@@ -24,7 +24,7 @@ public:
 	void DoHeartBeat();					    //主线程调用
 	void SetEnable(bool bFlag);
 	bool IsEnable();
-	char* IsIncludeForbiddenWord(const char* pMsg);
+	std::string IsIncludeForbiddenWord(std::string &sMsg);
 protected:
 	virtual void ProcessReceiveMsg(PServerSocketHeader pHeader, char* pData, int iDataLen);
 private:

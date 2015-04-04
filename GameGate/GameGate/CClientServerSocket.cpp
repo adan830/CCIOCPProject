@@ -61,7 +61,7 @@ CPlayerClientConnector::CPlayerClientConnector() : m_OnSendToServer(nullptr), m_
 CPlayerClientConnector::~CPlayerClientConnector()
 {
 	PSkillCoolDelay pSkillCD = nullptr;
-	std::list<PSkillCoolDelay>::iterator vIter;
+	std::vector<PSkillCoolDelay>::iterator vIter;
 	for (vIter = m_SkillCDTable.begin(); vIter != m_SkillCDTable.end(); ++vIter)
 	{
 		pSkillCD = (PSkillCoolDelay)*vIter;
@@ -224,29 +224,31 @@ bool CPlayerClientConnector::CheckGuildWords(char* pBuf, unsigned short usBufLen
 	{
 		char* ps = nullptr;
 		char* pf = nullptr;
+		std::string sOperStr;
+		std::string sFindStr;
 		PPkgGuildOpRec pPkg = (PPkgGuildOpRec)pBuf;
 		switch (pPkg->ucOpID)
 		{
 		case GOP_CREATE_TITLE:
 			pPkg->strOpStr1[GUILD_OP_MAX_LEN - 1] = '\0';
-			ps = pPkg->strOpStr1;
+			sOperStr = pPkg->strOpStr1;
 			break;
 		case GOP_RENAME_TITLE:
 		case GOP_MODIFY_NOTICE:
 			pBuf += sizeof(TPkgGuildOpRec);
 			usBufLen -= sizeof(TPkgGuildOpRec);
 			if (usBufLen > 0)
-				ps = pBuf;
+				sOperStr.assign(pBuf, usBufLen);
 			break;
 		default:
 			break;
 		}
-		if (ps != nullptr)
+		if (sOperStr != "")
 		{
-			pf = pG_ClientServerSocket->m_pDBServer->IsIncludeForbiddenWord(ps);
-			if (pf != nullptr)
+			sFindStr = pG_ClientServerSocket->m_pDBServer->IsIncludeForbiddenWord(sOperStr);
+			if (sFindStr != "")
 			{
-				SendMsg(CC_UTILS::FormatStr("含有违禁字[%s],设置失败！", pf));
+				SendMsg(CC_UTILS::FormatStr("含有违禁字[%s],设置失败！", sFindStr.c_str()));
 				retFlag = true;
 			}
 		}
@@ -256,6 +258,8 @@ bool CPlayerClientConnector::CheckGuildWords(char* pBuf, unsigned short usBufLen
 
 bool CPlayerClientConnector::CheckInputWords(char* pBuf, unsigned short usBufLen)
 {
+	bool bRetFlag = false;
+
 	/*
 var
   pf                : PAnsichar;
@@ -287,11 +291,69 @@ begin
   end;
 end;
 	*/
+
+	return bRetFlag;
 }
 
-void CPlayerClientConnector::ProcessReceiveMsg(char* pHeader, char* pBuf, int iBufLen)
+void CPlayerClientConnector::ProcessReceiveMsg(char* pHeader, char* pData, int iDataLen)
 {
+	unsigned short usIdent = ((PClientSocketHead)pHeader)->usIdent;
+	switch (usIdent)
+	{
+	case CM_PING:
+		SendToClientPeer(SCM_PING, _ExGetTickCount, nullptr, 0);
+		break;
+	case CM_GAME_CONNECT:
+		if ((!pG_ClientServerSocket->m_pGameServer->IsConnected()) || (pG_ClientServerSocket->m_pGameServer->m_bShutDown))
+		{
+			OpenWindow(cwMessageBox, 0, "目前服务器处于维护中，请稍候！！！");
+			DelayClose(-10);
+			return;
+		}
+		if (sizeof(int) == iDataLen)
+		{
+			TPlayerConnectRec connectRec;
+			connectRec.iSessionID = *(int*)pData;
+			connectRec.iIntAddr = inet_addr(GetRemoteAddress().c_str());
+			m_OnSendToServer(SM_PLAYER_CONNECT, GetSocketHandle(), (char*)&connectRec, sizeof(TPlayerConnectRec));			
+#ifndef NO_ENCODE
+			InitDynCode(0);
+#endif
+		}
+		break;
+	default:
+		{
+			if (m_bNormalClose)
+				m_bNormalClose = false;
+			char* pSendData = pHeader + sizeof(TClientSocketHead)-sizeof(unsigned short);
+			*(unsigned short*)pSendData = usIdent;
+			unsigned short usSendLen = iDataLen + sizeof(unsigned short);
+			unsigned char ucCDType = 0;
+			unsigned int uiCDTime = 0;
+			TActionType actType = AnalyseIdent(pSendData, usSendLen, ucCDType, uiCDTime);
+			m_usLastCMCmd = *(unsigned short*)pSendData;
 
+			switch (ucCDType)
+			{
+			case CD_NOT_DELAY:
+				m_OnSendToServer(SM_PLAYER_MSG, GetSocketHandle(), pSendData, usSendLen);
+				break;
+			case CD_DENY:
+				break;
+			default:
+				PClientActionNode pNode = new TClientActionNode;
+				pNode->usBufLen = usSendLen;
+				pNode->szBuf = (char*)malloc(usSendLen);
+				memcpy(pNode->szBuf, pSendData, usSendLen);
+				pNode->ucCDType = ucCDType;
+				pNode->uiCDTime = uiCDTime;
+				pNode->ActType = actType;
+				AddToDelayQueue(pNode);
+				break;
+			}
+		}
+		break;
+	}
 }
 
 void CPlayerClientConnector::ReceiveServerMsg(char* pBuf, unsigned short usBufLen)
@@ -394,7 +456,30 @@ bool CPlayerClientConnector::CheckServerPkg(unsigned short usIdent, char* pBuf, 
 
 void CPlayerClientConnector::SendMsg(const std::string &sMsg, TMesssageType msgType, unsigned char ucColor, unsigned char ucBackColor)
 {
-	---
+	int iStrLen = sMsg.length();
+	if (iStrLen > 0)
+	{
+		int iBufLen = sizeof(TPkgMsgHead)+iStrLen + 1;
+		char* pBuf = (char*)malloc(iBufLen);
+		memset(pBuf, 0, iBufLen);
+		try
+		{
+			GetMsgColor(msgType, ucColor, ucBackColor);
+			((PPkgMsgHead)pBuf)->iObjID = 0;
+			((PPkgMsgHead)pBuf)->ucBackColor = ucBackColor;
+			((PPkgMsgHead)pBuf)->ucColor = ucColor;
+			((PPkgMsgHead)pBuf)->ucMsgType = msgType;
+			((PPkgMsgHead)pBuf)->ucMsgLen = iStrLen;
+			char* pData = pBuf + sizeof(TPkgMsgHead);
+			memcpy_s(pData, iStrLen + 1, sMsg.c_str(), iStrLen);
+			SendToClientPeer(SCM_SYSTEM_MESSAGE, 0, pBuf, iBufLen);
+			free(pBuf);
+		}
+		catch (...)
+		{
+			free(pBuf);
+		}
+	}
 }
 
 void CPlayerClientConnector::OpenWindow(TClientWindowType wtype, int iParam, const std::string &sMsg)
@@ -462,7 +547,198 @@ void CPlayerClientConnector::InitDynCode(unsigned char ucEdIdx)
 
 TActionType CPlayerClientConnector::AnalyseIdent(char* pBuf, unsigned short usBufLen, unsigned char &ucCDType, unsigned int &uiCDTime)
 {
+	TActionType retAction = acNone;
+	/*
+var
+  i, iError         : integer;
+  Ps                : PSkillCoolDelay;
+  pData             : PAnsiChar;
+  Ident             : Word;
+  DataLen           : Word;
+  pSpell            : PPkgSpellReq;
+  PItem             : PPkgUseItem;
+begin
+	
+  if m_BoTrace and (m_RoleName <> '') then
+    TracertPackage(m_RoleName, Buf, BufLen);
+  bCDType := CD_NOT_DELAY;
+  cdTime := 0;
+  Result := acNone;
+  pData := Buf;
+  DataLen := BufLen;
+  Ident := PWord(pData)^;
+  Inc(pData, SizeOf(Word));
+  Dec(DataLen, SizeOf(Word));
+  FillChar(Result, sizeof(Result), 0);
+  case Ident of
+    CM_PHYHIT:
+      begin
+        Result := acAttack1;
+        bCDType := CD_ATTACK;
+        cdTime := m_HitSpeed;
+        GPSCheck();
+      end;
+    CM_WALK:
+      begin
+        Result := acWalk;
+        bCDType := CD_MOVE;
+        cdTime := CD_MOVE_TIME;
+        GPSCheck();
+      end;
+    CM_RUN:
+      begin
+        Result := acRun;
+        bCDType := CD_MOVE;
+        cdTime := CD_MOVE_TIME;
+        GPSCheck();
+      end;
+    CM_STEP_BACKWARD:
+      begin
+        GPSCheck();
+        Result := acStepBack;
+        bCDType := CD_MOVE;
+        cdTime := CD_MOVE_TIME;
+      end;
+    CM_RUSH:
+      begin
+        GPSCheck();
+        Result := acRush;
+        bCDType := CD_RUSH;
+        cdTime := CD_RUSH_TIME;
+      end;
+    CM_SPELL:
+      begin
+        GPSCheck();
+        Result := acMagic1;
+        bCDType := CD_MAGIC;
+        cdTime := CD_MAGIC_TIME;
+        if DataLen >= sizeof(TPkgSpellReq) then
+        begin
+          pSpell := PPkgSpellReq(pData);
+          for i := 0 to m_SkillTable.Count - 1 do
+          begin
+            Ps := m_SkillTable[i];
+            if pSpell^.wSkillID = Ps^.SkillID then
+            begin
+              Result := Ps^.ActType;
+              bCDType := Ps^.bCDType;                       // 技能CD类型， 不能配置为 1
+              cdTime := Ps^.dwCDTime;
+              Break;
+            end;
+          end;
+        end;
+        if Result in [acAttack1, acAttack2] then
+          Result := acNone;                                 // 战士的攻击魔法开关技能没有硬直
+      end;
+    CM_USE_BAG_ITEM:
+      begin
+        if DataLen >= SizeOf(TPkgUseItem) then
+        begin
+          PItem := PPkgUseItem(pData);
+          if PItem.bCDType > 10 then
+          begin
+            bCDType := PItem.bCDType;                       //  物品CD类型，不能配置为 1
+            cdTime := PItem.wCDTime;
+          end;
+          {else
+          begin
+            bCDType := CD_USEITEM;
+            cdTime := CD_USEITEM_TIME;
+          end;}
+        end;
+      end;
+    CM_CLICK_NPC:
+      begin
+        bcdType := CD_CLICK_NPC;
+        cdTime := CD_CLICKNPC_TIME;
+      end;
+    CM_GUILD_OP:
+      begin
+        bcdType := CD_RELATION_OP;
+        cdTime := CD_GUILDOP_TIME;
+        if CheckGuildWords(PData, DataLen) then
+          bCDType := CD_DENY;
+      end;
+    CM_SAY:
+      begin
+        GPSCheck();
+        bCDType := CD_SAY;
+        if m_BoGM then
+          cdTime := 100
+        else
+          cdTime := CD_SAY_TIME;
+      end;
+    CM_CLOSE_WINDOW:
+      begin
+        bCDType := CD_SAY;
+        cdTime := CD_SAY_TIME;
+        if (DataLen <= SizeOf(TClientWindowRec)) or (PClientWindowRec(pData)^.WinType in [cwPayPwd]) then
+          Exit;
+        inc(pData, sizeof(TClientWindowRec));
+        Dec(DataLen, sizeof(TClientWindowRec));
+        if CheckInputWords(PData, DataLen) then
+          bCDType := CD_DENY;
+      end;
+    CM_TRAN_COMMIT:
+      begin
+        if (DataLen <= sizeof(TPkgCommitTran)) or (PPkgCommitTran(pData)^.bResult <> 1) or (DataLen <> sizeof(TPkgCommitTran) + PPkgCommitTran(pData)^.bDataLen) then
+          Exit;
+        inc(pData, sizeof(TPkgCommitTran));
+        Dec(DataLen, sizeof(TPkgCommitTran));
+        if CheckInputWords(pData, DataLen) then
+          bCDType := CD_DENY;
+      end;
+    CM_EMAIL:
+      begin
+        if not m_BoGM then
+        begin
+          bCDType := CD_EMAIL;
+          cdTime := CD_EMAIL_TIME;
+        end;
+      end;
+    CM_GPS_CHECK_RESPONSE:
+      begin
+        if not m_BoGM and Assigned(m_CSAuthObject) then
+        begin
+          m_GPS_Request := False;
+          iError := GPSCheckAuthResponse(m_CSAuthObject, pData, DataLen);
+          case iError of
+            CHECK_OK:
+              begin
+                {$IFDEF TEST}Log('检查成功');
+                {$ENDIF}
+              end;
+            ERRORLEN,                                       // Log('客户端封包长度不正确');
+              ERRORPACKET:                                  // Log('客户端封包不正确');
+              begin
+                Log(m_RoleName + ' AuthResponse错误!' + IntToStr(iError));
+              end;
+          else
+           //  CHECK_EXCEPT
+            LOG(m_RoleName + ' CSAUTH调用异常');
+          end;
+        end;
+        bCDType := CD_DENY;
+      end;
+  else
+  end;
+  {$IFDEF TESTACT}
+  if bCDType > CD_NOT_DELAY then
+  begin
+    Log(Format('action: %d  cdType: %d   cdTime: %d Diff=%d', [ord(Result), bcdtype, cdtime, _GetTickCount - m_LastCD_Ticks[bcdtype]]));
+  end;
+  {$ENDIF}
 
+  if bCDType > MAX_CD_ID then                               // 可能是异常CD
+  begin
+    Log(Format('DENY cdtype=%d, Ident=%d, RoleName=%s', [bCDType, Ident, m_RoleName]));
+    bCDType := CD_DENY;
+  end;
+  if bCDType = CD_NOT_DELAY then
+    cdTime := 0;
+end;
+	*/
+	return retAction;
 }
 
 bool CPlayerClientConnector::AcceptNextAction()
@@ -472,12 +748,57 @@ bool CPlayerClientConnector::AcceptNextAction()
 
 void CPlayerClientConnector::Stiffen(TActionType aType)
 {
+	m_uiLastActionTick = _ExGetTickCount;
+	switch (aType)
+	{
+	case acWalk:
+	case acRun:
+	case acStepBack:
+		m_usStiffTime = STIFF_MOVE;
+		break;
+	case acAttack1:
+	case acAttack2:
+		m_usStiffTime = STIFF_ATTACK;
+		break;
+	case acMagic1:
+		m_usStiffTime = STIFF_MAGIC1;
+		break;
+	case acMagic2:
+		m_usStiffTime = STIFF_MAGIC2;
+		break;
+	case acShoot1:
+		m_usStiffTime = STIFF_SHOOT1;
+		break;
+	case acShoot2:
+		m_usStiffTime = STIFF_SHOOT2;
+		break;
+	case acJump:
+		m_usStiffTime = STIFF_JUMP;
+		break;
+	case acRush:
+		m_usStiffTime = STIFF_RUSH;
+		break;
+	case acBackStep:
+		m_usStiffTime = STIFF_PUSH;
+		break;
+	default:
+		m_usStiffTime = STIFF_DEFAULT;
+		break;
+	}
 
+	if (m_usStiffTime > SEVER_CLIENT_DIFF_TIME)
+		m_usStiffTime -= SEVER_CLIENT_DIFF_TIME;
 }
 
 void CPlayerClientConnector::IncStiffen(unsigned int uiIncValue)
 {
-
+	unsigned int uiStiffTime = _ExGetTickCount - m_uiLastActionTick;
+	if (uiStiffTime > m_usStiffTime)
+		m_usStiffTime = 0;
+	else
+		m_usStiffTime -= uiStiffTime;
+	m_usStiffTime += uiIncValue;
+	m_uiLastActionTick = _ExGetTickCount;
 }
 
 void CPlayerClientConnector::AddToDelayQueue(PClientActionNode pNode)
@@ -534,22 +855,92 @@ void CPlayerClientConnector::ProcDelayQueue()
 
 bool CPlayerClientConnector::IsCoolDelayPass(PClientActionNode pNode)
 {
+	bool bRetFlag = false;
+	if (CD_NOT_DELAY == pNode->ucCDType)
+		bRetFlag = true;
+	else if (acNone == pNode->ActType)
+		bRetFlag = _ExGetTickCount > m_LastCDTicks[pNode->ucCDType];
+	else if (AcceptNextAction())
+	{
+		bRetFlag = _ExGetTickCount > m_LastCDTicks[pNode->ucCDType];
+		if (bRetFlag)
+			Stiffen(pNode->ActType);
+	}
 
+	if (bRetFlag)
+	{
+#ifdef TESTACT
+		Log(CC_UTILS::FormatStr("Ident %d Send To GameServer!", *(unsigned short*)(pNode->szBuf)));
+#endif
+		m_OnSendToServer(SM_PLAYER_MSG, GetSocketHandle(), pNode->szBuf, pNode->usBufLen);
+		m_LastCDTicks[pNode->ucCDType] = _ExGetTickCount + pNode->uiCDTime - SEVER_CLIENT_DIFF_TIME;
+	}
+	return bRetFlag;
 }
 
 void CPlayerClientConnector::SCMSkillList(char* pBuf, unsigned short usBufLen)
 {
-
+	if (usBufLen > sizeof(TRecordMsgHead))
+	{
+		usBufLen -= sizeof(TRecordMsgHead);
+		PRecordMsgHead pHead = (PRecordMsgHead)pBuf;
+		char* pCurr = pBuf + sizeof(TRecordMsgHead);
+		if (usBufLen >= pHead->usRecordSize * pHead->usRecordCount)
+		{
+			while (usBufLen >= pHead->usRecordCount)
+			{
+				SCMAddSkill(pCurr, pHead->usRecordSize);
+				usBufLen -= pHead->usRecordSize;
+				pCurr += pHead->usRecordSize;
+			}
+		}
+		else
+			Log(CC_UTILS::FormatStr("技能列表长度不正确：%d/%d", pHead->usRecordSize * pHead->usRecordCount, usBufLen));
+	}
 }
 
 void CPlayerClientConnector::SCMAddSkill(char* pBuf, unsigned short usBufLen)
 {
-
+	if (usBufLen >= sizeof(TClientMagicInfo))
+	{
+		PClientMagicInfo pInfo = (PClientMagicInfo)pBuf;
+		if (pInfo->ucCDType < MAX_CD_ID)
+		{
+			std::lock_guard<std::mutex> guard(m_LockQueueCS);
+			std::vector<PSkillCoolDelay>::iterator vIter;
+			PSkillCoolDelay pCD = nullptr;
+			for (vIter = m_SkillCDTable.begin(); vIter != m_SkillCDTable.end(); ++vIter)
+			{
+				pCD = *vIter;
+				if ((pCD != nullptr) && (pCD->usSkillID == pInfo->usMagicID))
+					return;
+			}
+			pCD = new TSkillCoolDelay;
+			pCD->usSkillID = pInfo->usMagicID;
+			pCD->ActType = TActionType(pInfo->ucActType);
+			pCD->ucCDType = pInfo->ucActType;
+			pCD->uiCDTime = pInfo->uiCDTime;
+			m_SkillCDTable.push_back(pCD);
+		}
+		else
+			Log("CDType Error " + std::to_string(pInfo->ucCDType));
+	}
 }
 
 void CPlayerClientConnector::SCMUpdateCDTime(char* pBuf, unsigned short usBufLen)
 {
-
+	if (usBufLen == sizeof(TPkgCDTimeChg))
+	{
+		PPkgCDTimeChg pCD = (PPkgCDTimeChg)pBuf;
+		unsigned char ucType = pCD->ucCDType;
+		if (ucType < MAX_CD_ID)
+		{
+			if (0 == pCD->uiCDTime)
+				m_LastCDTicks[ucType] = 0;
+		}
+		if ((CD_ATTACK == ucType) && (pCD->uiCDTime > 0))
+			m_usHitSpeed = pCD->uiCDTime - 50;
+	}	
 }
 
 /************************End Of CClientConnector******************************************/

@@ -4,6 +4,7 @@
 **************************************************************************************/
 #include "stdafx.h"
 #include "CDBClientSocket.h"
+#include "CClientServerSocket.h"
 
 using namespace CC_UTILS;
 
@@ -76,10 +77,7 @@ void CDBClientSocket::DoHeartBeat()
 			}
 			else
 			{
-				//--------------------------------
-				//--------------------------------
-				//--------------------------------
-				//SendHeartBeat(G_ServerSocket.Count);
+				SendHeartBeat(pG_ClientServerSocket->GetClientCount());
 			}
 		}
 	}
@@ -93,28 +91,20 @@ void CDBClientSocket::ProcessReceiveMsg(PServerSocketHeader pHeader, char* pData
 		m_iPingCount = 0;
 		break;
 	case SM_SERVER_CONFIG:
-		//---------------------------
-		//---------------------------
-		//---------------------------
-		//G_ServerSocket.smServerConfig(nParam, buf, Buflen);
+		if (pG_ClientServerSocket != nullptr)
+			pG_ClientServerSocket->SMServerConfig(pHeader->iParam, pData, iDataLen);
 		break;
 	case SM_FILTER_WORD:
 		AddForbiddenWord(pData, iDataLen, pHeader->iParam);
 		break;
 	case SM_PLAYER_CONNECT:
 	case SM_PLAYER_DISCONNECT:
-		//---------------------------
-		//---------------------------
-		//---------------------------
-		//if Assigned(G_ServerSocket) then
-		//	G_ServerSocket.ClientManage(Ident, nParam, Buf, BufLen, False);
+		if (pG_ClientServerSocket != nullptr)
+			pG_ClientServerSocket->ClientManage(pHeader->usIdent, pHeader->iParam, pData, iDataLen, false);
 		break;
 	default:
-		//----------------------------
-		//----------------------------
-		//----------------------------
-		//if Assigned(G_ServerSocket) then
-		//	G_ServerSocket.ProcServerMessage(Ident, nParam, Buf, BufLen);
+		if (pG_ClientServerSocket != nullptr)
+			pG_ClientServerSocket->ProcServerMessage(pHeader->usIdent, pHeader->iParam, pData, iDataLen);
 		break;
 	}
 }
@@ -148,18 +138,10 @@ void CDBClientSocket::OnSocketError(void* Sender, int& iErrorCode)
 
 void CDBClientSocket::SendRegisterServer()
 {
-	std::string sAddr = ""; 
-	//----------------------------
-	//----------------------------
-	//----------------------------
-	//G_ServerSocket.InternetIP;
+	std::string sAddr = pG_ClientServerSocket->m_sInternetIP;
 	TServerAddress info;
 	memcpy_s(info.IPAddress, sizeof(info.IPAddress), sAddr.c_str(), sAddr.length() + 1);
-	info.iPort = 0;
-	//----------------------------
-	//----------------------------
-	//----------------------------
-	//G_ServerSocket.Port;
+	info.iPort = pG_ClientServerSocket->m_iListenPort;
 	SendToServerPeer(SM_REGISTER, 0, &info, sizeof(TServerAddress));
 }
 
@@ -174,40 +156,24 @@ void CDBClientSocket::SendHeartBeat(int iConnectCount)
 void CDBClientSocket::SetEnable(bool bFlag)
 {
 	m_bEnable = bFlag;
-	//-----------------------------
-	//-----------------------------
-	//-----------------------------
-	//SendHeartBeat(G_ServerSocket.Count)
+	SendHeartBeat(pG_ClientServerSocket->GetClientCount());
 }
 
-char* CDBClientSocket::IsIncludeForbiddenWord(const char* pMsg)
+std::string CDBClientSocket::IsIncludeForbiddenWord(std::string &sMsg)
 {
-	/*
-var
-  i                 : Integer;
-  s                 : ansistring;
-  theWord           : PAnsiChar;
-begin
-  Result := nil;
-  for i := 0 to m_ForbiddenWords.Count - 1 do
-  begin
-    s := m_ForbiddenWords[i];
-    theWord := PAnsiChar(s);
-    Result := AnsiStrPos(theWord, pmsg);
-    if Assigned(Result) then
-      Break;
-    Result := AnsiStrPos(pmsg, theWord);
-    if Assigned(Result) then
-    begin
-      Result := theWord;
-      Break;
-    end;
-  end;
-end;
-	*/
-	char* pRet = nullptr;
-
-	return pRet;
+	std::string sRetStr("");
+	std::string sTemp;
+	std::vector<std::string>::iterator vIter;
+	for (vIter = m_ForbiddenWords.begin(); vIter != m_ForbiddenWords.end(); ++vIter)
+	{
+		sTemp = *vIter;
+		if (sMsg.find(sTemp) != std::string::npos)
+		{
+			sRetStr = sTemp;
+			break;
+		}
+	}
+	return sRetStr;
 }
 
 void CDBClientSocket::AddForbiddenWord(char* pBuf, unsigned short usBufLen, int iCount)
