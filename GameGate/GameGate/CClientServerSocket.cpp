@@ -394,7 +394,7 @@ bool CPlayerClientConnector::CheckServerPkg(unsigned short usIdent, char* pBuf, 
 
 void CPlayerClientConnector::SendMsg(const std::string &sMsg, TMesssageType msgType, unsigned char ucColor, unsigned char ucBackColor)
 {
-
+	---
 }
 
 void CPlayerClientConnector::OpenWindow(TClientWindowType wtype, int iParam, const std::string &sMsg)
