@@ -16,7 +16,6 @@ namespace CC_UTILS{
 		CFileLogManager(const std::string &sLogName);
 		virtual ~CFileLogManager();
 		void WriteLog(const std::string &sLogStr);
-	private:
 		void WriteCache();
 	private:
 		std::mutex m_LogCS;
@@ -24,8 +23,8 @@ namespace CC_UTILS{
 		int m_iCacheLen;
 		std::string m_sName;
 		std::string m_sPath;
-		unsigned int m_uiLastWriteTick;
-		unsigned int m_uiLastDay;
+		int m_iLastDay;
+		unsigned int m_uiLastWriteTick;		
 	};
 }
 

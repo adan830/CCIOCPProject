@@ -341,6 +341,146 @@ namespace CC_UTILS{
 		return 0;
 	}
 
+	std::wstring ExtractFilePathW(const std::wstring& strFullPath)
+	{
+		std::wstring strPath;
+		WCHAR cBL = L'\\';
+		int nPos = strFullPath.rfind(cBL);
+		if (-1 == nPos)
+		{
+			cBL = L'/';
+			nPos = strFullPath.rfind(cBL);
+		}
+
+		if (nPos != -1)
+			strPath = strFullPath.substr(0, nPos + 1);
+		return strPath;
+	}
+
+	std::string ExtractFilePathA(const std::string& strFullPath)
+	{
+		std::string strPath;
+		char cBL = '\\';
+		int nPos = strFullPath.rfind(cBL);
+		if (-1 == nPos)
+		{
+			cBL = '/';
+			nPos = strFullPath.rfind(cBL);
+		}
+
+		if (nPos != -1)
+			strPath = strFullPath.substr(0, nPos + 1);
+		return strPath;
+	}
+
+	std::wstring ExtractFileNameW(const std::wstring& strFullPath)
+	{
+		std::wstring strFileExt;
+		WCHAR cPoint = L'/';
+		int nPos = strFullPath.rfind(cPoint);
+
+		if (std::wstring::npos == nPos)
+		{
+			cPoint = L'\\';
+			nPos = strFullPath.rfind(cPoint);
+		}
+
+		cPoint = L'.';
+		int nPos2 = strFullPath.rfind(cPoint);
+		if (std::wstring::npos == nPos2)
+			nPos2 = strFullPath.size();
+
+		// 找不到'/'或'\'nPos刚好是-1，故下面两行可以去掉
+		//if (std::wstring::npos == nPos)
+		//	nPos = -1;
+		strFileExt = strFullPath.substr(nPos + 1, nPos2 - 1 - nPos);
+
+		return strFileExt;
+	}
+
+	std::string ExtractFileNameA(const std::string& strFullPath)
+	{
+		std::string strFileExt;
+		CHAR cPoint = L'/';
+		int nPos = strFullPath.rfind(cPoint);
+
+		if (std::string::npos == nPos)
+		{
+			cPoint = L'\\';
+			nPos = strFullPath.rfind(cPoint);
+		}
+
+		cPoint = L'.';
+		int nPos2 = strFullPath.rfind(cPoint);
+		if (std::string::npos == nPos2)
+			nPos2 = strFullPath.size();
+
+		// 找不到'/'或'\'nPos刚好是-1，故下面两行可以去掉
+		//if (std::wstring::npos == nPos)
+		//	nPos = -1;
+		strFileExt = strFullPath.substr(nPos + 1, nPos2 - 1 - nPos);
+
+		return strFileExt;
+	}
+
+	bool IsFileExistsA(LPCSTR szFileName)
+	{
+		DWORD dwRet = GetFileAttributesA(szFileName);
+		return (dwRet != 0xFFFFFFFF) && ((FILE_ATTRIBUTE_DIRECTORY & dwRet) == 0);
+	}
+
+	bool IsFileExistsW(LPCWSTR szFileName)
+	{
+		DWORD dwRet = GetFileAttributesW(szFileName);
+		return (dwRet != 0xFFFFFFFF) && ((FILE_ATTRIBUTE_DIRECTORY & dwRet) == 0);
+	}
+
+	std::wstring GetAppPathW()
+	{
+		WCHAR szFile[MAX_PATH] = { 0 };
+		if (0 == ::GetModuleFileNameW(NULL, szFile, MAX_PATH))
+			return (std::wstring)L"";
+
+		return ExtractFilePathW((std::wstring)szFile);
+	}
+
+	std::string GetAppPathA()
+	{
+		char szFile[MAX_PATH] = { 0 };
+		if (0 == ::GetModuleFileNameA(NULL, szFile, MAX_PATH))
+			return (std::string)"";
+
+		return ExtractFilePathA((std::string)szFile);
+	}
+
+	std::wstring GetAppFullNameW()
+	{
+		WCHAR szFile[MAX_PATH] = { 0 };
+		if (0 == ::GetModuleFileNameW(NULL, szFile, MAX_PATH))
+			return (std::wstring)L"";
+		return std::wstring(szFile);
+	}
+
+	std::string GetAppFullNameA()
+	{
+		char szFile[MAX_PATH] = { 0 };
+		if (0 == ::GetModuleFileNameA(NULL, szFile, MAX_PATH))
+			return (std::string)"";
+
+		return std::string(szFile);
+	}
+
+	std::wstring GetAppNameW()
+	{
+		std::wstring strName = GetAppFullNameW();
+		return ExtractFileNameW(strName);
+	}
+
+	std::string GetAppNameA()
+	{
+		std::string strName = GetAppFullNameA();
+		return ExtractFileNameA(strName);
+	}
 
 	std::string EncodeString(std::string& str)
 	{

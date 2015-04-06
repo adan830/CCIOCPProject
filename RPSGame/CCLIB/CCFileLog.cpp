@@ -5,6 +5,7 @@
 
 #include "CCFileLog.h"
 #include "CCUtils.h"
+#include <fstream>
 
 namespace CC_UTILS{
 
@@ -15,11 +16,11 @@ namespace CC_UTILS{
 
 	CFileLogManager::CFileLogManager(const std::string &sLogName) : m_sName(sLogName), m_iCacheLen(0), m_uiLastWriteTick(0)
 	{
-		m_uiLastDay = GetTodayNum();
+		m_iLastDay = GetTodayNum();
 		if ("" == sLogName)
-			m_sPath = "" + "logs\\";
+			m_sPath = GetAppPathA() + "logs\\";
 		else
-			m_sPath = "" + "logs\\" + sLogName + "\\";
+			m_sPath = GetAppPathA() + "logs\\" + sLogName + "\\";
 		m_pCache = (char*)malloc(MAX_FILE_CACHE_SIZE);
 		try
 		{
@@ -38,50 +39,53 @@ namespace CC_UTILS{
 
 	void CFileLogManager::WriteLog(const std::string &sLogStr)
 	{
-	
+		int iTodayNum = GetTodayNum();
+		if (iTodayNum != m_iLastDay)
+		{
+			m_iLastDay = iTodayNum;
+			WriteCache();
+		}
+		int iStrLen = sLogStr.length();
+		if ((m_iCacheLen + iStrLen >= MAX_FILE_CACHE_SIZE) || (_ExGetTickCount > m_uiLastWriteTick + WRITE_INTERVAL))
+			WriteCache();
+		{
+			std::lock_guard<std::mutex> guard(m_LogCS);
+			//超长的日志信息回被丢掉！！！！
+			if ((iStrLen >= MAX_FILE_CACHE_SIZE) || (m_iCacheLen + iStrLen >= MAX_FILE_CACHE_SIZE))
+				return;
+
+			char* pBuf = m_pCache + m_iCacheLen;
+			memcpy_s(pBuf, iStrLen, sLogStr.c_str(), iStrLen);
+			m_iCacheLen += iStrLen;
+		}		
 	}
 
 	void CFileLogManager::WriteCache()
 	{
 		if (m_iCacheLen > 0)
 		{
-			
+			if (!IsFileExistsA(m_sPath.c_str()))
+				ForceCreateDirectories(m_sPath);
+
+			std::string sFileName = m_sPath + "RPSGameLog.txt";
+			std::lock_guard<std::mutex> guard(m_LogCS);
+			std::ofstream logFile(sFileName, std::ios::app);
+			try
+			{				
+				if (logFile.is_open())
+				{				
+					logFile.write(m_pCache, m_iCacheLen);
+					m_iCacheLen = 0;
+				}		
+				logFile.close();
+			}
+			catch (...)
+			{
+				m_iCacheLen = 0;
+				logFile.close();
+			}
+			m_uiLastWriteTick = _ExGetTickCount;
 		}
-		/*
-var
-  FileName          : ansistring;
-  fiHandle          : integer;
-begin
-  if m_CacheLen > 0 then
-  begin
-    if not DirectoryExists(m_Path) then
-      ForceDirectories(m_Path);
-    FileName := m_Path + FormatDateTime('yyyymmdd', Now()) + '.txt';
-    EnterCriticalSection(m_LogCS);
-    try
-      if FileExists(FileName) then
-        fiHandle := FileOpen(FileName, fmOpenWrite)
-      else
-        fiHandle := FileCreate(FileName);
-      if fiHandle > 0 then
-      begin
-        try
-          if FileSeek(fiHandle, 0, FILE_END) <> -1 then
-          begin
-            FileWrite(fiHandle, m_Cache^, m_CacheLen);
-          end;
-        finally
-          FileClose(fiHandle);
-        end;
-      end;
-    finally
-      m_CacheLen := 0;
-      LeaveCriticalSection(m_LogCS);
-    end;
-    m_LastWriteTick := GetTickCount;
-  end;
-end;
-		*/
 	}
 
 /************************End Of CCFileLog******************************************/

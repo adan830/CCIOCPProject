@@ -22,8 +22,8 @@ CMainThread::CMainThread() : m_uiSlowRunTick(0), m_uiCheckConfigTick(0), m_iConf
 CMainThread::~CMainThread()
 {
 	WaitThreadExecuteOver();
-	delete pG_GameSocket;
 	delete m_pLogFile;
+	delete pG_GameSocket;
 }
 
 void CMainThread::CheckConfig(const unsigned int uiTick)
@@ -92,5 +92,5 @@ void Log(const std::string& sInfo, byte loglv)
 {
 	SendDebugString(sInfo);
 	if ((pG_MainThread != nullptr) && (pG_MainThread->m_pLogFile != nullptr))
-		pG_MainThread->m_pLogFile->WriteLog(sInfo);	
+		pG_MainThread->m_pLogFile->WriteLog(sInfo + "\r\n");		
 }

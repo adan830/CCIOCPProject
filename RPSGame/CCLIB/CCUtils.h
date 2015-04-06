@@ -9,6 +9,9 @@
 #include <vector>
 #include <cstdint>
 
+#define _WINSOCKAPI_
+#include <Windows.h>
+
 namespace CC_UTILS{
 
 	extern std::string G_CurrentExeFileName;       //当前程序的完整路径
@@ -94,11 +97,41 @@ namespace CC_UTILS{
 	//循环创建目录
 	int ForceCreateDirectories(std::string& sDir);
 
+	//从完整路径中取出文件夹路径
+	inline std::wstring ExtractFilePathW(const std::wstring& strFullPath);
+	inline std::string ExtractFilePathA(const std::string& strFullPath);
+
+	//从完整路径中取出文件名
+	std::wstring ExtractFileNameW(const std::wstring& strFullPath);
+	std::string ExtractFileNameA(const std::string& strFullPath);
+
+	//取得程序当前的路径 包括反斜杠"\"
+	std::wstring GetAppPathW();
+	std::string GetAppPathA();
+
+	//取应用程序全路径
+	std::wstring GetAppFullNameW();
+	std::string GetAppFullNameA();
+
+	//取应用程序名字
+	std::wstring GetAppNameW();
+	std::string GetAppNameA();
+
+	//返回文件是否存在
+	bool IsFileExistsA(LPCSTR szFileName);
+	bool IsFileExistsW(LPCWSTR szFileName);
+
 	//字符串加解密功能块
 	std::string EncodeString(std::string& str);
 	std::string DecodeString(std::string& str);
 	void Decode6BitBuf(char* pSource, char* pBuf, int iSrcLen, int iBufLen);
 	void Encode6BitBuf(char* pSource, char* pDest, int iSrcLen, int iDestLen);
+
+	//格式化字符串,返回unicode
+	std::wstring FormatWStr(LPCWSTR szFormat, ...);
+
+	//格式化字符串,返回普通字符串
+	std::string FormatStr(LPCSTR szFormat, ...);
 
 	//宽字符串转化为大写
 	std::wstring WStrUpper(const std::wstring& str);
