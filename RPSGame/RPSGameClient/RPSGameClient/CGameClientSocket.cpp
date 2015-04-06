@@ -22,6 +22,8 @@ CGameClientSocket::CGameClientSocket() : m_iPingCount(0)
 	m_OnDisConnect = std::bind(&CGameClientSocket::OnSocketDisconnect, this, std::placeholders::_1);
 	m_OnRead = std::bind(&CGameClientSocket::OnSocketRead, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 	m_OnError = std::bind(&CGameClientSocket::OnSocketError, this, std::placeholders::_1, std::placeholders::_2);
+
+	srand(time(0));
 }
 
 CGameClientSocket::~CGameClientSocket()

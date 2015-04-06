@@ -53,5 +53,8 @@
     <ClCompile Include="..\..\CCLIB\CCUtils.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\CCLIB\CCFileLog.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

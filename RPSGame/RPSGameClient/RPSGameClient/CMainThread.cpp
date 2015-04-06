@@ -16,7 +16,7 @@ CMainThread* pG_MainThread;
 CMainThread::CMainThread() : m_uiSlowRunTick(0)
 {
 	pG_ClientSocket = new CGameClientSocket();
-	srand(time(0));
+
 }
 
 CMainThread::~CMainThread()

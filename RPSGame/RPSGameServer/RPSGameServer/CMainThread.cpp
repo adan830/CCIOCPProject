@@ -16,13 +16,14 @@ CMainThread* pG_MainThread;
 CMainThread::CMainThread() : m_uiSlowRunTick(0), m_uiCheckConfigTick(0), m_iConfigFileAge(0)
 {
 	pG_GameSocket = new CClientServerSocket();
-	srand(time(0));
+	m_pLogFile = new CFileLogManager("RPSServer");
 }
 
 CMainThread::~CMainThread()
 {
 	WaitThreadExecuteOver();
 	delete pG_GameSocket;
+	delete m_pLogFile;
 }
 
 void CMainThread::CheckConfig(const unsigned int uiTick)
@@ -89,9 +90,7 @@ void CMainThread::DoExecute()
 
 void Log(const std::string& sInfo, byte loglv)
 {
-	/*
-	if ((pG_MainThread != nullptr) && (pG_MainThread->m_pLogSocket != nullptr))
-		pG_MainThread->m_pLogSocket->SendLogMsg(sInfo, loglv);
-	*/
 	SendDebugString(sInfo);
+	if ((pG_MainThread != nullptr) && (pG_MainThread->m_pLogFile != nullptr))
+		pG_MainThread->m_pLogFile->WriteLog(sInfo);	
 }

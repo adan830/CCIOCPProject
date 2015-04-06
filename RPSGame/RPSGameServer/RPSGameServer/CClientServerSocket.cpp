@@ -14,13 +14,11 @@ CClientServerSocket* pG_GameSocket;
 /************************Start Of CRPSClient********************************************************/
 CRPSClient::CRPSClient() : m_uiForceCloseTick(0), m_iCurrentRound(0), m_iTotalWins(0), m_iTotalLosses(0), m_iTotalTies(0)
 {
-	SendDebugString("CRPSClient Create");
+
 }
 
 CRPSClient::~CRPSClient()
-{
-	SendDebugString("CRPSClient Destroy");
-}
+{}
 
 void CRPSClient::ForceClose()
 {
@@ -162,16 +160,16 @@ void CRPSClient::SendToClientPeer(unsigned short usIdent, int iParam, void* pBuf
 /************************Start Of CClientServerSocket************************************************/
 CClientServerSocket::CClientServerSocket() :m_uiLastCheckTick(0), m_sWarWarning("")				 
 {
-	SendDebugString("CClientServerSocket Create");
 	m_OnCreateClient = std::bind(&CClientServerSocket::OnCreateClientSocket, this, std::placeholders::_1);
 	m_OnClientError = std::bind(&CClientServerSocket::OnSocketError, this, std::placeholders::_1, std::placeholders::_2);
 	m_OnConnect = std::bind(&CClientServerSocket::OnClientConnect, this, std::placeholders::_1);
 	m_OnDisConnect = std::bind(&CClientServerSocket::OnClientDisconnect, this, std::placeholders::_1);
+
+	srand(time(0));
 }
 
 CClientServerSocket::~CClientServerSocket()
 {
-	SendDebugString("CClientServerSocket Destroy");
 }
 
 void CClientServerSocket::LoadConfig(CWgtIniFile* pIniFileParser)
@@ -201,7 +199,6 @@ void CClientServerSocket::LoadConfig(CWgtIniFile* pIniFileParser)
 
 CClientConnector* CClientServerSocket::OnCreateClientSocket(const std::string& sIP)
 {
-	SendDebugString("OnCreateClientSocket");
 	return new CRPSClient;
 }
 
