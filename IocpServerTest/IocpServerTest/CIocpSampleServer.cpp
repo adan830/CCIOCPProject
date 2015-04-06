@@ -35,7 +35,7 @@ CSampleConnector::~CSampleConnector()
 
 
 /************************Start Of CSampleServerManager************************************************/
-CSampleServerManager::CSampleServerManager()
+CSampleServerManager::CSampleServerManager() : m_iCount(0)
 {
 	SendDebugString("CSampleServerManager ´´½¨");
 	m_OnCheckAddress = std::bind(&CSampleServerManager::OnCheckIPAddress, this, std::placeholders::_1);
@@ -52,7 +52,6 @@ CSampleServerManager::~CSampleServerManager()
 
 void CSampleServerManager::DoActive()
 {
-
 }
 
 bool CSampleServerManager::OnCheckIPAddress(const std::string& sIP)

@@ -1,6 +1,6 @@
 /**************************************************************************************
 @author: 陈昌
-@content:
+@content: tcp网络连接的底层库-服务端端口管理，头文件
 **************************************************************************************/
 
 #include "CCTcpServerSocket.h"
@@ -9,8 +9,6 @@
 
 const int DEFAULT_CLIENT_CORPSE_TIME = 20 * 60 * 1000;      // 默认服务器与客户端无通信后断线时间
 const int MAX_HASH_BUCKETS_SIZE = 5071;                     // 管理连接Hash表的最大值
-const unsigned int MAX_CLIENT_DELAY_TIME = 15 * 1000;       // SocketHandle的超时复用时间
-const unsigned int MAX_BLOCK_CONTINUE_TIME = 10000;         // 网络阻塞持续时间
 const unsigned int SEND_NODE_CACHE_SIZE = 16 * 1024;        // 每个节点的发送区大小
 
 /************************Start Of CSubIOCPWorker****************************************************/
@@ -139,7 +137,7 @@ void CMainIOCPWorker :: DoExecute()
 {
 	SetThreadLocale(0X804);
 	int iError = 0;
-	if (listen(m_Socket, 5) != 0)
+	if (listen(m_Socket, 2) != 0)
 	{
 		iError = GetLastError();
 		if (nullptr != m_OnSocketError)
@@ -201,9 +199,7 @@ void CMainIOCPWorker :: DoExecute()
 
 void CMainIOCPWorker :: MakeWorkers()
 {
-	SYSTEM_INFO si;
-	GetSystemInfo(&si);
-	m_iSubThreadCount = si.dwNumberOfProcessors * 2 + 1;
+	m_iSubThreadCount = 2;
 	m_SubWorkers = new CSubIOCPWorker*[m_iSubThreadCount];
 	for (int i=0; i<m_iSubThreadCount; i++)
 	{
@@ -507,7 +503,7 @@ bool CClientConnector :: IsBlock(int iMaxBlockSize)
 			m_uiBufferFullTick = GetTickCount();
 			retflag = false;
 		}
-		else if (GetTickCount() < m_uiBufferFullTick + MAX_BLOCK_CONTINUE_TIME)
+		else if (GetTickCount() < m_uiBufferFullTick + 1000)
 		{
 			retflag = false;
 		}
@@ -824,7 +820,7 @@ bool CIOCPServerSocketManager :: DelayFreeClient(unsigned int uiTick)
 		pNextNode = pNode->Next;
 		if (pNode->pObj != nullptr)
 		{
-			if ((uiTick > pNode->uiAddTick) && (uiTick - pNode->uiAddTick >= MAX_CLIENT_DELAY_TIME))
+			if ((uiTick > pNode->uiAddTick) && (uiTick - pNode->uiAddTick >= 1000))
 			{
 				delete((CClientConnector*)pNode->pObj);   
 				pNode->pObj = nullptr;
@@ -849,7 +845,7 @@ unsigned short CIOCPServerSocketManager :: AllocHandle()
 	if (m_DFNFirst != nullptr)
 	{
 		pNode = m_DFNFirst;
-		if (uiTick - pNode->uiAddTick >= MAX_CLIENT_DELAY_TIME)
+		if (uiTick - pNode->uiAddTick >= 1000)
 		{
 			m_DFNFirst = pNode->Next;
 			if (nullptr == m_DFNFirst)

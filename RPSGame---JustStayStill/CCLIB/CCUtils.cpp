@@ -1,6 +1,6 @@
 /**************************************************************************************
 @author: 陈昌
-@content:
+@content: 我的常用结构函数库
 **************************************************************************************/
 
 #include "CCUtils.h"
@@ -605,7 +605,6 @@ namespace CC_UTILS{
 		std::wstring str;
 		str.resize(len);
 		_vsnwprintf(&str[0], len, szFormat, args);
-
 		va_end(args);
 
 		return str;

@@ -16,7 +16,7 @@ CMainThread* pG_MainThread;
 CMainThread::CMainThread() : m_uiSlowRunTick(0), m_uiCheckConfigTick(0), m_iConfigFileAge(0)
 {
 	pG_GameSocket = new CClientServerSocket();
-	m_pLogFile = new CFileLogManager("RPSServer");
+	m_pLogFile = new CFileLogManager("");
 }
 
 CMainThread::~CMainThread()
@@ -31,10 +31,7 @@ void CMainThread::CheckConfig(const unsigned int uiTick)
 	if ((0 == m_uiCheckConfigTick) || (uiTick - m_uiCheckConfigTick >= 30 * 1000))
 	{
 		m_uiCheckConfigTick = uiTick;
-		/*********************************************
-		 for running without config, I just comment below
-		 *********************************************
-		std::string sConfigFileName("./config.ini");
+		std::string sConfigFileName = GetAppPathA() + "serverconfig.ini";
 		int iAge = GetFileAge(sConfigFileName);
 		if ((iAge != -1) && (iAge != m_iConfigFileAge))
 		{
@@ -54,8 +51,10 @@ void CMainThread::CheckConfig(const unsigned int uiTick)
 				delete pIniFileParser;
 			}
 		}
-		*********************************************/
-		pG_GameSocket->LoadConfig(nullptr);
+		else
+		{
+			Log("Please put the 'serverconfig.ini' into the exe folder!", lmtMessage);
+		}
 	}
 }
 

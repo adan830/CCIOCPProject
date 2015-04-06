@@ -216,6 +216,7 @@ void CExecutableBase::WaitThreadExecuteOver()
 
 void CExecutableBase::Execute()
 {
+	srand(time(0));
 	DoExecute();
 	m_bExecuteOver = true;
 	SetEvent(m_Event);

@@ -1,6 +1,6 @@
 /**************************************************************************************
 @author: 陈昌
-@content: 
+@content:  tcp网络连接的底层库基础 头文件
 **************************************************************************************/
 
 #include "CCTcpSocketCommon.h"
@@ -145,13 +145,10 @@ int _TSendBufferLinkedList::GetBufferFromList(char* pDesBuf, int iBufMaxSize, in
 	while (m_pFirst != nullptr)
 	{
 		PSendBufferNode pNode = m_pFirst;
-		//当前用于发送的m_SendBlob中buffer中剩余的长度
 		iRemainLen = iBufMaxSize - iBufUntreatedBytes;
-		//该结点中要发送的数据长度
 		int iDataLen = pNode->nBufLen - pNode->nStart;
 		if (iDataLen > iRemainLen)
 		{
-			//数据不能一次发送完毕
 			memcpy(&pDesBuf[iBufUntreatedBytes], &pNode->szBuf[pNode->nStart], iRemainLen);
 			iBufUntreatedBytes = iBufMaxSize;
 			pNode->nStart += iRemainLen;
@@ -224,6 +221,7 @@ void CExecutableBase::WaitThreadExecuteOver()
 
 void CExecutableBase::Execute()
 {
+	srand(time(0));
 	DoExecute();
 	m_bExecuteOver = true;
 	SetEvent(m_Event);

@@ -66,20 +66,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\CCLIB\CCLIBSocket\CCTcpClientSocket.h" />
-    <ClInclude Include="..\..\CCLIB\CCLIBSocket\CCTcpServerSocket.h" />
-    <ClInclude Include="..\..\CCLIB\CCLIBSocket\CCTcpSocketCommon.h" />
-    <ClInclude Include="..\..\CCLIB\CCUtils.h" />
-    <ClInclude Include="CIocpSampleClient.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\CCLIB\CCLIBSocket\CCTcpClientSocket.cpp" />
-    <ClCompile Include="..\..\CCLIB\CCLIBSocket\CCTcpServerSocket.cpp" />
-    <ClCompile Include="..\..\CCLIB\CCLIBSocket\CCTcpSocketCommon.cpp" />
-    <ClCompile Include="..\..\CCLIB\CCUtils.cpp" />
-    <ClCompile Include="..\..\CCLIB\jsoncpp\jsoncpp.cpp" />
-    <ClCompile Include="..\..\CCLIB\JsonObjectBase.cpp" />
-    <ClCompile Include="CIocpSampleClient.cpp" />
     <ClCompile Include="TestMain.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

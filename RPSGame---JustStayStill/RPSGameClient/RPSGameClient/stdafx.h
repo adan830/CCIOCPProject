@@ -20,4 +20,5 @@
 #include "CCTcpSocketCommon.h"
 #include "CCTcpClientSocket.h"
 #include "CCGameGlobal.h"
+#include "CCIniFileParser.h"
 #include "CMainThread.h"

@@ -3,17 +3,16 @@
 @content: iocp库的测试用例---客户端
 **************************************************************************************/
 
-#include "CIocpSampleClient.h"
 #include <tchar.h>
 #include <iostream>
 #include <fstream>
-#include "JsonObjectBase.h"
 #include <mutex>
 
 using namespace std;
 
 void DoRunThread()
 {
+	/*
 	CSampleClientManager sampleServer;
 	sampleServer.ConnectToServer("127.0.0.1", 7001);
 	sampleServer.InitialWorkThread();
@@ -22,12 +21,12 @@ void DoRunThread()
 	{
 		WaitForSingleObject(m_Event, 100);
 	}
+	*/
 }
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	//std::thread* pClientThreads[10];
-	if (DoInitialWinSocket())
+	/*if (DoInitialWinSocket())
 	{
 		/*
 		for (int i = 0; i < 10; i++)
@@ -109,6 +108,14 @@ int _tmain(int argc, _TCHAR* argv[])
 		std::cout << test2.saveDataEx.dataExArray[0].iNum1 << "-" << test2.saveDataEx.dataExArray[0].iNum2 << "-" << test2.saveDataEx.dataExArray[5].iNum1 << "-"
 			<< test2.saveDataEx.dataExArray[5].iNum2 << "-" << test2.saveDataEx.dataExArray[9].sName1 << "-" << test2.saveDataEx.dataExArray[9].sName2 << std::endl;
 		*/
+	/*
+		srand(time(0));
+		int i = 0;
+		while (i < 10)
+		{
+			std::cout << rand() << std::endl;
+			i++;
+		}
 		char c;
 		std::cin >> c;		
 	}
@@ -117,5 +124,15 @@ int _tmain(int argc, _TCHAR* argv[])
 		std::cout << "DoInitialWinSocket Fail!" << std::endl;
 	}
 	DoFinalizeWinSocket();
+	*/
+	srand(time(0));
+	int i = 0;
+	while (i < 10)
+	{
+		std::cout << rand() << std::endl;
+		i++;
+	}
+	char c;
+	std::cin >> c;
 	return 0;
 }

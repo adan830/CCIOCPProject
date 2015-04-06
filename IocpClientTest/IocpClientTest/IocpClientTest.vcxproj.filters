@@ -15,45 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\CCLIB\CCLIBSocket\CCTcpClientSocket.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\CCLIB\CCLIBSocket\CCTcpServerSocket.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\CCLIB\CCLIBSocket\CCTcpSocketCommon.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="CIocpSampleClient.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\CCLIB\CCUtils.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\CCLIB\CCLIBSocket\CCTcpClientSocket.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\CCLIB\CCLIBSocket\CCTcpServerSocket.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\CCLIB\CCLIBSocket\CCTcpSocketCommon.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="TestMain.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="CIocpSampleClient.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\CCLIB\CCUtils.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\CCLIB\JsonObjectBase.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\CCLIB\jsoncpp\jsoncpp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

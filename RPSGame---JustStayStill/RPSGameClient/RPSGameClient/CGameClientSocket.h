@@ -23,6 +23,7 @@ private:
 	void OnSocketRead(void* Sender, const char* pBuf, int iCount);
 	void OnSocketError(void* Sender, int& iErrorCode);
 	void ProcessPlayAckMsg(void* pBuf, int iBufLen);
+	void LoadConfig();
 private:
 	unsigned int m_uiCheckTick;
 	int m_iPingCount;

@@ -14,7 +14,6 @@ CClientServerSocket* pG_GameSocket;
 /************************Start Of CRPSClient********************************************************/
 CRPSClient::CRPSClient() : m_uiForceCloseTick(0), m_iCurrentRound(0), m_iTotalWins(0), m_iTotalLosses(0), m_iTotalTies(0)
 {
-
 }
 
 CRPSClient::~CRPSClient()
@@ -158,14 +157,12 @@ void CRPSClient::SendToClientPeer(unsigned short usIdent, int iParam, void* pBuf
 
 
 /************************Start Of CClientServerSocket************************************************/
-CClientServerSocket::CClientServerSocket() :m_uiLastCheckTick(0), m_sWarWarning("")				 
+CClientServerSocket::CClientServerSocket() :m_uiLastCheckTick(0), m_sWarWarning("")			 
 {
 	m_OnCreateClient = std::bind(&CClientServerSocket::OnCreateClientSocket, this, std::placeholders::_1);
 	m_OnClientError = std::bind(&CClientServerSocket::OnSocketError, this, std::placeholders::_1, std::placeholders::_2);
 	m_OnConnect = std::bind(&CClientServerSocket::OnClientConnect, this, std::placeholders::_1);
 	m_OnDisConnect = std::bind(&CClientServerSocket::OnClientDisconnect, this, std::placeholders::_1);
-
-	srand(time(0));
 }
 
 CClientServerSocket::~CClientServerSocket()
@@ -174,25 +171,14 @@ CClientServerSocket::~CClientServerSocket()
 
 void CClientServerSocket::LoadConfig(CWgtIniFile* pIniFileParser)
 {
-	/*
+	m_sLocalIP = "0.0.0.0";
+	m_iListenPort = DEFAULT_LISTENING_PORT;
 	if (pIniFileParser != nullptr)
-	{
-		int iPort = pIniFileParser->getInteger("Setup", "ListenPort", DEFAULT_LISTENING_PORT);
+		m_iListenPort = pIniFileParser->getInteger("Setup", "ListenPort", DEFAULT_LISTENING_PORT);
 
-		if (!IsActive())
-		{
-			m_sLocalIP = "0.0.0.0";
-			m_iListenPort = iPort;
-			Log("Server Listening Port = " + std::to_string(iPort), lmtMessage);
-			Open();
-		}
-	}
-	*/
 	if (!IsActive())
 	{
-		m_sLocalIP = "0.0.0.0";
-		m_iListenPort = DEFAULT_LISTENING_PORT;
-		Log("Server Listening Port = " + std::to_string(DEFAULT_LISTENING_PORT), lmtMessage);
+		Log("Server Listening Port = " + std::to_string(m_iListenPort), lmtMessage);
 		Open();
 	}
 }
@@ -218,7 +204,9 @@ void CClientServerSocket::OnClientConnect(void* Sender)
 void CClientServerSocket::OnClientDisconnect(void* Sender)
 {
 	CRPSClient* client = (CRPSClient*)Sender;
-	Log("game client disconnect, remote ip is:" + client->GetRemoteAddress(), lmtError);
+	Log("game client[" + std::to_string((int)Sender) + "] disconnect, remote ip is:" + client->GetRemoteAddress() +
+		", total wins[" + std::to_string(client->m_iTotalWins) + "] total losses[" + std::to_string(client->m_iTotalLosses) + 
+		"], total ties[" + std::to_string(client->m_iTotalTies) + "]", lmtWarning);
 }
 
 

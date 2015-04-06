@@ -43,6 +43,8 @@ private:
 	void OnSocketError(void* Sender, int& iErrorCode);
 	void OnClientConnect(void* Sender);
 	void OnClientDisconnect(void* Sender);
+private:
+	int m_iCount;
 };
 
 #endif //__CC_IOCP_SAMPLE_SERVER_H__

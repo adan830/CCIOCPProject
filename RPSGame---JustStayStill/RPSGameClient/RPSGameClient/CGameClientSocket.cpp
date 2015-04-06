@@ -15,20 +15,26 @@ CGameClientSocket::CGameClientSocket() : m_iPingCount(0)
 {
 	SendDebugString("CGameClientSocket Create");
 	SetReconnectInterval(10 * 1000);
-	m_Address = "127.0.0.1";
-	m_Port = 8300;
 
 	m_OnConnect = std::bind(&CGameClientSocket::OnSocketConnect, this, std::placeholders::_1);
 	m_OnDisConnect = std::bind(&CGameClientSocket::OnSocketDisconnect, this, std::placeholders::_1);
 	m_OnRead = std::bind(&CGameClientSocket::OnSocketRead, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 	m_OnError = std::bind(&CGameClientSocket::OnSocketError, this, std::placeholders::_1, std::placeholders::_2);
-
-	srand(time(0));
+	LoadConfig();
 }
 
 CGameClientSocket::~CGameClientSocket()
 {
 	SendDebugString("CGameClientSocket Destroy");
+}
+
+void CGameClientSocket::LoadConfig()
+{
+	std::string sConfigFileName = GetAppPathA() + "clientconfig.ini";
+	CWgtIniFile* pIniFileParser = new CWgtIniFile();
+	pIniFileParser->loadFromFile(sConfigFileName);
+	m_Address = pIniFileParser->getString("Setup", "ServerIP", "127.0.0.1");
+	m_Port = pIniFileParser->getInteger("Setup", "Port", DEFAULT_LISTENING_PORT);
 }
 
 void CGameClientSocket::SendToServerPeer(unsigned short usIdent, int iParam, void* pBuf, unsigned short usBufLen)

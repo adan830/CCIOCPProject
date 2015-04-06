@@ -32,7 +32,7 @@ private:
 	int m_iTotalWins;
 	int m_iTotalLosses;
 	int m_iTotalTies;
-
+	friend class CClientServerSocket;
 };
 
 /**

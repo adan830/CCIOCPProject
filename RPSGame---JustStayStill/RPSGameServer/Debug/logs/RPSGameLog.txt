@@ -1,0 +1,22 @@
+RPSGameServer Start...
+Server Listening Port = 8300
+RPSGameServer Start...
+Server Listening Port = 8300
+game client connect, remote ip is:127.0.0.1
+player [7076376]: Round 1 -> client [Rock] server [Rock] TIE
+player [7076376]: Round 2 -> client [Rock] server [Rock] TIE
+player [7076376]: Round 3 -> client [Paper] server [Paper] TIE
+player [7076376]: Round 4 -> client [Scissors] server [Rock] LOOSE
+player [7076376]: Round 5 -> client [Rock] server [Paper] LOOSE
+player [7076376]: Round 6 -> client [Scissors] server [Scissors] TIE
+player [7076376]: Round 7 -> client [Rock] server [Scissors] WIN
+player [7076376]: Round 8 -> client [Rock] server [Paper] LOOSE
+player [7076376]: Round 9 -> client [Scissors] server [Rock] LOOSE
+Please put the 'serverconfig.ini' into the exe folder!
+player [7076376]: Round 10 -> client [Scissors] server [Scissors] TIE
+player [7076376]: Round 11 -> client [Paper] server [Rock] WIN
+game client[7076376] disconnect, remote ip is:127.0.0.1, total wins[2] total losses[4], total ties[5]
+Please put the 'serverconfig.ini' into the exe folder!
+Please put the 'serverconfig.ini' into the exe folder!
+RPSGameServer Start...
+Server Listening Port = 8300

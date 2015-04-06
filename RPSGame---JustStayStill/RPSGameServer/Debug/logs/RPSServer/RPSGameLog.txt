@@ -1,0 +1,17 @@
+RPSGameServer Start...
+Server Listening Port = 8300
+game client connect, remote ip is:127.0.0.1
+player [6157552]: Round 1 -> client [Rock] server [Scissors] WIN
+player [6157552]: Round 2 -> client [Paper] server [Paper] TIE
+player [6157552]: Round 3 -> client [Rock] server [Scissors] WIN
+player [6157552]: Round 4 -> client [Rock] server [Paper] LOOSE
+player [6157552]: Round 5 -> client [Rock] server [Paper] LOOSE
+player [6157552]: Round 6 -> client [Paper] server [Scissors] LOOSE
+player [6157552]: Round 7 -> client [Scissors] server [Paper] WIN
+player [6157552]: Round 8 -> client [Paper] server [Scissors] LOOSE
+player [6157552]: Round 9 -> client [Scissors] server [Scissors] TIE
+player [6157552]: Round 10 -> client [Paper] server [Scissors] LOOSE
+game client[6157552] disconnect, remote ip is:127.0.0.1, total wins[3] total losses[5], total ties[2]
+RPSGameServer Start...
+Server Listening Port = 8300
+RPSGameServer Start...
