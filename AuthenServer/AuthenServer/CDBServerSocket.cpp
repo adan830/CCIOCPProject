@@ -816,7 +816,7 @@ bool CDBServerSocket::OnCheckIPAddress(const std::string &sConnectIP)
 
 void CDBServerSocket::LoadConfig()
 {
-	std::string sConfigFileName(G_CurrentExeDir + "config.ini");
+	std::string sConfigFileName(CC_UTILS::GetAppPathA() +"config.ini");
 	CWgtIniFile* pIniFileParser = new CWgtIniFile();
 	pIniFileParser->loadFromFile(sConfigFileName);
 	int iPort = pIniFileParser->getInteger("Setup", "Port", DEFAULT_AuthenServer_PORT);

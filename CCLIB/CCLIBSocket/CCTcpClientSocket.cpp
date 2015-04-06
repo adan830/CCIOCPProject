@@ -9,13 +9,16 @@ const int NETWORK_EVENT_RECEIVE_BUFFER_SIZE = 16 * 1024;					// 网络事件模型下的
 const int MAX_CACHE_SIZE    = 16 * 1024;							        // 每个节点的发送区大小
 
 /************************Start Of CNetworkEventClientSocketManager************************************/
-CNetworkEventClientSocketManager::CNetworkEventClientSocketManager():m_CSocket(INVALID_SOCKET)
+CNetworkEventClientSocketManager::CNetworkEventClientSocketManager() :m_CSocket(INVALID_SOCKET), m_First(nullptr), m_Last(nullptr),
+m_Count(0), m_BoActive(false), m_BoConnected(false)
 {
+	m_Event = CreateEvent(nullptr, false, false, nullptr);
 }
 
 CNetworkEventClientSocketManager::~CNetworkEventClientSocketManager()
 { 
 	Close(); 
+	CloseHandle(m_Event);
 }
 
 unsigned int CNetworkEventClientSocketManager :: SendBuf(const char* pBuf, unsigned int Len, bool BoFree)

@@ -183,7 +183,7 @@ namespace CC_UTILS{
 			m_uiAccuracy = ts.wPeriodMin;
 			timeBeginPeriod(m_uiAccuracy);
 			m_uiHandle = timeSetEvent(time_event_ms, m_uiAccuracy, IncTick, 
-				(DWORD_PTR)_ExGetTickCount, TIME_PERIODIC | TIME_CALLBACK_FUNCTION);
+				(DWORD_PTR)(&_ExGetTickCount), TIME_PERIODIC | TIME_CALLBACK_FUNCTION);
 		}
 	}
 
@@ -604,7 +604,7 @@ namespace CC_UTILS{
 		int len = _vscwprintf(szFormat, args);
 		std::wstring str;
 		str.resize(len);
-		_vsnwprintf(&str[0], len, szFormat, args);
+		_vsnwprintf_s(&str[0], len, len, szFormat, args);
 
 		va_end(args);
 
@@ -620,7 +620,7 @@ namespace CC_UTILS{
 		int len = _vscprintf(szFormat, args);
 		std::string str;
 		str.resize(len);
-		_vsnprintf(&str[0], len, szFormat, args);
+		_vsnprintf_s(&str[0], len, len, szFormat, args);
 
 		va_end(args);
 

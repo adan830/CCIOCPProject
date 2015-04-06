@@ -63,7 +63,7 @@ void CHumanReportManager::Initialize()
 
 void CHumanReportManager::LoadConfig()
 {
-	std::string sConfigFileName(G_CurrentExeDir + "config.ini");
+	std::string sConfigFileName(CC_UTILS::GetAppPathA() + "config.ini");
 	CWgtIniFile* pIniFileParser = new CWgtIniFile();
 	pIniFileParser->loadFromFile(sConfigFileName);
 	m_sDBHost = pIniFileParser->getString("Report", "Host", REPORT_DB_HOST);

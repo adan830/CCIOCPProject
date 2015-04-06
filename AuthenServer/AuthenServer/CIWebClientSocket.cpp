@@ -132,7 +132,7 @@ void CIWebClientSocket::OnSocketError(void* Sender, int& iErrorCode)
 
 void CIWebClientSocket::LoadConfig()
 {
-	std::string sConfigFileName(G_CurrentExeDir + "config.ini");
+	std::string sConfigFileName(CC_UTILS::GetAppPathA() + "config.ini");
 	CWgtIniFile* pIniFileParser = new CWgtIniFile();
 	pIniFileParser->loadFromFile(sConfigFileName);
 #ifdef TEST

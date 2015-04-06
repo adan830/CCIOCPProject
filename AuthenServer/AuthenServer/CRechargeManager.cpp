@@ -275,7 +275,7 @@ bool CRechargeManager::IsEnable()
 std::string CRechargeManager::LoadSQLConfig()
 {
 	std::string sRetStr;
-	std::string sConfigFileName(G_CurrentExeDir + "config.ini");
+	std::string sConfigFileName(CC_UTILS::GetAppPathA() + "config.ini");
 	CWgtIniFile* pIniFileParser = new CWgtIniFile();
 	pIniFileParser->loadFromFile(sConfigFileName);
 	sRetStr = "Host = " + pIniFileParser->getString("RechargeDB", "Host", GAME_PAY_DB_HOST) + "; User = " + pIniFileParser->getString("RechargeDB", "User", GAME_PAY_DB_USER) + 

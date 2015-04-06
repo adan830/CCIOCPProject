@@ -4,6 +4,7 @@
 **************************************************************************************/
 #include "stdafx.h"
 #include "CMainThread.h"
+#include "CClientServerSocket.h"
 
 using namespace CC_UTILS;
 
@@ -15,34 +16,21 @@ CMainThread::CMainThread(const std::string &sServerName)
 	mmTimer.Initialize(1);
 	m_pLogSocket = new CLogSocket("");
 	m_pLogSocket->m_OnConnectEvent = std::bind(&CMainThread::OnAddLabel, this, std::placeholders::_1);
-	/*
-	//-------------------------
-	//-------------------------
-	//-------------------------
-	G_ServerSocket := TServerSocket.Create;
-	*/
+	pG_ClientServerSocket = new CClientServerSocket();
 }
 
 CMainThread::~CMainThread()
 {
 	WaitThreadExecuteOver();
 	delete m_pLogSocket;
+	delete pG_ClientServerSocket;
 	mmTimer.Finalize();
-	/*
-	//---------------------
-	//---------------------
-	//---------------------
-	G_ServerSocket.Free;
-	*/
 }
 
 void CMainThread::DoExecute()
 {
 	m_pLogSocket->InitialWorkThread();
-	//-----------------
-	//-----------------
-	//G_ServerSocket->InitialWorkThread();
-
+	pG_ClientServerSocket->InitialWorkThread();
 	Log("GameGate Æô¶¯.");
 
 	while (!IsTerminated())

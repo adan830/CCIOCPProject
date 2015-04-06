@@ -287,7 +287,7 @@ bool CGiveItemManager::IsEnable()
 
 void CGiveItemManager::LoadSQLConfig()
 {
-	std::string sConfigFileName(G_CurrentExeDir + "config.ini");
+	std::string sConfigFileName(CC_UTILS::GetAppPathA() + "config.ini");
 	CWgtIniFile* pIniFileParser = new CWgtIniFile();
 	pIniFileParser->loadFromFile(sConfigFileName);
 	m_pWorkThread->InitConnectString(

@@ -344,7 +344,7 @@ const int SCM_RELIVE = 318;                                 // 复活
 
 const int SCM_ENCODE = 5008;                                 // 编码
 const int SCM_DECODE = 5009;                                 // 解码
-const int SCM_SELECT_AREA = 5011;                            // 选区
+const int SCM_SELECT_SERVER = 5011;                          // 选区
 const int SCM_SYSTEM_MESSAGE = 5017;                         // 消息
 const int SCM_CAN_ENTER = 5022;                              // 可以进入游戏
 const int SCM_GPS_CHECK_REQUEST = 6100;                      // 反外挂检查

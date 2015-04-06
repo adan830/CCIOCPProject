@@ -239,7 +239,7 @@ void CSecureManager::RemoveStrList(void* p, const std::string& sKey)
 
 void CSecureManager::LoadConfig()
 {
-	std::string sConfigFileName(G_CurrentExeDir + "config.ini");
+	std::string sConfigFileName(CC_UTILS::GetAppPathA() + "config.ini");
 	CWgtIniFile* pIniFileParser = new CWgtIniFile();
 	pIniFileParser->loadFromFile(sConfigFileName);
 	m_MaxRegisterCount = pIniFileParser->getInteger("Secure", "RegisterPerHour", MAX_REGISTER_COUNT);
