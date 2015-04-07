@@ -266,6 +266,11 @@ namespace CC_UTILS{
 		}
 	}
 
+	//----------------------------------
+	//----------------------------------
+	//----------------------------------
+	//-----功能检测效验????????????????
+	//-----功能检测效验????????????????
 	void SplitStrByLine(std::string& s, std::vector<std::string>* ret)
 	{
 		if (s != "")
@@ -277,17 +282,18 @@ namespace CC_UTILS{
 			std::string sTemp;
 			while ((*p) != '\0')
 			{
-				pStart = p;
+				iStart = iCurr;
+				iLen = 0;
 				while (((*p) != '\0') && ((*p) != '\r') && ((*p) != '\n'))
+				{
+					++iCurr;
+					++iLen;
 					++p;
-				sTemp.assign(pStart, )
-				
-
-
+				}
+				sTemp.assign(iStart, iLen);
+				ret->push_back(sTemp);
 			}
-
-		}
-		
+		}		
 	}
 
 	int StrToIntDef(const std::string& sTemp, const int iDef)
