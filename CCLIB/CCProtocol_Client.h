@@ -202,6 +202,33 @@ typedef struct _TPkgAction
 	unsigned char ucDir;
 }TPkgAction, *PPkgAction;
 
+// CM_SPELL
+typedef struct _TPkgSpellReq
+{
+	unsigned short usSkillID;                               //技能ID
+	unsigned short usFireX;                                 //目标Ｘ位置
+	unsigned short usFireY;                                 //目标Ｙ位置
+	int iTargID;                                            //目标ID
+	unsigned char ucDir;                                    //目标方向
+}TPkgSpellReq, *PPkgSpellReq;
+
+// CM_USE_BAG_ITEM 
+typedef struct _TPkgUseItem
+{
+	int iItemID;
+	unsigned char ucCDType;
+	unsigned short usCDTime;
+}TPkgUseItem, *PPkgUseItem;
+//buf:为使用物品需要的其他数据，如喇叭则为喇叭内容
+
+// CM_TRAN_COMMIT       
+typedef struct _TPkgCommitTran
+{
+	unsigned int uiTranID;									//事务ID
+	unsigned char ucResult;									//0:取消 1：确认
+	unsigned short usDataLen;								//数据长度
+}TPkgCommitTran, *PPkgCommitTran;
+
 // SCM_MAPINFO
 typedef struct _TPkgMapInfo
 {
@@ -292,6 +319,14 @@ const int CM_LOGON_OK = 21;                                  // 进入游戏ok
 const int CM_RUSH = 99;										 // 前冲
 const int CM_QUIT = 100;									 // 正常退出
 
+const int CM_STEP_BACKWARD = 105;                            // 后退
+
+const int CM_GUILD_OP = 112;                                 // 行会相关总协议
+
+const int CM_TRAN_COMMIT = 171;                              // 提交一个事务
+
+const int CM_EMAIL = 176;                                    // Email总协议
+
 //游戏客户端部分重要消息的重新编号
 const int CM_SELECT_SERVER = 3011;                           // 选服协议
 const int CM_AUTHEN_REQUEST = 3013;                          // 认证请求
@@ -339,7 +374,6 @@ const int SCM_R_RUSH = 222;                                 //前冲(右脚)
 const int SCM_CDTIME_UPDATE = 312;                          // CD更新
 
 const int SCM_RELIVE = 318;                                 // 复活
-
 
 
 const int SCM_ENCODE = 5008;                                 // 编码

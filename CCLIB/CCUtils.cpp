@@ -266,6 +266,30 @@ namespace CC_UTILS{
 		}
 	}
 
+	void SplitStrByLine(std::string& s, std::vector<std::string>* ret)
+	{
+		if (s != "")
+		{
+			char* p = &s[0];		
+			int iStart = 0;
+			int iLen = 0;
+			int iCurr = 0;
+			std::string sTemp;
+			while ((*p) != '\0')
+			{
+				pStart = p;
+				while (((*p) != '\0') && ((*p) != '\r') && ((*p) != '\n'))
+					++p;
+				sTemp.assign(pStart, )
+				
+
+
+			}
+
+		}
+		
+	}
+
 	int StrToIntDef(const std::string& sTemp, const int iDef)
 	{
 		int iRetValue;

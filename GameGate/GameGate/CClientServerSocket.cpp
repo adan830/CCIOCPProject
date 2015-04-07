@@ -548,196 +548,131 @@ void CPlayerClientConnector::InitDynCode(unsigned char ucEdIdx)
 TActionType CPlayerClientConnector::AnalyseIdent(char* pBuf, unsigned short usBufLen, unsigned char &ucCDType, unsigned int &uiCDTime)
 {
 	TActionType retAction = acNone;
-	/*
-var
-  i, iError         : integer;
-  Ps                : PSkillCoolDelay;
-  pData             : PAnsiChar;
-  Ident             : Word;
-  DataLen           : Word;
-  pSpell            : PPkgSpellReq;
-  PItem             : PPkgUseItem;
-begin
-	
-  if m_BoTrace and (m_RoleName <> '') then
-    TracertPackage(m_RoleName, Buf, BufLen);
-  bCDType := CD_NOT_DELAY;
-  cdTime := 0;
-  Result := acNone;
-  pData := Buf;
-  DataLen := BufLen;
-  Ident := PWord(pData)^;
-  Inc(pData, SizeOf(Word));
-  Dec(DataLen, SizeOf(Word));
-  FillChar(Result, sizeof(Result), 0);
-  case Ident of
-    CM_PHYHIT:
-      begin
-        Result := acAttack1;
-        bCDType := CD_ATTACK;
-        cdTime := m_HitSpeed;
-        GPSCheck();
-      end;
-    CM_WALK:
-      begin
-        Result := acWalk;
-        bCDType := CD_MOVE;
-        cdTime := CD_MOVE_TIME;
-        GPSCheck();
-      end;
-    CM_RUN:
-      begin
-        Result := acRun;
-        bCDType := CD_MOVE;
-        cdTime := CD_MOVE_TIME;
-        GPSCheck();
-      end;
-    CM_STEP_BACKWARD:
-      begin
-        GPSCheck();
-        Result := acStepBack;
-        bCDType := CD_MOVE;
-        cdTime := CD_MOVE_TIME;
-      end;
-    CM_RUSH:
-      begin
-        GPSCheck();
-        Result := acRush;
-        bCDType := CD_RUSH;
-        cdTime := CD_RUSH_TIME;
-      end;
-    CM_SPELL:
-      begin
-        GPSCheck();
-        Result := acMagic1;
-        bCDType := CD_MAGIC;
-        cdTime := CD_MAGIC_TIME;
-        if DataLen >= sizeof(TPkgSpellReq) then
-        begin
-          pSpell := PPkgSpellReq(pData);
-          for i := 0 to m_SkillTable.Count - 1 do
-          begin
-            Ps := m_SkillTable[i];
-            if pSpell^.wSkillID = Ps^.SkillID then
-            begin
-              Result := Ps^.ActType;
-              bCDType := Ps^.bCDType;                       // 技能CD类型， 不能配置为 1
-              cdTime := Ps^.dwCDTime;
-              Break;
-            end;
-          end;
-        end;
-        if Result in [acAttack1, acAttack2] then
-          Result := acNone;                                 // 战士的攻击魔法开关技能没有硬直
-      end;
-    CM_USE_BAG_ITEM:
-      begin
-        if DataLen >= SizeOf(TPkgUseItem) then
-        begin
-          PItem := PPkgUseItem(pData);
-          if PItem.bCDType > 10 then
-          begin
-            bCDType := PItem.bCDType;                       //  物品CD类型，不能配置为 1
-            cdTime := PItem.wCDTime;
-          end;
-          {else
-          begin
-            bCDType := CD_USEITEM;
-            cdTime := CD_USEITEM_TIME;
-          end;}
-        end;
-      end;
-    CM_CLICK_NPC:
-      begin
-        bcdType := CD_CLICK_NPC;
-        cdTime := CD_CLICKNPC_TIME;
-      end;
-    CM_GUILD_OP:
-      begin
-        bcdType := CD_RELATION_OP;
-        cdTime := CD_GUILDOP_TIME;
-        if CheckGuildWords(PData, DataLen) then
-          bCDType := CD_DENY;
-      end;
-    CM_SAY:
-      begin
-        GPSCheck();
-        bCDType := CD_SAY;
-        if m_BoGM then
-          cdTime := 100
-        else
-          cdTime := CD_SAY_TIME;
-      end;
-    CM_CLOSE_WINDOW:
-      begin
-        bCDType := CD_SAY;
-        cdTime := CD_SAY_TIME;
-        if (DataLen <= SizeOf(TClientWindowRec)) or (PClientWindowRec(pData)^.WinType in [cwPayPwd]) then
-          Exit;
-        inc(pData, sizeof(TClientWindowRec));
-        Dec(DataLen, sizeof(TClientWindowRec));
-        if CheckInputWords(PData, DataLen) then
-          bCDType := CD_DENY;
-      end;
-    CM_TRAN_COMMIT:
-      begin
-        if (DataLen <= sizeof(TPkgCommitTran)) or (PPkgCommitTran(pData)^.bResult <> 1) or (DataLen <> sizeof(TPkgCommitTran) + PPkgCommitTran(pData)^.bDataLen) then
-          Exit;
-        inc(pData, sizeof(TPkgCommitTran));
-        Dec(DataLen, sizeof(TPkgCommitTran));
-        if CheckInputWords(pData, DataLen) then
-          bCDType := CD_DENY;
-      end;
-    CM_EMAIL:
-      begin
-        if not m_BoGM then
-        begin
-          bCDType := CD_EMAIL;
-          cdTime := CD_EMAIL_TIME;
-        end;
-      end;
-    CM_GPS_CHECK_RESPONSE:
-      begin
-        if not m_BoGM and Assigned(m_CSAuthObject) then
-        begin
-          m_GPS_Request := False;
-          iError := GPSCheckAuthResponse(m_CSAuthObject, pData, DataLen);
-          case iError of
-            CHECK_OK:
-              begin
-                {$IFDEF TEST}Log('检查成功');
-                {$ENDIF}
-              end;
-            ERRORLEN,                                       // Log('客户端封包长度不正确');
-              ERRORPACKET:                                  // Log('客户端封包不正确');
-              begin
-                Log(m_RoleName + ' AuthResponse错误!' + IntToStr(iError));
-              end;
-          else
-           //  CHECK_EXCEPT
-            LOG(m_RoleName + ' CSAUTH调用异常');
-          end;
-        end;
-        bCDType := CD_DENY;
-      end;
-  else
-  end;
-  {$IFDEF TESTACT}
-  if bCDType > CD_NOT_DELAY then
-  begin
-    Log(Format('action: %d  cdType: %d   cdTime: %d Diff=%d', [ord(Result), bcdtype, cdtime, _GetTickCount - m_LastCD_Ticks[bcdtype]]));
-  end;
-  {$ENDIF}
+	if (m_bTrace && (m_sRoleName != ""))
+		TracertPackage(m_sRoleName, pBuf, usBufLen);
+	ucCDType = CD_NOT_DELAY;
+	uiCDTime = 0;
+	char* pData = pBuf;
+	unsigned short usDataLen = usBufLen;
+	unsigned short usIdent = *(unsigned short*)pData;
+	pData += sizeof(unsigned short);
+	usDataLen -= sizeof(unsigned short);
 
-  if bCDType > MAX_CD_ID then                               // 可能是异常CD
-  begin
-    Log(Format('DENY cdtype=%d, Ident=%d, RoleName=%s', [bCDType, Ident, m_RoleName]));
-    bCDType := CD_DENY;
-  end;
-  if bCDType = CD_NOT_DELAY then
-    cdTime := 0;
-end;
-	*/
+	switch (usIdent)
+	{
+	case CM_PHYHIT:
+		retAction = acAttack1;
+		ucCDType = CD_ATTACK;
+		uiCDTime = m_usHitSpeed;
+		break;
+	case CM_WALK:
+		retAction = acWalk;
+		ucCDType = CD_MOVE;
+		uiCDTime = CD_MOVE_TIME;
+		break;
+	case CM_RUN:
+		retAction = acRun;
+		ucCDType = CD_MOVE;
+		uiCDTime = CD_MOVE_TIME;
+		break;
+	case CM_STEP_BACKWARD:
+		retAction = acStepBack;
+		ucCDType = CD_MOVE;
+		uiCDTime = CD_MOVE_TIME;
+		break;
+	case CM_RUSH:
+		retAction = acRush;
+		ucCDType = CD_RUSH;
+		uiCDTime = CD_RUSH_TIME;
+		break;
+	case CM_SPELL:
+		retAction = acMagic1;
+		ucCDType = CD_MAGIC;
+		uiCDTime = CD_MAGIC_TIME;
+		if (usDataLen >= sizeof(TPkgSpellReq))
+		{
+			PPkgSpellReq pSpell = (PPkgSpellReq)pData;
+			PSkillCoolDelay pCD = nullptr;
+			std::vector<PSkillCoolDelay>::iterator vIter;
+			for (vIter = m_SkillCDTable.begin(); vIter != m_SkillCDTable.end(); ++vIter)
+			{
+				pCD = *vIter;
+				if ((pCD != nullptr) && (pSpell->usSkillID == pCD->usSkillID))
+				{
+					retAction = pCD->ActType;
+					ucCDType = pCD->ucCDType;  // CD类型,不能为1
+					uiCDTime = pCD->uiCDTime;
+					break;
+				}
+			}
+		}
+		if ((acAttack1 == retAction) || (acAttack2 == retAction))
+			retAction = acNone;
+		break;
+	case CM_USE_BAG_ITEM:
+		if (usDataLen >= sizeof(TPkgUseItem))
+		{
+			PPkgUseItem pItem = (PPkgUseItem)pData;
+			if (pItem->ucCDType > 10)
+			{
+				ucCDType = pItem->ucCDType;    // CD类型,不能为1
+				uiCDTime = pItem->usCDTime;
+			}
+		}
+		break;
+	case CM_CLICK_NPC:
+		ucCDType = CD_CLICK_NPC;
+		uiCDTime = CD_CLICKNPC_TIME;
+		break;
+    case CM_GUILD_OP:
+		ucCDType = CD_RELATION_OP;
+		uiCDTime = CD_GUILDOP_TIME;
+		if (CheckGuildWords(pData, usDataLen))
+			ucCDType = CD_DENY;
+		break;
+    case CM_SAY:
+		ucCDType = CD_SAY;
+		if (m_bGM)
+			uiCDTime = 100;
+		else
+			uiCDTime = CD_SAY_TIME;
+		break;
+	case CM_CLOSE_WINDOW:
+		ucCDType = CD_SAY;
+		uiCDTime = CD_SAY_TIME;
+		if ((usDataLen <= sizeof(TClientWindowRec)) || (((PClientWindowRec)pData)->WinType = cwPayPwd))
+			return retAction;
+
+		pData += sizeof(TClientWindowRec);
+		usDataLen -= sizeof(TClientWindowRec);
+		if (CheckGuildWords(pData, usDataLen))
+			ucCDType = CD_DENY;
+		break;
+	case CM_TRAN_COMMIT:
+		if ((usDataLen <= sizeof(TPkgCommitTran)) || (((PPkgCommitTran)pData)->ucResult != 1) || (usDataLen != sizeof(TPkgCommitTran)+((PPkgCommitTran)pData)->usDataLen))
+			return retAction;
+
+		pData += sizeof(TPkgCommitTran);
+		usDataLen -= sizeof(TPkgCommitTran);
+		if (CheckGuildWords(pData, usDataLen))
+			ucCDType = CD_DENY;
+		break;	   
+	default:
+		break;
+	}
+
+//#ifdef TESTACT
+	if (ucCDType > CD_NOT_DELAY)
+		Log(CC_UTILS::FormatStr("action:%d  cdType:%d   cdTime:%d  Diff=%d", retAction, ucCDType, uiCDTime, _ExGetTickCount - m_LastCDTicks[ucCDType]));
+//#endif
+
+	if (ucCDType > MAX_CD_ID)
+	{
+		Log(CC_UTILS::FormatStr("DENY cdType=%d, Ident=%d, RoleName=%s", ucCDType, usIdent, m_sRoleName));
+		ucCDType = CD_DENY;
+	}
+	if (CD_NOT_DELAY == ucCDType)
+		uiCDTime = 0;
 	return retAction;
 }
 

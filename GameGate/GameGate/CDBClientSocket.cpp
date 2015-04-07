@@ -185,27 +185,8 @@ void CDBClientSocket::AddForbiddenWord(char* pBuf, unsigned short usBufLen, int 
 	}
 	std::string sTemp;
 	sTemp.assign(pBuf, usBufLen);
-	/*
-var
-  tmpList           : TStringList;
-  s                 : ansistring;
-begin
-  if BufLen <= 0 then
-  begin
-    m_ForbiddenWords.Clear;
-    Exit;
-  end;
-  SetString(s, Buf, BufLen);
-  tmpList := TStringList.Create;
-  try
-    tmpList.Text := s;
-    m_ForbiddenWords.AddStrings(tmpList);
-    Log(Format('收到过滤字(%d Bytes)：%d/%d 条', [BufLen, m_ForbiddenWords.Count, Count]), lmtMessage);
-  finally
-    tmpList.Free;
-  end;
-end;
-	*/
+	CC_UTILS::SplitStrByLine(sTemp, &m_ForbiddenWords);
+	Log(CC_UTILS::FormatStr("收到过滤字(%d Bytes)：%d/%d 条", usBufLen, m_ForbiddenWords.size(), iCount), lmtMessage);
 }
 
 /************************End Of CDBClientSocket********************************************/
