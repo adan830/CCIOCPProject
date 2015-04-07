@@ -70,10 +70,10 @@ public:
 	void InCreditNow();
 	void InSendItemNow();
 	void BroadCastKickOutNow(const std::string &sAccount, int iParam);
+	bool OnChildNotify(int iServerID, PGameChildInfo p);
 protected:
 	virtual void DoActive();
 private:
-	bool OnChildNotify(int iServerID, PGameChildInfo p);
 	void ProcResponseMsg();
 	void Clear();
 	void LoadServerConfig();

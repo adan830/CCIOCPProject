@@ -394,9 +394,6 @@ m_pLogSocket(nullptr), m_FirstNode(nullptr), m_LastNode(nullptr)
 	m_OnConnect = std::bind(&CDBServerSocket::OnDBConnect, this, std::placeholders::_1);
 	m_OnDisConnect = std::bind(&CDBServerSocket::OnDBDisconnect, this, std::placeholders::_1);
 	m_OnCheckAddress = std::bind(&CDBServerSocket::OnCheckIPAddress, this, std::placeholders::_1);
-
-	pG_ProtectChildManager = new CProtectChildManager();
-	pG_ProtectChildManager->m_OnNotifyEvent = std::bind(&CDBServerSocket::OnChildNotify, this, std::placeholders::_1, std::placeholders::_2);
 	LoadConfig();
 }
 
@@ -406,7 +403,6 @@ CDBServerSocket::~CDBServerSocket()
 	m_ServerHash.m_RemoveEvent = nullptr;
 	if (m_pLogSocket != nullptr)
 		delete m_pLogSocket;
-	delete pG_ProtectChildManager;
 }
 
 void CDBServerSocket::SQLJobResponse(int iCmd, int iHandle, int iParam, int iRes, const std::string &str)

@@ -42,4 +42,6 @@ private:
 	std::vector<std::string> m_ForbiddenWords;
 };
 
+extern CDBClientSocket* pG_DBServer;
+
 #endif //__CC_DBSERVER_CLIENT_SOCKET_H__

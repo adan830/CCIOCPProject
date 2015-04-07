@@ -125,9 +125,7 @@ public:
 	void ProcServerMessage(unsigned short usIdent, unsigned short usHandle, char* pBuf, unsigned short usBufLen);
 	void ClientManage(unsigned short usIdent, unsigned short usHandle, char* pBuf, unsigned short usBufLen, bool bInGame);
 	void GameServerShutDown();
-public:
-	CGSClientSocket* m_pGameServer;
-	CDBClientSocket* m_pDBServer;
+public:	
 	std::string m_sInternetIP;
 protected:
 	virtual void DoActive();
@@ -140,8 +138,7 @@ private:
 	void OnClientDisconnect(void* Sender);
 	void NotifyNotExistClient(unsigned short usHandle, int iReason);
 private:
-	bool m_bListenOK;
-	CIMClientSocket* m_pIMServer;
+	bool m_bListenOK;	
 	std::string m_sDBAddr;
 	int m_iDBPort;
 	int m_iLoopCount;

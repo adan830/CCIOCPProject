@@ -135,6 +135,7 @@ int CALLBACK ConditionFunc(
 CMainIOCPWorker::CMainIOCPWorker(void* parent) : m_OnSocketError(nullptr), m_OnSocketClose(nullptr), m_OnReady(nullptr),
 m_OnSocketAccept(nullptr), m_Parent(parent), m_hIOCP(0), m_Socket(INVALID_SOCKET), m_iSubThreadCount(0), m_SubWorkers(nullptr)
 {
+	m_sThreadName = "CMainIOCPWorker";
 }
 
 CMainIOCPWorker :: ~CMainIOCPWorker()
@@ -600,6 +601,7 @@ CIOCPServerSocketManager :: CIOCPServerSocketManager():m_sLocalIP(""), m_iListen
 	m_iMaxCorpseTime(DEFAULT_CLIENT_CORPSE_TIME), m_iMaxBlockSize(MAX_CLIENT_SEND_BUFFER_SIZE), m_bDelayFree(false),
 	m_DFNFirst(nullptr), m_DFNLast(nullptr), m_usNewCreateHandle(1000), m_iDelayFreeHandleCount(0)
 {
+	m_sThreadName = "CIOCPServerSocketManager";
 	m_QueryClientHash.DoInitial(MAX_HASH_BUCKETS_SIZE);
 }
 

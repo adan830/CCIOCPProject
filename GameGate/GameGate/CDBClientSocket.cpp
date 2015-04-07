@@ -8,6 +8,8 @@
 
 using namespace CC_UTILS;
 
+CDBClientSocket* pG_DBServer;
+
 /************************Start Of CDBClientSocket******************************************/
 
 CDBClientSocket::CDBClientSocket() : m_iPingCount(0), m_uiLastPingTick(0), m_bEnable(false), m_ForbiddenWords(300)

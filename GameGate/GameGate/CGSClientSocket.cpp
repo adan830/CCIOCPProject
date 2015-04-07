@@ -8,6 +8,8 @@
 
 using namespace CC_UTILS;
 
+CGSClientSocket* pG_GameServer;
+
 /************************Start Of CGSClientSocket******************************************/
 
 CGSClientSocket::CGSClientSocket() : m_bShutDown(false), m_iPingCount(0), m_uiLastPingTick(0)
@@ -108,8 +110,8 @@ void CGSClientSocket::OnSocketConnect(void* Sender)
 	Log("GameServer(" + m_Address + ":" + std::to_string(m_Port) + ") Connected.");
 	m_bShutDown = false;
 	SendRegisterServer();
-	if ((pG_ClientServerSocket != nullptr) && (pG_ClientServerSocket->m_pDBServer != nullptr))
-		pG_ClientServerSocket->m_pDBServer->SetEnable(true);
+	if ((pG_ClientServerSocket != nullptr) && (pG_DBServer != nullptr))
+		pG_DBServer->SetEnable(true);
 }
 
 void CGSClientSocket::OnSocketDisconnect(void* Sender)

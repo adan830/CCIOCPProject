@@ -245,7 +245,8 @@ bool CPlayerClientConnector::CheckGuildWords(char* pBuf, unsigned short usBufLen
 		}
 		if (sOperStr != "")
 		{
-			sFindStr = pG_ClientServerSocket->m_pDBServer->IsIncludeForbiddenWord(sOperStr);
+			if (pG_DBServer != nullptr)
+				sFindStr = pG_DBServer->IsIncludeForbiddenWord(sOperStr);
 			if (sFindStr != "")
 			{
 				SendMsg(CC_UTILS::FormatStr("含有违禁字[%s],设置失败！", sFindStr.c_str()));
@@ -304,7 +305,7 @@ void CPlayerClientConnector::ProcessReceiveMsg(char* pHeader, char* pData, int i
 		SendToClientPeer(SCM_PING, _ExGetTickCount, nullptr, 0);
 		break;
 	case CM_GAME_CONNECT:
-		if ((!pG_ClientServerSocket->m_pGameServer->IsConnected()) || (pG_ClientServerSocket->m_pGameServer->m_bShutDown))
+		if ((!pG_GameServer->IsConnected()) || (pG_GameServer->m_bShutDown))
 		{
 			OpenWindow(cwMessageBox, 0, "目前服务器处于维护中，请稍候！！！");
 			DelayClose(-10);
@@ -893,20 +894,11 @@ CClientServerSocket::CClientServerSocket()
 	m_OnConnect = std::bind(&CClientServerSocket::OnClientConnect, this, std::placeholders::_1);
 	m_OnDisConnect = std::bind(&CClientServerSocket::OnClientDisconnect, this, std::placeholders::_1);
 	m_OnListenReady = std::bind(&CClientServerSocket::OnListenReady, this, std::placeholders::_1);
-
-	m_pDBServer = new CDBClientSocket();
-	m_pGameServer = new CGSClientSocket();
-	m_pIMServer = new CIMClientSocket();
 	LoadConfig();
 }
 
 CClientServerSocket::~CClientServerSocket()
-{
-	Close();
-	delete m_pIMServer;
-	delete m_pGameServer;
-	delete m_pDBServer;
-}
+{}
 
 void CClientServerSocket::SMServerConfig(int iParam, char* pBuf, unsigned short usBufLen)
 {
@@ -923,10 +915,10 @@ void CClientServerSocket::SMServerConfig(int iParam, char* pBuf, unsigned short 
 		Log("GameGate " + std::to_string(iParam) + " 启动.", lmtMessage);
 
 		Log("Connect To GameServer(" + sGSIP + ":" + std::to_string(pSA->iPort) + ")");
-		m_pGameServer->ConnectToServer(sGSIP, pSA->iPort);
+		pG_GameServer->ConnectToServer(sGSIP, pSA->iPort);
 		pSA->iPort += 10;
 		Log("Connect To IMServer(" + sGSIP + ":" + std::to_string(pSA->iPort) + ")");
-		m_pIMServer->ConnectToServer(sGSIP, pSA->iPort);
+		pG_IMServer->ConnectToServer(sGSIP, pSA->iPort);
 	}
 }
 
@@ -1026,12 +1018,12 @@ void CClientServerSocket::ClientManage(unsigned short usIdent, unsigned short us
 			{
 				if (bInGame)
 				{
-					pClient->m_OnSendToServer = std::bind(&CGSClientSocket::SendToServerPeer, m_pGameServer, 
+					pClient->m_OnSendToServer = std::bind(&CGSClientSocket::SendToServerPeer, pG_GameServer, 
 						std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 				}
 				else
 				{
-					pClient->m_OnSendToServer = std::bind(&CDBClientSocket::SendToServerPeer, m_pDBServer,
+					pClient->m_OnSendToServer = std::bind(&CDBClientSocket::SendToServerPeer, pG_DBServer,
 						std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 				}					
 			}
@@ -1091,9 +1083,9 @@ void CClientServerSocket::DoActive()
 		if (!m_bListenOK)
 			return;
 
-		m_pDBServer->DoHeartBeat();
-		m_pGameServer->DoHeartBeat();
-		m_pIMServer->DoHeartBeat();
+		pG_DBServer->DoHeartBeat();
+		pG_GameServer->DoHeartBeat();
+		pG_IMServer->DoHeartBeat();
 	}
 }
 
@@ -1144,7 +1136,7 @@ void CClientServerSocket::OnListenReady(void* Sender)
 {
 	m_bListenOK = true;
 	Log("Connect To DBServer(" + m_sDBAddr + ":" + std::to_string(m_iDBPort) + ")");
-	m_pDBServer->ConnectToServer(m_sDBAddr, m_iDBPort);
+	pG_DBServer->ConnectToServer(m_sDBAddr, m_iDBPort);
 	UpdateLabel("Port:" + std::to_string(m_iListenPort), LABEL_PORT_ID);
 }
 
@@ -1153,7 +1145,7 @@ void CClientServerSocket::OnClientConnect(void* Sender)
 	CPlayerClientConnector* pConnector = (CPlayerClientConnector*)Sender;
 	if (pConnector != nullptr)
 	{
-		pConnector->m_OnSendToServer = std::bind(&CDBClientSocket::SendToServerPeer, m_pDBServer, 
+		pConnector->m_OnSendToServer = std::bind(&CDBClientSocket::SendToServerPeer, pG_DBServer, 
 			std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 		pConnector->m_bDisconnected = false;
 		UpdateLabel("Connect: " + std::to_string(m_ActiveConnects.size()) + "/" + std::to_string(m_iDelayFreeHandleCount), LABEL_CONNECT_ID);
@@ -1166,18 +1158,18 @@ void CClientServerSocket::OnClientDisconnect(void* Sender)
 	if (pConnector != nullptr)
 	{
 		UpdateLabel("Connect: " + std::to_string(m_ActiveConnects.size()) + "/" + std::to_string(m_iDelayFreeHandleCount), LABEL_CONNECT_ID);
-		m_pDBServer->ClientDisconnect(pConnector->GetSocketHandle());
-		m_pGameServer->ClientDisconnect(pConnector->GetSocketHandle());
-		m_pIMServer->ClientDisconnect(pConnector->GetSocketHandle());;
+		pG_DBServer->ClientDisconnect(pConnector->GetSocketHandle());
+		pG_GameServer->ClientDisconnect(pConnector->GetSocketHandle());
+		pG_IMServer->ClientDisconnect(pConnector->GetSocketHandle());;
 		pConnector->OnDisconnect();
 	}
 }
 
 void CClientServerSocket::NotifyNotExistClient(unsigned short usHandle, int iReason)
 {
-	m_pDBServer->ClientDisconnect(usHandle);
-	m_pGameServer->ClientDisconnect(usHandle);
-	m_pIMServer->ClientDisconnect(usHandle);	
+	pG_DBServer->ClientDisconnect(usHandle);
+	pG_GameServer->ClientDisconnect(usHandle);
+	pG_IMServer->ClientDisconnect(usHandle);
 #ifdef TEST
 	Log("Not Found Client " + std::to_string(usHandle) + ", Reason=" + std::to_string(iReason), lmtError);
 #endif

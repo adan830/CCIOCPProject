@@ -12,6 +12,7 @@
 #include "CSecureManager.h"
 #include "CAuthFailLog.h"
 #include "CIWebClientSocket.h"
+#include "CProtectChildManager.h"
 
 using namespace CC_UTILS;
 
@@ -24,6 +25,8 @@ CMainThread::CMainThread(const std::string &sServerName) : m_uiSlowRunTick(0), m
 	m_pLogSocket->m_OnConnectEvent = std::bind(&CMainThread::OnAddLabel, this, std::placeholders::_1);
 	pG_SQLDBManager = new CSQLDBManager;
 	pG_DBSocket = new CDBServerSocket(sServerName);
+	pG_ProtectChildManager = new CProtectChildManager();
+	pG_ProtectChildManager->m_OnNotifyEvent = std::bind(&CDBServerSocket::OnChildNotify, pG_DBSocket, std::placeholders::_1, std::placeholders::_2);
 	pG_IWebSocket = new CIWebClientSocket();
 	pG_RechargeManager = new CRechargeManager();
 	pG_GiveItemManager = new CGiveItemManager();
@@ -35,7 +38,8 @@ CMainThread::CMainThread(const std::string &sServerName) : m_uiSlowRunTick(0), m
 CMainThread::~CMainThread()
 {
 	WaitThreadExecuteOver();
-	delete pG_DBSocket;
+	delete pG_ProtectChildManager;
+	delete pG_DBSocket;	
 	delete pG_SQLDBManager;
 	delete pG_RechargeManager;
 	delete pG_GiveItemManager;
@@ -50,6 +54,7 @@ void CMainThread::DoExecute()
 {
 	m_pLogSocket->InitialWorkThread();
 	pG_DBSocket->InitialWorkThread();
+	pG_ProtectChildManager->InitialWorkThread();
 	pG_AuthFailLog->InitialWorkThread();
 	pG_IWebSocket->InitialWorkThread();
 
@@ -82,6 +87,7 @@ void CMainThread::DoExecute()
 		WaitForSingleObject(m_Event, 10);
 	}
 	pG_DBSocket->Close();
+	pG_IWebSocket->Close();
 }
 
 void CMainThread::OnAddLabel(void* Sender)

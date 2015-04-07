@@ -5,6 +5,9 @@
 #include "stdafx.h"
 #include "CMainThread.h"
 #include "CClientServerSocket.h"
+#include "CGSClientSocket.h"
+#include "CDBClientSocket.h"
+#include "CIMClientSocket.h"
 
 using namespace CC_UTILS;
 
@@ -17,13 +20,19 @@ CMainThread::CMainThread(const std::string &sServerName)
 	m_pLogSocket = new CLogSocket("");
 	m_pLogSocket->m_OnConnectEvent = std::bind(&CMainThread::OnAddLabel, this, std::placeholders::_1);
 	pG_ClientServerSocket = new CClientServerSocket();
+	pG_DBServer = new CDBClientSocket();
+	pG_GameServer = new CGSClientSocket();
+	pG_IMServer = new CIMClientSocket();
 }
 
 CMainThread::~CMainThread()
 {
 	WaitThreadExecuteOver();
-	delete m_pLogSocket;
+	delete pG_IMServer;
+	delete pG_GameServer;
+	delete pG_DBServer;
 	delete pG_ClientServerSocket;
+	delete m_pLogSocket;
 	mmTimer.Finalize();
 }
 
@@ -31,12 +40,19 @@ void CMainThread::DoExecute()
 {
 	m_pLogSocket->InitialWorkThread();
 	pG_ClientServerSocket->InitialWorkThread();
+	pG_DBServer->InitialWorkThread();
+	pG_GameServer->InitialWorkThread();
+	pG_IMServer->InitialWorkThread();
 	Log("GameGate Æô¶¯.");
 
 	while (!IsTerminated())
 	{
 		WaitForSingleObject(m_Event, 100);
 	}
+	pG_ClientServerSocket->Close();
+	pG_DBServer->Close();
+	pG_GameServer->Close();
+	pG_IMServer->Close();
 }
 
 void CMainThread::OnAddLabel(void* Sender)

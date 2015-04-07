@@ -311,8 +311,9 @@ bool CNetworkEventClientSocketManager :: DoInitialize()
 /************************Start Of CIOCPClientSocketManager******************************************/
 CIOCPClientSocketManager::CIOCPClientSocketManager() : m_OnRead(nullptr), m_OnError(nullptr), m_OnConnect(nullptr), m_OnDisConnect(nullptr),
 	m_LocalAddress(""), m_Address(""), m_Port(), m_TotalBufferlen(0), m_BoActive(false), m_BoConnected(false), m_Sending(false),
-	m_hIOCP(0), m_CSocket(INVALID_SOCKET), m_RecvLock(0), m_SendLock(0), m_Reconnect_Interval(10*1000)
+	m_hIOCP(0), m_CSocket(INVALID_SOCKET), m_RecvLock(0), m_SendLock(0), m_Reconnect_Interval(10 * 1000)
 {
+	m_sThreadName = "CIOCPClientSocketManager";
 	memset(&m_SendBlock, 0, sizeof(m_SendBlock));
 	memset(&m_RecvBlock, 0, sizeof(m_RecvBlock));
 	memset(&m_SocketAddr, 0, sizeof(m_SocketAddr));

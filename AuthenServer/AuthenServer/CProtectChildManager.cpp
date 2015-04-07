@@ -40,7 +40,7 @@ void CProtectChildManager::DoExecute()
 		++uiSaveTick;
 		if (0 == uiSaveTick % 600)
 			SaveChildOnlineInfo();
-		WaitForSingleObject(m_Event, 1000);
+		WaitForSingleObject(m_Event, 100);
 	}
 	SaveChildOnlineInfo();
 }
@@ -233,8 +233,16 @@ void CProtectChildManager::LoadChildOnlineInfo()
 		std::string sJsonStr;
 		std::string sTemp;
 		//c++解析utf-8的json文件乱码，还是需要ascii
+		std::string sFileName = GetAppPathA() + CHILD_FILE_NAME;
+		if (!IsFileExistsA(sFileName.c_str()))
+			return;
+
 		ifstream configFile;
-		configFile.open(G_CurrentExeDir + CHILD_FILE_NAME);
+		configFile.open(sFileName);
+		//--------------------------------
+		//--------------------------------
+		//--------------------------------
+		//--------这里死循环了 
 		while (!configFile.eof())
 		{
 			configFile >> sTemp;

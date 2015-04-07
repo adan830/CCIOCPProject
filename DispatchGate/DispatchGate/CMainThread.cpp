@@ -29,6 +29,7 @@ CMainThread::~CMainThread()
 	delete pG_CenterSocket;
 	delete pG_GateSocket;
 	delete pG_DBSocket;
+	delete m_pLogSocket;
 }
 
 void CMainThread::CheckConfig(const unsigned int uiTick)
