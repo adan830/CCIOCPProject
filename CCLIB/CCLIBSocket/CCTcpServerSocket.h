@@ -140,7 +140,7 @@ public:
 	CIOCPServerSocketManager();
 	virtual ~CIOCPServerSocketManager();
 	void Open();
-	virtual void Close();
+	void Close();
 	bool IsActive(){ return (m_MainWorker != nullptr); }
     void DoExecute();							 //子类不重载此方法
 	bool DoCheckConnect(const std::string& sRemoteAddress);
