@@ -6,6 +6,7 @@
 #define __CC_DBSERVER_MAIN_THREAD_H__
 
 #include "stdafx.h"
+#include "CCHashClass.h"
 #include <mutex>
 
 const int LABEL_CONNECT_COUNT_ID = 1;
@@ -65,17 +66,15 @@ private:
 private:
 	unsigned int m_uiSlowTick;
 	std::mutex m_MsgCS;
-	PInnerMsgNode pFirst;
-	PInnerMsgNode pLast;
+	PInnerMsgNode m_pFirst;
+	PInnerMsgNode m_pLast;
 	int m_iNetBarIPFileAge;
 	int m_iConfigFileAge;
 	int m_iFilterFileAge;
 	unsigned int m_uiLastCheckTick;
-
-    m_QueueCountList: array[TInterMsgType] of Integer;
-    FNoNeedActivateIPList: TIntegerHash;  
-    FFilterWords: TStringList;
-
+	CC_UTILS::CIntegerHash m_NoNeedActivateIPHash;
+	std::vector<std::string> m_FilterWords;
+	int m_iQueueCountList[5];
 	bool m_bAllowGuest;
 	bool m_bDenyRecharge;
 	CC_UTILS::TMMTimer mmTimer;
