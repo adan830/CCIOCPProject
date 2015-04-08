@@ -91,6 +91,7 @@ void CGSClientSocket::ProcessReceiveMsg(PServerSocketHeader pHeader, char* pData
 	{
 	case SM_PING:
 		m_iPingCount = 0;
+		break;
 	case SM_PLAYER_CONNECT:
 	case SM_PLAYER_DISCONNECT:
 		pG_ClientServerSocket->ClientManage(pHeader->usIdent, pHeader->iParam, pData, iDataLen, true);

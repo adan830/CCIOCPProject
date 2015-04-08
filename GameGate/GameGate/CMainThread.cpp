@@ -17,6 +17,7 @@ CMainThread* pG_MainThread;
 CMainThread::CMainThread(const std::string &sServerName)
 {
 	mmTimer.Initialize(1);
+	G_LocalGateIdx = 1;
 	m_pLogSocket = new CLogSocket("");
 	m_pLogSocket->m_OnConnectEvent = std::bind(&CMainThread::OnAddLabel, this, std::placeholders::_1);
 	pG_ClientServerSocket = new CClientServerSocket();
@@ -57,19 +58,13 @@ void CMainThread::DoExecute()
 
 void CMainThread::OnAddLabel(void* Sender)
 {
-	/*
-	//------------------------
-	//------------------------
-	  with m_LogSocket do
-	  begin
-		if Assigned(G_ServerSocket) then
-		  AddLabel('Port:' + IntToStr(G_ServerSocket.Port), 16, 12, LABEL_PORT_ID)
-		else
-		  AddLabel('Port: 0', 16, 12, LABEL_PORT_ID);
-		AddLabel('Connect: 0', 179, 12, LABEL_CONNECT_ID);
-		AddLabel('RUN: 0', 16, 37, LABEL_RUN_ID);
-	  end;
-	*/
+	if (pG_ClientServerSocket != nullptr)
+		m_pLogSocket->AddLabel("Port:" + std::to_string(pG_ClientServerSocket->m_iListenPort), 16, 12, LABEL_PORT_ID);
+	else
+		m_pLogSocket->AddLabel("Port: 0", 16, 12, LABEL_PORT_ID);
+
+	m_pLogSocket->AddLabel("Connect: 0", 179, 12, LABEL_CONNECT_ID);
+	m_pLogSocket->AddLabel("RUN: 0", 16, 37, LABEL_RUN_ID);
 }
 
 void CMainThread::StartLogSocket(int idx)
