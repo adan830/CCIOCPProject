@@ -41,6 +41,32 @@ typedef struct _TServerAddress
 	unsigned char ucNetType;
 }TServerAddress, *PServerAddress;
 
+// 服务器内部的消息类型
+enum TInnerMsgType
+{
+	fromDispatchGate,
+	fromDBServer,
+	fromGameServer,
+	fromGameGate,
+	fromAuthenServer,
+	fromDataBase,
+	fromInternal,
+	fromIMServer
+}; 
+
+// 服务器内部的消息结构
+typedef struct _TInnerMsgNode
+{
+	TInnerMsgType MsgFrom;
+	int iIdx;
+	int iParam;  // Client SocketHandle
+	char* pBuf;
+	unsigned short usIdent;
+	unsigned short usBufLen;
+	_TInnerMsgNode* pNext;
+}TInnerMsgNode, *PInnerMsgNode;
+
+
 // 服务器当前的连接信息
 typedef struct _TServerConnectInfo
 {

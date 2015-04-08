@@ -14,8 +14,6 @@
 
 namespace CC_UTILS{
 
-	extern std::string G_CurrentExeFileName;       //当前程序的完整路径
-	extern std::string G_CurrentExeDir;            //当前程序所在的目录
 	extern unsigned int _ExGetTickCount;           
 
 	//简易的Hash结点
