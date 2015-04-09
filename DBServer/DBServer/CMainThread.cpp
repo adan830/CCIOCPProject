@@ -4,6 +4,7 @@
 **************************************************************************************/
 #include "stdafx.h"
 #include "CMainThread.h"
+#include "CDBGlobal.h"
 
 using namespace CC_UTILS;
 
@@ -57,6 +58,12 @@ void CMainThread::DoExecute()
 {
 	LoadNetBarIPList();
 	CheckConfig(_ExGetTickCount);
+	if (G_ServerID < 1)
+	{
+		Log("请正确配置服务器编号", lmtWarning);
+		Terminate();
+		return;
+	}
 	/*
 var
   Tick, LastTick    : Cardinal;
@@ -138,59 +145,298 @@ end;
 	*/
 }
 
-void CMainThread::StartLogSocket(int idx)
-{}
-
 void CMainThread::ReceiveMessage(PInnerMsgNode pNode)
-{}
+{
+	pNode->pNext = nullptr;
+	{
+		std::lock_guard<std::mutex> guard(m_MsgCS);
+		if (m_pLast != nullptr)
+			m_pLast->pNext = pNode;
+		else
+			m_pFirst = pNode;
+		m_pLast = pNode;
+	}
+	UpdateQueueCount(pNode->MsgFrom, true);
+}
 
 bool CMainThread::IsFilterWord(const std::string &sStr)
-{}
+{
+	bool bRetFlag = false;
+	std::string sTemp;
+	std::vector<std::string>::iterator vIter;
+	for (vIter = m_FilterWords.begin(); vIter != m_FilterWords.end(); ++vIter)
+	{
+		sTemp = *vIter;
+		if ((sStr.find(sTemp) != std::string::npos) || (sTemp.find(sStr) != std::string::npos))
+		{
+			bRetFlag = true;
+			break;
+		}
+	}
+	if (!bRetFlag)
+		bRetFlag = IsEmptyChinese(sStr);
+	return bRetFlag;
+}
 
 PNetBarIPInfo CMainThread::FindNetBarIP(const int iIP)
-{}
+{
+	return (PNetBarIPInfo)m_NoNeedActivateIPHash.ValueOf(iIP);
+}
 
 void CMainThread::SendFilterWords(TOnSendToServer CallBack)
-{}
+{
+
+}
 
 bool CMainThread::IsAllowGuest()
-{}
+{
+	return m_bAllowGuest;
+}
 
 bool CMainThread::IsDenyRecharge()
-{}
+{
+	return m_bDenyRecharge;
+}
 
 void CMainThread::SetDenyRecharge(bool bFlag)
-{}
+{
+
+}
 
 void CMainThread::ClearMsgQueue()
-{}
+{
+	PInnerMsgNode pNext;
+	std::lock_guard<std::mutex> guard(m_MsgCS);
+	m_pLast = nullptr;
+	while (m_pFirst != nullptr)
+	{
+		pNext = m_pFirst->pNext;
+		if (m_pFirst->pBuf)
+			free(m_pFirst->pBuf);		 
+		delete(m_pFirst);
+		m_pFirst = pNext;
+	}
+}
 
 void CMainThread::ProcDBMessage()
-{}
+{
+	PInnerMsgNode pCurWork;
+	PInnerMsgNode pCurNext;
+	{
+		std::lock_guard<std::mutex> guard(m_MsgCS);
+		pCurWork = m_pFirst;
+		m_pFirst = nullptr;
+		m_pLast = nullptr;
+		if (nullptr == pCurWork)
+			memset(m_iQueueCountList, 0, sizeof(m_iQueueCountList));
+	}
+
+	while (pCurWork)
+	{
+		pCurNext = pCurWork->pNext;
+		try
+		{
+			switch (pCurWork->MsgFrom)			
+			{
+			case fromInternal:                               
+				ProcInnerMessage(pCurWork);
+				break;
+			case fromAuthenServer:
+				//G_AuthenSocket.ProcAuthenServerMessage(nWork);
+				break;				
+			case fromDispatchGate:
+				//G_DispatchGate.ProcDispatchMessage(nWork);
+				break;				
+			case fromGameServer:
+				//G_GSSocket.ProcGameServerMessage(nWork);
+				break;
+			case fromGameGate:
+				//G_GGSocket.ProcGameGateMessage(nWork);
+				break;				
+			default:
+				break;
+			}
+			if (pCurWork->pBuf != nullptr)
+				free(pCurWork->pBuf);
+			delete(pCurWork);
+
+			pCurWork = pCurNext;
+			UpdateQueueCount(pCurWork->MsgFrom, false);
+		}
+		catch (...)
+		{
+			Log("TMainThread.ProcDBMessage,MsgFrom=" + std::to_string(pCurWork->MsgFrom) + "  Ident=" + std::to_string(pCurWork->usIdent), lmtWarning);
+			pCurWork = pCurNext;
+			UpdateQueueCount(pCurWork->MsgFrom, false);
+		}
+	}
+}
 
 void CMainThread::CheckConfig(unsigned int uiTick)
-{}
+{
 
-void CMainThread::ProcInternalMessage(PInnerMsgNode pNode)
-{}
+}
+
+void CMainThread::ProcInnerMessage(PInnerMsgNode pNode)
+{
+	int iReason = 0;
+	switch (pNode->usIdent)
+	{
+	case SM_PLAYER_DISCONNECT:
+		/*
+          if Assigned(szBuf) and (wBufLen >= SizeOf(Integer)) then
+            iReason := PInteger(szBuf)^
+          else
+            iReason := 0;
+          G_GGSocket.KickOutClient(idx, Param, iReason);
+		*/
+		break;
+	case SM_PLAYER_UPDATE_IDX:
+		//G_HumanDB.UpdatePlayerDBIdx(idx, Param);
+		break;
+	default:
+		break;
+	}
+}
 
 void CMainThread::LoadFilterWord()
-{}
+{
+	std::string sFileName(GetAppPathA() + "FilterWord.txt");
+	if (!IsFileExistsA(sFileName.c_str()))
+		return;
+
+	int iAge = CC_UTILS::GetFileAge(sFileName);
+	if (iAge == m_iFilterFileAge)
+		return;
+
+	bool bReload = m_iFilterFileAge > 0;
+	m_iFilterFileAge = iAge;
+	/*
+  TempList := TStringList.Create;
+  try
+    TempList.LoadFromFile(FileName);
+    FFilterWords.Clear;
+    for i := 0 to TempList.Count - 1 do
+    begin
+      FilterStr := Trim(TempList.Strings[i]);
+      if FilterStr <> '' then
+        FFilterWords.Add(FilterStr);
+    end;
+    if BoReLoad then
+    begin
+      Log(Format('Reload FilterWord.txt (%d)', [FFilterWords.Count]), lmtMessage);
+      G_GGSocket.ReSendFilterWords;
+    end;
+  finally
+    TempList.Free;
+  end;
+	*/
+}
 
 void CMainThread::OnAddLabel(void* Sender)
-{}
+{
+	m_pLogSocket->AddLabel("连接数：", 16, 8);
+	m_pLogSocket->AddLabel("0", 64, 8, LABEL_CONNECT_COUNT_ID);
+	m_pLogSocket->AddLabel("游戏人数：", 120, 8);
+	m_pLogSocket->AddLabel("0", 184, 8, LABEL_PLAYER_COUNT_ID);
+	m_pLogSocket->AddLabel("保存：", 224, 8, LABEL_SAVEQUEUE_COUNT_ID);
+	m_pLogSocket->AddLabel("队列：", 16, 32, LABEL_MSGQUEUE_COUNT_ID);
+	m_pLogSocket->AddLabel("图片缓存：", 224, 32);
+	m_pLogSocket->AddLabel("0", 288, 32, LABEL_IMAGE_COUNT_ID);
+}
 
 void CMainThread::UpdateLabels()
-{}
+{
+	UpdateLabel(std::to_string(G_UserManage.Count), LABEL_CONNECT_COUNT_ID);
+	UpdateLabel(std::to_string(G_GSSocket.HumanCount), LABEL_PLAYER_COUNT_ID);
+	int iTotal = 0;
+	std::string sCount("");
+	for (int iMsgType = fromDispatchGate; iMsgType <= fromIMServer; iMsgType++)
+	{
+		iTotal += m_iQueueCountList[iMsgType];
+		if ((fromGameServer == iMsgType) || (fromGameGate == iMsgType))
+		{
+			if ("" != sCount)
+				sCount = sCount + "/";
+			sCount = sCount + std::to_string(m_iQueueCountList[iMsgType]);
+		}
+	}
+	sCount = sCount + "/" + std::to_string(iTotal);
+	UpdateLabel("队列：" + sCount, LABEL_MSGQUEUE_COUNT_ID);
+	/*
+  with G_SaveThread do
+    UpdateLabel(Format('保存：%d/%d/%d/%d', [
+      QueueCount, SaveCount, SuccessCount, FailCount]),
+        LABEL_SAVEQUEUE_COUNT_ID);
+	*/
+}
 
 void CMainThread::UpdateQueueCount(TInnerMsgType msgType, bool bAdd)
-{}
+{
+	int iType = msgType;
+	if (iType <= fromGameGate)
+	{
+		if (bAdd)
+			InterlockedIncrement((LPLONG)&m_iQueueCountList[iType]);
+		else
+			InterlockedDecrement((LPLONG)&m_iQueueCountList[iType]);
+	}
+}
 
 void CMainThread::OnRemoveNetBarIP(void* p, int iKey)
-{}
+{
+	if (p != nullptr)
+		delete ((PNetBarIPInfo)p);
+}
 
 void CMainThread::LoadNetBarIPList()
-{}
+{
+	/*
+var
+  FileName, TempStr, sIP, sName: AnsiString;
+  i, iage, nIP      : Integer;
+  TempList          : TStringList;
+  P                 : PNetBarIPInfo;
+begin
+  FileName := ExtractFilePath(ParamStr(0)) + 'NetBarIP.txt';
+  if not FileExists(FileName) then
+    Exit;
+  iage := FileAge(FileName);
+  if iage = FNetBarIPFileAge then
+    Exit;
+  if FNetBarIPFileAge > 0 then
+    Log('Reload NetBarIP.txt....', lmtMessage);
+  FNoNeedActivateIPList.Clear;
+  FNetBarIPFileAge := iage;
+  TempList := TStringList.Create;
+  try
+    TempList.LoadFromFile(FileName);
+    for i := 0 to TempList.Count - 1 do
+    begin
+      TempStr := TempList.Strings[i];
+      if (TempStr = '') or (TempStr[1] = ';') or (TempStr[1] = '#') then
+        Continue;
+      TempStr := GetValidStr3(TempStr, sIP, [' ', #9]);
+      TempStr := GetValidStr3(TempStr, sName, [' ', #9]);
+      nIP := inet_addr(PAnsiChar(sIP));
+      P := FindNetBarIP(nIP);
+      if not Assigned(P) then
+      begin
+        New(P);
+        FillChar(P^, SizeOf(TNetBarIPInfo), 0);
+        P^.nNetBarIP := nIP;
+        StrPLCopy(P^.szName, sName, 64);
+        FNoNeedActivateIPList.Add(nIP, P);
+      end
+      else
+        Log(Format('%s %s重复', [sIP, sName]));
+    end;
+  finally
+    TempList.Free;
+  end;
+end;
+	*/
+}
 
 /************************End Of CMainThread****************************************************/
 

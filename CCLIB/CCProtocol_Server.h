@@ -183,9 +183,12 @@ const int SM_PLAYER_DISCONNECT = 0x2003;                            // 玩家断线
 const int SM_PLAYER_MSG = 0x2004;                                   // 玩家的消息
 const int SM_MULPLAYER_MSG = 0x2005;                                // 群发的消息
 
+const int SM_PLAYER_UPDATE_IDX = 0x2012;                            // 更新玩家数据在DB中的索引
 const int SM_BROADCAST_MSG = 0x2013;                                // 全服数据广播
 
 const int SM_FILTER_WORD = 0x2019;                                  // 过滤字信息
+
+
 
 const int SM_GIVEITEM_QUERY = 0x2044;                               // 按照虚拟区号自动轮询推送道具信息
 const int SM_GIVEITEM_DB_REQ = 0x2045;                              // 认证服务器向db发送送道具请求

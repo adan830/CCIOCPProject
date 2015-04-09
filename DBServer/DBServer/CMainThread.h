@@ -42,7 +42,6 @@ public:
 	CMainThread(const std::string &sServerName);
 	virtual ~CMainThread();
 	void DoExecute();
-	void StartLogSocket(int idx);
 	void ReceiveMessage(PInnerMsgNode pNode);
 	bool IsFilterWord(const std::string &sStr);
 	PNetBarIPInfo FindNetBarIP(const int iIP);
@@ -56,7 +55,7 @@ private:
 	void ClearMsgQueue();					// 关闭时清除消息队列	
 	void ProcDBMessage();					// 主线程处理消息
 	void CheckConfig(unsigned int uiTick);  // 配置文件的检测
-	void ProcInternalMessage(PInnerMsgNode pNode);
+	void ProcInnerMessage(PInnerMsgNode pNode);
 	void LoadFilterWord();
 	void OnAddLabel(void* Sender);
 	void UpdateLabels();
@@ -74,7 +73,7 @@ private:
 	unsigned int m_uiLastCheckTick;
 	CC_UTILS::CIntegerHash m_NoNeedActivateIPHash;
 	std::vector<std::string> m_FilterWords;
-	int m_iQueueCountList[5];
+	int m_iQueueCountList[8];
 	bool m_bAllowGuest;
 	bool m_bDenyRecharge;
 	CC_UTILS::TMMTimer mmTimer;
