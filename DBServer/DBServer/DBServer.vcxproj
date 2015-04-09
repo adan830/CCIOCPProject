@@ -78,7 +78,11 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CASClientSocket.h" />
     <ClInclude Include="CDBGlobal.h" />
+    <ClInclude Include="CDGClientSocket.h" />
+    <ClInclude Include="CGGServerSocket.h" />
+    <ClInclude Include="CGSServerSocket.h" />
     <ClInclude Include="CMainThread.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
@@ -96,7 +100,11 @@
     <ClCompile Include="..\..\CCLIB\CCUtils.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="CASClientSocket.cpp" />
     <ClCompile Include="CDBGlobal.cpp" />
+    <ClCompile Include="CDGClientSocket.cpp" />
+    <ClCompile Include="CGGServerSocket.cpp" />
+    <ClCompile Include="CGSServerSocket.cpp" />
     <ClCompile Include="CMainThread.cpp" />
     <ClCompile Include="DBServer.cpp" />
     <ClCompile Include="stdafx.cpp">
