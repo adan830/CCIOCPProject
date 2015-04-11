@@ -617,7 +617,7 @@ void CDBServerSocket::LoadServerConfig()
 	if ((0 == m_uiLastCheckTick) || (uiTick - m_uiLastCheckTick >= 5000))
 	{
 		m_uiLastCheckTick = uiTick;
-		std::string sFileName(G_CurrentExeDir + "AreaConfig.json");
+		std::string sFileName(GetAppPathA() + "AreaConfig.json");
 		int iAge = GetFileAge(sFileName);
 		if ((iAge != -1) && (iAge != m_iConfigFileAge))
 		{

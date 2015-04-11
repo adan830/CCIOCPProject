@@ -196,6 +196,9 @@ const int SM_GIVEITEM_DB_ACK = 0x2046;								// db返回给认证服务器送道具结果
 const int SM_SHUTDOWN = 0x2052;                                     // 关闭服务
 const int SM_REFRESH_RECHARGE = 0x2056;								// 通知认证服务立即查询充值
 
+const int SM_GAME_ACT_CODE_REQ = 0x2069;                            // 游戏内激活CPS，领取媒体礼包活动码请求
+const int SM_GAME_ACT_CODE_RES = 0x206A;                            // 游戏内激活CPS，领取媒体礼包活动码返回
+
 //PigServer相关协议
 const int SM_PIG_MSG = 0x3001;		     						    //中转Pig消息
 const int SM_PIG_QUERY_AREA = 0x3002;                               //查询区组信息

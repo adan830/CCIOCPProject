@@ -26,6 +26,7 @@
 #include "CCProtocol_Client.h"
 #include "CCProtocol_Server.h"
 #include "CCServerEnDeCode.h"
+#include "CDBGlobal.h"
 #include "CCGameCommon.h"
 
 #include "CMainThread.h"

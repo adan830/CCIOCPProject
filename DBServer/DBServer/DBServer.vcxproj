@@ -97,6 +97,7 @@
     <ClCompile Include="..\..\CCLIB\CCLIBSocket\CCTcpSocketCommon.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\CCLIB\CCServerEnDeCode.cpp" />
     <ClCompile Include="..\..\CCLIB\CCUtils.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
