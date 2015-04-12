@@ -406,11 +406,9 @@ bool CIOCPClientSocketManager :: DoInitialize()
 				Addr.sin_port = htons(INADDR_ANY);           
 				Addr.sin_addr.s_addr = inet_addr(m_LocalAddress.c_str()); 
 				//注释：std命名空间下面也有 bind函数，具体的使用再研究？？？？
-				retflag = ((bind(m_CSocket, (sockaddr *)&Addr, sizeof(Addr)) == 0));
+				bind(m_CSocket, (sockaddr *)&Addr, sizeof(Addr));
 			}
 		}
-		if (!retflag) 
-			DoError(seConnect);
 	}
 	return retflag;
 }
@@ -418,23 +416,20 @@ bool CIOCPClientSocketManager :: DoInitialize()
 bool CIOCPClientSocketManager :: Open()
 {
 	bool retflag = false;
-	if ((!m_BoActive) && (m_Address.length() > 0) && (m_Port > 0))
+	if (DoInitialize()) 
 	{
-		if (DoInitialize()) 
+		memset(&m_SocketAddr, 0, sizeof(m_SocketAddr));
+		m_SocketAddr.sin_family = AF_INET;
+		m_SocketAddr.sin_addr.s_addr = inet_addr(m_Address.c_str());
+		if (m_SocketAddr.sin_addr.s_addr == u_long(INADDR_NONE))
 		{
-			memset(&m_SocketAddr, 0, sizeof(m_SocketAddr));
-			m_SocketAddr.sin_family = AF_INET;
-			m_SocketAddr.sin_addr.s_addr = inet_addr(m_Address.c_str());
-			if (m_SocketAddr.sin_addr.s_addr == u_long(INADDR_NONE))
-			{
-				PHOSTENT HostEnt = gethostbyname(m_Address.c_str());
-				if (HostEnt != nullptr)
-					m_SocketAddr.sin_addr.s_addr = ((PIN_ADDR)(HostEnt->h_addr))->s_addr;
-			}
-			retflag = ((m_SocketAddr.sin_addr.s_addr != u_long(INADDR_NONE)) && (WSAHtons(m_CSocket, m_Port, &(m_SocketAddr.sin_port)) == 0));
-			if (retflag) 
-				m_BoActive = true;		
+			PHOSTENT HostEnt = gethostbyname(m_Address.c_str());
+			if (HostEnt != nullptr)
+				m_SocketAddr.sin_addr.s_addr = ((PIN_ADDR)(HostEnt->h_addr))->s_addr;
 		}
+		retflag = ((m_SocketAddr.sin_addr.s_addr != u_long(INADDR_NONE)) && (WSAHtons(m_CSocket, m_Port, &(m_SocketAddr.sin_port)) == 0));
+		if (retflag) 
+			m_BoActive = true;		
 	}
 	return retflag;
 }
@@ -506,7 +501,7 @@ bool CIOCPClientSocketManager :: DoError(TSocketErrorType seType)
 	}
 
 	retflag = true;
-	if ((seType == seConnect) && (ErrorCode == WSAECONNREFUSED))
+	if (!((seType == seConnect) && (ErrorCode == WSAECONNREFUSED)))
 	{
 		if (nullptr != m_OnError)
 			m_OnError(this, ErrorCode);

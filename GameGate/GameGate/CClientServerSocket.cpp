@@ -1083,8 +1083,8 @@ void CClientServerSocket::DoActive()
 		if (!m_bListenOK)
 			return;
 
-		pG_DBServer->DoHeartBeat();
 		pG_GameServer->DoHeartBeat();
+		pG_DBServer->DoHeartBeat();
 		pG_IMServer->DoHeartBeat();
 	}
 }
