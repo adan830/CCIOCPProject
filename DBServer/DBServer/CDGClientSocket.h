@@ -13,48 +13,47 @@
 *
 */
 
+const int MAX_DISPATCHGATE_NUM = 3;
+
 class CDGClientSocket : public CIOCPClientSocketManager
 {
 public:
-	procedure OnCreate; override;
-	procedure OnDestroy; override;
-    procedure DoHeartbest;                                  // 主线程调用
-    procedure LoadConfig(IniFile: TiniFile);
-    function Closed: Boolean;
-    function SendToServer(Ident: Word; Param: integer;
-      Buf: PAnsiChar; BufLen: Word): Boolean;
-    procedure ProcDispatchMessage(nNode: PInterMsgNode);
-    function IsTraceRole(const RoleName: AnsiString): Boolean;
-    function GetSession(SessionID: integer; pResult: PSessionInfo): Boolean;
-    function ProcGMCmd(SessionID: Integer; const Param1, Param2, Param3: AnsiString): Boolean;
-    property BoDenyAll: Boolean read FBoDenyAll;
+	CDGClientSocket();
+	virtual ~CDGClientSocket();
+	void DoHeartbeat();
+	void LoadConfig(CWgtIniFile* pIniFileParser);
+	bool Closed();
+	bool SendToServerPeer(unsigned short usIdent, int iParam, char* pBuf, unsigned short usBufLen);
+	void ProcDispatchMessage(PInnerMsgNode pNode);
+	bool IsTraceRole(const std::string &sRoleName);
+	bool GetSession(int iSessionID, PSessionInfo pResult);
+	bool ProcGMCmd(int iSessionID, const std::string &sParam1, const std::string &sParam2, const std::string &sParam3);
+	bool IsDenyAll(){ return m_bDenyAll; }
 protected:
-	procedure SocketConnect(Sender : TObject);
-	procedure SocketDisConnect(Sender: TObject);
-	procedure SocketRead(Sender: TObject; const Buf; Count: integer);
-	procedure SocketError(Sender: TObject; var ErrorCode : integer);
+	virtual void ProcessReceiveMsg(PServerSocketHeader pHeader, char* pData, int iDataLen);
 private:
-    procedure ReConnect;
-    procedure OnRemoveSession(Pvalue: Pointer; Key: integer);
-    procedure LoadIpConfigFile;
-    procedure SendConfig(const Key: AnsiString; Value: AnsiString);
-    function SetConfig(const Key: AnsiString; Value: AnsiString; bDel: Boolean): Boolean;
-    function GetConfigInfo(const Key: AnsiString): AnsiString;
-    procedure SendHeartBeat;                                // 发送心跳
-    procedure SendRegisterServer;
-    procedure MsgProcess(PHeader: PSocketHeader; Buf: PAnsiChar; BufLen: Word); // 处理协议
-    procedure MsgSelectServer(Param: integer; Buf: PansiChar; BufLen: Word);
+	void OnSocketConnect(void* Sender);
+	void OnSocketDisconnect(void* Sender);
+	void OnSocketRead(void* Sender, const char* pBuf, int iCount);
+	void OnSocketError(void* Sender, int& iErrorCode);
+	void Reconnect();
+	void SendHeartbeat();
+	void OnRemoveSession(void* pValue, int iKey);
+	void LoadIpConfigFile();
+	void SendConfig(const std::string &sKey, std::string &sValue);
+	bool SetConfig(const std::string &sKey, std::string &sValue, bool bDel);
+	std::string GetConfigInfo(const std::string &sKey);
+	void SendRegisterServer();
+	void MsgSelectServer(int iParam, char* pBuf, unsigned short usBufLen);
 private:
-    FCheckTick: Cardinal;                                   // 检测连接时间
-    FPingCount: integer;
-    FReceiveBuffer: TBufferStream;                          // 接收缓冲
-    FServerArray: array[1..3] of TServerAddress;            // 可配置多个Dispatch Gate
-    FWorkIndex: integer;                                    // 当前使用的Dispatch顺序号
-    FSessionList: TIntegerHash;                             // 会话列表
-    FConfigFileAge: integer;
-    FTraceList: TStringList;
-    FBoDenyAll: Boolean;
-
+	unsigned int m_uiCheckTick;								// 检测连接时间
+    int m_iPingCount;
+	bool m_bDenyAll;
+	int m_iConfigFileAge;
+	CC_UTILS::CIntegerHash m_SessionHash;					// 会话列表
+	std::vector<std::string> m_TraceList;
+	int m_iWorkIndex;										// 当前使用的Dispatch顺序号
+	TServerAddress m_ServerArray[MAX_DISPATCHGATE_NUM];     // 支持多Dispatch Gate
 };
 
 extern CDGClientSocket* pG_DispatchGateSocket;

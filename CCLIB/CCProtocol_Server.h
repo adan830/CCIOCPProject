@@ -29,6 +29,18 @@ typedef struct _TClientSelectServerInfo
 	unsigned char ucNetType;
 }TClientSelectServerInfo, *PClientSelectServerInfo;
 
+// DBServer -> DispatchGate
+typedef struct _TSessionInfo
+{
+	int iEncodeIdx;					// 加解密Key
+	int iAreaID;					// 选择的区组号
+	int iClientType;				// 客户端类型
+	unsigned int uiCreateTick;		// 产生的时间
+	bool bMasterIP;					// 是否为GM网段
+	unsigned char ucNetType;		// 网络类型
+
+}TSessionInfo, *PSessionInfo;
+
 // ip地址的字符串类型
 typedef char TIPAddress[IP_ADDRESS_MAX_LEN+1];
 typedef TIPAddress* PIPAddress;
