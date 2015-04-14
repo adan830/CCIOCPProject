@@ -50,6 +50,7 @@ private:
     int m_iPingCount;
 	bool m_bDenyAll;
 	int m_iConfigFileAge;
+	std::mutex m_SessionCS;
 	CC_UTILS::CIntegerHash m_SessionHash;					// 会话列表
 	std::vector<std::string> m_TraceList;
 	int m_iWorkIndex;										// 当前使用的Dispatch顺序号

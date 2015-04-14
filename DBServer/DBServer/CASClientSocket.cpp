@@ -54,6 +54,9 @@ void CASClientSocket::DoHeartbeat()
 
 void CASClientSocket::LoadConfig(CWgtIniFile* pIniFileParser)
 {
+	//------------------------
+	//------------------------
+	//------------------------
 }
 
 bool CASClientSocket::Closed()
