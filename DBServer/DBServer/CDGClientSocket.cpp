@@ -270,7 +270,70 @@ void CDGClientSocket::SendRegisterServer()
 
 void CDGClientSocket::MsgSelectServer(int iParam, char* pBuf, unsigned short usBufLen)
 {
+	/*
+var
+  PSI               : PSessionInfo;
+  PInfo             : PClientInfo absolute Buf;
+  NextGateInfo      : TNextGateInfo;
+  iAddr             : integer;
+begin
+  if BufLen = sizeof(TClientInfo) then
+  begin
+    with PInfo^ do
+    begin
+      New(PSI);
+      FillChar(PSI^, sizeof(TSessionInfo), 0);
+      PSI^.EnCodeIdx := iEnCodeIdx;                         // 加解密Key
+      PSI^.AreaID := iAreaID;                               // 选择的区组号
+      PSI^.ClientType := iClientType;                       // 客户端类型
+      PSI^.dwCreateTick := GetTickCount;                    // 产生的时间
+      PSI^.BoMasterIP := BoMasterIP;
+      PSI^.bNetType := NetType;
+      FSessionList.Lock;
+      try
+        FSessionList.Remove(iSessionID);
+        FSessionList.Add(iSessionID, PSI);
+      finally
+        FSessionList.UnLock;
+      end;
+    end;
+    with NextGateInfo do
+    begin
+      SessionID := PInfo^.iSessionID;
+      G_GGSocket.GetComfyGate(iAddr, GatePort, PInfo^.NetType); // 取可连接的Gate
+      GateAddr := iAddr;
+    end;
+    SendToServer(SM_SELECT_SERVER, Param, @NextGateInfo, sizeof(TNextGateInfo));
+  end;
+end;
+	*/
+	PClientSelectServerInfo pInfo = (PClientSelectServerInfo)pBuf;
+	if (sizeof(TClientSelectServerInfo) == usBufLen)
+	{
+		PSessionInfo pSession = new TSessionInfo();
+		memset(pSession, 0, sizeof(TSessionInfo));
+		pSession->iEncodeIdx = pInfo->iEnCodeIdx;
+		pSession->iAreaID = pInfo->iSelectServerID;
+		pSession->iClientType = pInfo->iClientType;
+		pSession->uiCreateTick = _ExGetTickCount;
+		pSession->bMasterIP = pInfo->bMasterIP;
+		pSession->ucNetType = pInfo->ucNetType;
+		{
+			std::lock_guard<std::mutex> guard(m_SessionCS);
+			m_SessionHash.Remove(pInfo->iSessionID);
+			m_SessionHash.Add(pInfo->iSessionID, pSession);
+		}
 
+		TNextGateInfo ngInfo;
+		int iAddr = 0;
+		//--------------------
+		//--------------------
+		//--------------------
+		//G_GGSocket.GetComfyGate(iAddr, GatePort, PInfo^.NetType); // 取可连接的Gate
+		ngInfo.iSessionID = pInfo->iSessionID;
+		ngInfo.iGateAddr = iAddr;
+		SendToServerPeer(SM_SELECT_SERVER, iParam, &ngInfo, sizeof(TNextGateInfo));
+	}
 }
 
 /************************End Of CDGClientSocket********************************************/
