@@ -145,6 +145,8 @@ namespace CC_UTILS{
 
 	//普通字符串转化为小写
 	std::string StrLower(const std::string& str);
+
+	
 }
 
 /*

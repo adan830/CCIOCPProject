@@ -41,7 +41,7 @@ private:
 	void OnRemoveSession(void* pValue, int iKey);
 	void LoadIpConfigFile();
 	void SendConfig(const std::string &sKey, std::string &sValue);
-	bool SetConfig(const std::string &sKey, std::string &sValue, bool bDel);
+	bool SetConfig(const std::string &sKey, const std::string &sValue, bool bDel);
 	std::string GetConfigInfo(const std::string &sKey);
 	void SendRegisterServer();
 	void MsgSelectServer(int iParam, char* pBuf, unsigned short usBufLen);

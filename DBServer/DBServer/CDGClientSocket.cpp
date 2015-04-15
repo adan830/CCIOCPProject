@@ -60,7 +60,47 @@ void CDGClientSocket::DoHeartbeat()
 
 void CDGClientSocket::LoadConfig(CWgtIniFile* pIniFileParser)
 {
+	std::string sServer;
+	int iPort = 0;
+	int iPos = 0;
+	for (int i = 0; i < MAX_DISPATCHGATE_NUM; i++)
+	{
+		sServer = pIniFileParser->getString("DispatchGate", "Server" + std::to_string(i + 1), "");
+		if ("" == sServer)
+			break;
 
+		iPort = DEFAULT_DispatchGate_DB_PORT;
+
+	}
+	/*
+var
+  sServer, sIP, sPort: ansistring;
+  i, iPos, iPort    : integer;
+begin
+  for i := Low(FServerArray) to High(FServerArray) do
+  begin
+    sServer := IniFile.ReadString('DispatchGate', 'Server' + inttostr(i), '');
+    if sServer = '' then
+      Break;
+    iPort := DEFAULT_DispatchGate_DB_PORT;
+    iPos := Pos(':', sServer);
+    if iPos > 0 then
+    begin
+      sIP := Copy(sServer, 1, iPos - 1);
+      sPort := Copy(sServer, iPos + 1, 4);
+      iPort := StrToIntDef(sPort, DEFAULT_DispatchGate_DB_PORT);
+    end
+    else
+      sIP := sServer;
+    with FServerArray[i] do
+    begin
+      StrPLCopy(IPAddress, sIP, 15);
+      nPort := iPort;
+    end;
+  end;
+  FWorkIndex := Low(FServerArray);                          // 指向第一个配置
+end;
+	*/
 }
 
 bool CDGClientSocket::Closed()
@@ -145,7 +185,67 @@ bool CDGClientSocket::GetSession(int iSessionID, PSessionInfo pResult)
 
 bool CDGClientSocket::ProcGMCmd(int iSessionID, const std::string &sParam1, const std::string &sParam2, const std::string &sParam3)
 {
+	bool bRetFlag = false;
+	std::string sHint("");
+	if (sParam1.compare("Trace") == 0)
+	{
+		if (sParam2.compare("Clear") == 0)
+		{
+			m_TraceList.clear();
+			sHint = "跟踪列表清理完毕";
+		}
+		else if (sParam2.compare("Look") == 0)
+			sHint = FTraceList.Text;
+		else if (sParam3.compare("Del") == 0)
+		{
+			/*
+			//------------------------
+			//------------------------
+			//------------------------
+			  Idx := FTraceList.IndexOf(LowerCase(Param2));
+			  if Idx > -1 then
+			  begin
+				FTraceList.Delete(Idx);
+				Hint := Param2 + ' 删除成功';
+			  end
+			  else
+				Hint := Param2 + ' 已经存在';
+			*/
+		}
+		/*
+		else if FTraceList.IndexOf(LowerCase(Param2)) < 0 then
+		begin
+		  FTraceList.Add(LowerCase(Param2));
+		  Hint := Param2 + ' 添加成功';
+		end;
+		*/
 
+		bRetFlag = true;
+	}
+	else if ((sParam1.compare("Deny") == 0) || (sParam1.compare("Allow") == 0))
+	{
+		if (sParam2.compare("Look") == 0)
+			sHint = GetConfigInfo(sParam1);
+		else if (SetConfig(sParam1, sParam2, (sParam3.compare("Del") == 0)))
+			sHint = CC_UTILS::FormatStr("设置成功,可使用@DBServer %s look 查看", sParam1);
+
+		if (m_bDenyAll && (sParam1.compare("Deny") == 0))
+			sHint = "当前禁止所有外部IP登陆!";
+	}
+
+	if ("" == sHint)
+	{
+		/*
+		//-------------------------------
+		//-------------------------------
+		//-------------------------------
+		User: = G_UserManage.FindUser(SessionID);
+			if Assigned(User) then
+				User.SendMsg(Hint);
+		*/
+	}
+
+	return bRetFlag;
 }
 
 void CDGClientSocket::ProcessReceiveMsg(PServerSocketHeader pHeader, char* pData, int iDataLen)
@@ -253,7 +353,7 @@ void CDGClientSocket::SendConfig(const std::string &sKey, std::string &sValue)
 
 }
 
-bool CDGClientSocket::SetConfig(const std::string &sKey, std::string &sValue, bool bDel)
+bool CDGClientSocket::SetConfig(const std::string &sKey, const std::string &sValue, bool bDel)
 {
 
 }
@@ -270,43 +370,6 @@ void CDGClientSocket::SendRegisterServer()
 
 void CDGClientSocket::MsgSelectServer(int iParam, char* pBuf, unsigned short usBufLen)
 {
-	/*
-var
-  PSI               : PSessionInfo;
-  PInfo             : PClientInfo absolute Buf;
-  NextGateInfo      : TNextGateInfo;
-  iAddr             : integer;
-begin
-  if BufLen = sizeof(TClientInfo) then
-  begin
-    with PInfo^ do
-    begin
-      New(PSI);
-      FillChar(PSI^, sizeof(TSessionInfo), 0);
-      PSI^.EnCodeIdx := iEnCodeIdx;                         // 加解密Key
-      PSI^.AreaID := iAreaID;                               // 选择的区组号
-      PSI^.ClientType := iClientType;                       // 客户端类型
-      PSI^.dwCreateTick := GetTickCount;                    // 产生的时间
-      PSI^.BoMasterIP := BoMasterIP;
-      PSI^.bNetType := NetType;
-      FSessionList.Lock;
-      try
-        FSessionList.Remove(iSessionID);
-        FSessionList.Add(iSessionID, PSI);
-      finally
-        FSessionList.UnLock;
-      end;
-    end;
-    with NextGateInfo do
-    begin
-      SessionID := PInfo^.iSessionID;
-      G_GGSocket.GetComfyGate(iAddr, GatePort, PInfo^.NetType); // 取可连接的Gate
-      GateAddr := iAddr;
-    end;
-    SendToServer(SM_SELECT_SERVER, Param, @NextGateInfo, sizeof(TNextGateInfo));
-  end;
-end;
-	*/
 	PClientSelectServerInfo pInfo = (PClientSelectServerInfo)pBuf;
 	if (sizeof(TClientSelectServerInfo) == usBufLen)
 	{
@@ -332,7 +395,7 @@ end;
 		//G_GGSocket.GetComfyGate(iAddr, GatePort, PInfo^.NetType); // 取可连接的Gate
 		ngInfo.iSessionID = pInfo->iSessionID;
 		ngInfo.iGateAddr = iAddr;
-		SendToServerPeer(SM_SELECT_SERVER, iParam, &ngInfo, sizeof(TNextGateInfo));
+		SendToServerPeer(SM_SELECT_SERVER, iParam, (char*)&ngInfo, sizeof(TNextGateInfo));
 	}
 }
 
