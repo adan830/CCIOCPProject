@@ -70,37 +70,25 @@ void CDGClientSocket::LoadConfig(CWgtIniFile* pIniFileParser)
 			break;
 
 		iPort = DEFAULT_DispatchGate_DB_PORT;
-
+		std::vector<std::string> strVec;
+		SplitStr(sServer, ":", &strVec);
+		std::string sIP;
+		std::string sPort;
+		if (1 == strVec.size())
+			sIP = sServer;
+		else
+		{
+			sIP = strVec[0];
+			sPort = strVec[1];
+			iPort = StrToIntDef(sPort, DEFAULT_DispatchGate_DB_PORT);
+		}
+		//--------------------------------
+		//--------------------------------
+		//--------------------------------??????????????
+		memcpy_s(m_ServerArray[i].IPAddress, IP_ADDRESS_MAX_LEN + 1, sIP.c_str(), IP_ADDRESS_MAX_LEN + 1);
+		m_ServerArray[i].iPort = iPort;
 	}
-	/*
-var
-  sServer, sIP, sPort: ansistring;
-  i, iPos, iPort    : integer;
-begin
-  for i := Low(FServerArray) to High(FServerArray) do
-  begin
-    sServer := IniFile.ReadString('DispatchGate', 'Server' + inttostr(i), '');
-    if sServer = '' then
-      Break;
-    iPort := DEFAULT_DispatchGate_DB_PORT;
-    iPos := Pos(':', sServer);
-    if iPos > 0 then
-    begin
-      sIP := Copy(sServer, 1, iPos - 1);
-      sPort := Copy(sServer, iPos + 1, 4);
-      iPort := StrToIntDef(sPort, DEFAULT_DispatchGate_DB_PORT);
-    end
-    else
-      sIP := sServer;
-    with FServerArray[i] do
-    begin
-      StrPLCopy(IPAddress, sIP, 15);
-      nPort := iPort;
-    end;
-  end;
-  FWorkIndex := Low(FServerArray);                          // 指向第一个配置
-end;
-	*/
+	m_iWorkIndex = 0;
 }
 
 bool CDGClientSocket::Closed()
@@ -156,12 +144,12 @@ void CDGClientSocket::ProcDispatchMessage(PInnerMsgNode pNode)
 bool CDGClientSocket::IsTraceRole(const std::string &sRoleName)
 {
 	return false;
-	/*
-  if FTraceList.Count > 0 then
-    Result := (FTraceList.IndexOf(LowerCase(RoleName)) > -1)
-  else
-    Result := False;
-	*/
+	if (m_TraceList.size() > 0)
+	{
+		std::string sLowerRoleName = sRoleName;
+		std::transform(sLowerRoleName.begin(), sLowerRoleName.end(), sLowerRoleName.begin(), tolower);
+		return (std::find(m_TraceList.begin(), m_TraceList.end(), sLowerRoleName) != m_TraceList.end());
+	}
 }
 
 bool CDGClientSocket::GetSession(int iSessionID, PSessionInfo pResult)
@@ -189,36 +177,33 @@ bool CDGClientSocket::ProcGMCmd(int iSessionID, const std::string &sParam1, cons
 	std::string sHint("");
 	if (sParam1.compare("Trace") == 0)
 	{
+		std::string sLowerParam2 = sParam2;
+		std::transform(sLowerParam2.begin(), sLowerParam2.end(), sLowerParam2.begin(), tolower);
 		if (sParam2.compare("Clear") == 0)
 		{
 			m_TraceList.clear();
 			sHint = "跟踪列表清理完毕";
 		}
 		else if (sParam2.compare("Look") == 0)
+		{
 			sHint = FTraceList.Text;
+		}
 		else if (sParam3.compare("Del") == 0)
 		{
-			/*
-			//------------------------
-			//------------------------
-			//------------------------
-			  Idx := FTraceList.IndexOf(LowerCase(Param2));
-			  if Idx > -1 then
-			  begin
-				FTraceList.Delete(Idx);
-				Hint := Param2 + ' 删除成功';
-			  end
-			  else
-				Hint := Param2 + ' 已经存在';
-			*/
+			std::vector<std::string>::iterator vIter = std::find(m_TraceList.begin(), m_TraceList.end(), sLowerParam2);
+			if (vIter != m_TraceList.end())
+			{
+				m_TraceList.erase(vIter);
+				sHint = sParam2 + " 删除成功";
+			}
+			else
+				sHint = sParam2 + " 已经存在";
 		}
-		/*
-		else if FTraceList.IndexOf(LowerCase(Param2)) < 0 then
-		begin
-		  FTraceList.Add(LowerCase(Param2));
-		  Hint := Param2 + ' 添加成功';
-		end;
-		*/
+		else if (std::find(m_TraceList.begin(), m_TraceList.end(), sLowerParam2) == m_TraceList.end())
+		{
+			m_TraceList.push_back(sLowerParam2);
+			sHint = sParam2 + " 添加成功";
+		}
 
 		bRetFlag = true;
 	}
@@ -345,22 +330,157 @@ void CDGClientSocket::OnRemoveSession(void* pValue, int iKey)
 
 void CDGClientSocket::LoadIpConfigFile()
 {
-
+	/*
+var
+  i, iage           : integer;
+  tmpList           : TStringList;
+  key, value, FileName: ansistring;
+begin
+  FBoDenyAll := False;
+  FileName := ExtractFilePath(ParamStr(0)) + 'ipaddress.txt';
+  if FileExists(FileName) then
+  begin
+    iage := FileAge(FileName);
+    if iage <> FConfigFileAge then
+    begin
+      if FConfigFileAge > 0 then
+        Log('Reload ipaddress.txt...', lmtMessage);
+      SendToServer(SM_SERVER_CONFIG, 2 or $8000, nil, 0);
+      SendToServer(SM_SERVER_CONFIG, 3 or $8000, nil, 0);
+      FConfigFileAge := iage;
+      tmpList := TStringList.Create;
+      tmpList.Delimiter := '=';
+      tmpList.LoadFromFile(FileName);
+      for i := 0 to tmpList.Count - 1 do
+      begin
+        key := Trim(tmpList.Names[i]);
+        value := Trim(tmpList.ValueFromIndex[i]);
+        SendConfig(key, value);
+      end;
+      tmpList.Free;
+    end;
+  end;
+end;
+	*/
 }
 
 void CDGClientSocket::SendConfig(const std::string &sKey, std::string &sValue)
 {
-
+	/*
+  if CompareText(key, 'DenyHint') = 0 then
+  begin
+    if value <> '' then
+    begin
+      value := StringReplace(value, '#13#10', #13#10, [rfReplaceAll]);
+      value := StringReplace(value, '</br>', #13#10, [rfReplaceAll]);
+      SendToServer(SM_SERVER_CONFIG, 1, PAnsiChar(value), Length(Value));
+    end;
+  end
+  else if CompareText(key, 'Deny') = 0 then
+  begin
+    if Value = '' then
+      SendToServer(SM_SERVER_CONFIG, 2 or $8000, nil, 0)
+    else
+    begin
+      SendToServer(SM_SERVER_CONFIG, 2, PAnsiChar(value), Length(Value));
+      if CompareText(value, 'all') = 0 then
+        FBoDenyAll := True;
+    end;
+  end
+  else if CompareText(key, 'Allow') = 0 then
+  begin
+    if value = '' then
+      SendToServer(SM_SERVER_CONFIG, 3 or $8000, nil, 0)
+    else
+      SendToServer(SM_SERVER_CONFIG, 3, PAnsiChar(value), Length(Value));
+  end
+  else if CompareText(key, 'Trace') = 0 then
+  begin
+    if (Value <> '') and (FTraceList.IndexOf(LowerCase(value)) < 0) then
+      FTraceList.Add(LowerCase(value));
+  end;
+	*/
 }
 
 bool CDGClientSocket::SetConfig(const std::string &sKey, const std::string &sValue, bool bDel)
 {
-
+	/*
+var
+  i                 : Integer;
+  tmpList           : TStringList;
+  FileName, sKey, sValue: AnsiString;
+  BoFound           : Boolean;
+begin
+  Result := False;
+  tmpList := TStringList.Create;
+  try
+    tmpList.Delimiter := '=';
+    FileName := ExtractFilePath(ParamStr(0)) + 'ipaddress.txt';
+    if FileExists(FileName) then
+      tmpList.LoadFromFile(FileName);
+    BoFound := False;
+    for i := tmpList.Count - 1 downto 0 do
+    begin
+      sKey := Trim(tmpList.Names[i]);
+      sValue := Trim(tmpList.ValueFromIndex[i]);
+      if CompareText(sKey, Key) = 0 then
+      begin
+        if CompareText('DenyHint', sKey) = 0 then
+        begin
+          tmpList.Strings[i] := sKey + '=' + Value;
+          BoFound := True;
+          Result := True;
+          Break;
+        end
+        else if (CompareText(sValue, Value) = 0) then
+        begin
+          Result := True;
+          if bDel then
+            tmpList.Delete(i)
+          else
+            Exit;
+        end;
+      end;
+    end;
+    if not bDel and not BoFound then
+      tmpList.Add(Key + '=' + Value);
+    tmpList.SaveToFile(FileName);
+  finally
+    tmpList.Free;
+  end;
+end;
+	*/
 }
 
 std::string CDGClientSocket::GetConfigInfo(const std::string &sKey)
 {
-
+	/*
+var
+  i                 : integer;
+  tmpList           : TStringList;
+  FileName, TempStr : AnsiString;
+begin
+  Result := '';
+  FileName := ExtractFilePath(ParamStr(0)) + 'ipaddress.txt';
+  if FileExists(FileName) then
+  begin
+    tmpList := TStringList.Create;
+    try
+      tmpList.LoadFromFile(FileName);
+      for i := 0 to tmpList.Count - 1 do
+      begin
+        TempStr := tmpList.Strings[i];
+        if (TempStr = '') or (TempStr[1] = '#') or (TempStr[1] = ';') then
+          Continue;
+        if Pos(Key, TempStr) > 0 then
+          Result := Result + TempStr + #13#10;
+      end;
+    finally
+      tmpList.Free;
+    end;
+  end;
+end;
+	*/
 }
 
 void CDGClientSocket::SendRegisterServer()
