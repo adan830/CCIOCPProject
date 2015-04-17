@@ -91,7 +91,7 @@ void CDBConnector::SocketRead(const char* pBuf, int iCount)
 	//在基类解析外层数据包，并调用ProcessReceiveMsg完成逻辑消息处理
 	int iErrorCode = ParseSocketReadData(1, pBuf, iCount);
 	if (iErrorCode > 0)
-		Log("TDBServer Socket Read Error, Code = " + std::to_string(iErrorCode), lmtError);
+		Log("CDBConnector Socket Read Error, Code = " + std::to_string(iErrorCode), lmtError);
 }
 
 void CDBConnector::ProcessReceiveMsg(char* pHeader, char* pData, int iDataLen)

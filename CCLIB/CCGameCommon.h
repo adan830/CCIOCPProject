@@ -7,6 +7,7 @@
 
 #include <string>
 
+const int MAX_GAMEGATE_COUNT = 24;						  //最大网关数量
 /*
 ACCOUNT_MAX_LEN   = 50;                                   //帐户最大长度
 ACTOR_NAME_MAX_LEN = 32;                                  //角色最大长度

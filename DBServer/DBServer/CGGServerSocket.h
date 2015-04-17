@@ -49,35 +49,23 @@ public:
 	void GetComfyGate(int &iAddr, int &iPort, unsigned char ucNetType);
 	void ProcGameGateMessage(PInnerMsgNode pNode);
 	void KickOutClient(unsigned char ucIdx, unsigned short usHandle, int iReason);
-	void AddOnlineCount(unsigned char ucGGIdx, int iCount = 1);
-
-	procedure SendToClient(GGIdx: Byte; wHandle: Word; Buf: PAnsiChar; BufLen: Word);
-	procedure SendToGameGate(GGIdx: Byte; Ident: Word; Param: Integer; Buf: PAnsiChar; BufLen: Word);
-	procedure SetGameGateNet(GGIdx: Byte; const NetType : AnsiString);
-	procedure ReSendFilterWords;
-
+	void AddOnlineCount(unsigned char ucGGIdx, int iCount=1);
+	void SendToClientPeer(unsigned char ucGGIdx, unsigned short usHandle, char* pBuf, unsigned short usBufLen);
+	void SetGameGateNet(unsigned char ucGGIdx, const std::string &sNetType);
+	void ResendFilterWords();
 	std::string GetAllowIPs();
-protected:
 private:
+	bool OnCheckConnectIP(const std::string &sConnectIP);
+	void OnSocketError(void* Sender, int& iErrorCode);
+	CClientConnector* OnCreateGGSocket(const std::string &sIP);
+	void OnGGConnect(void* Sender);
+	void OnGGDisconnect(void* Sender);
+	bool RegisterGameGate(CGGConnector* Sender, const std::string &sAddr, int iPort);
+	void SMPlayerConnect(PInnerMsgNode pNode);
 private:
+	std::string m_sAllowIPs;
+	TServerAddressEx m_ServerArray[MAX_GAMEGATE_COUNT];
 };
-
-/*
-    FAllowIPs: ansistring;
-    FServerArray: array[1..MAX_GAMEGATE_COUNT] of TServerAddressEx;
-    function CheckConnectIP(const ConnectIP: ansistring): Boolean;
-    procedure SocketError(Sender: TObject; var ErrorCode: integer);
-    function CreateCustomSocket(const IP: ansistring): TCustomClient;
-    procedure GGConnect(Sender: TObject);
-    procedure GGDisConnect(Sender: TObject);
-    function RegisterGameGate(Sender: TGameGate; const sAddr: ansistring; nPort: integer): Boolean;
-    
-    procedure smPlayerConnect(nNode: PInterMsgNode);
-  protected
-
-  public
-
-*/
 
 extern CGGServerSocket* pG_GameGateSocket;
 

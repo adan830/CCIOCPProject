@@ -53,6 +53,12 @@ typedef struct _TServerAddress
 	unsigned char ucNetType;
 }TServerAddress, *PServerAddress;
 
+typedef struct _TServerAddressEx
+{
+	TServerAddress Addr;
+	std::string sNetType;
+}TServerAddressEx, *PServerAddressEx;
+
 // 服务器内部的消息类型
 enum TInnerMsgType
 {
