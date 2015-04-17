@@ -43,6 +43,20 @@ private:
 class CGGServerSocket : public CIOCPServerSocketManager
 {
 public:
+	CGGServerSocket();
+	virtual ~CGGServerSocket();
+	void LoadConfig(CWgtIniFile* pIniFileParser);
+	void GetComfyGate(int &iAddr, int &iPort, unsigned char ucNetType);
+	void ProcGameGateMessage(PInnerMsgNode pNode);
+	void KickOutClient(unsigned char ucIdx, unsigned short usHandle, int iReason);
+	void AddOnlineCount(unsigned char ucGGIdx, int iCount = 1);
+
+	procedure SendToClient(GGIdx: Byte; wHandle: Word; Buf: PAnsiChar; BufLen: Word);
+	procedure SendToGameGate(GGIdx: Byte; Ident: Word; Param: Integer; Buf: PAnsiChar; BufLen: Word);
+	procedure SetGameGateNet(GGIdx: Byte; const NetType : AnsiString);
+	procedure ReSendFilterWords;
+
+	std::string GetAllowIPs();
 protected:
 private:
 private:
@@ -57,22 +71,12 @@ private:
     procedure GGConnect(Sender: TObject);
     procedure GGDisConnect(Sender: TObject);
     function RegisterGameGate(Sender: TGameGate; const sAddr: ansistring; nPort: integer): Boolean;
-    function GetAllowIPs: ansistring;
+    
     procedure smPlayerConnect(nNode: PInterMsgNode);
   protected
-    procedure OnCreate; override;
-    procedure OnDestroy; override;
+
   public
-    procedure LoadConfig(IniFile: TIniFile);
-    procedure GetComfyGate(var nAddr: integer; var nPort: integer; nettype: Byte);
-    procedure ProcGameGateMessage(nNode: PInterMsgNode);
-    procedure KickOutClient(Idx: Byte; handle: Word; iReason: Integer);
-    procedure AddOnlineCount(GGIdx: Byte; iCount: Integer = 1);
-    procedure SendToClient(GGIdx: Byte; wHandle: Word; Buf: PAnsiChar; BufLen: Word);
-    procedure SendToGameGate(GGIdx: Byte; Ident: Word; Param: Integer; Buf: PAnsiChar; BufLen: Word);
-    procedure SetGameGateNet(GGIdx: Byte; const NetType: AnsiString);
-    procedure ReSendFilterWords;
-    property AllowGateIP: ansistring read GetAllowIPs;
+
 */
 
 extern CGGServerSocket* pG_GameGateSocket;
