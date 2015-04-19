@@ -18,6 +18,7 @@ CDBClientSocket::CDBClientSocket() : m_iPingCount(0), m_uiLastPingTick(0), m_bEn
 	m_OnDisConnect = std::bind(&CDBClientSocket::OnSocketDisconnect, this, std::placeholders::_1);
 	m_OnRead = std::bind(&CDBClientSocket::OnSocketRead, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 	m_OnError = std::bind(&CDBClientSocket::OnSocketError, this, std::placeholders::_1, std::placeholders::_2);
+	sDebugName = "CDBClientSocket";
 }
 
 CDBClientSocket::~CDBClientSocket()
@@ -187,7 +188,11 @@ void CDBClientSocket::AddForbiddenWord(char* pBuf, unsigned short usBufLen, int 
 	}
 	std::string sTemp;
 	sTemp.assign(pBuf, usBufLen);
-	CC_UTILS::SplitStrByLine(sTemp, &m_ForbiddenWords);
+	//----------------------------------
+	//----------------------------------
+	//----------------------------------
+	//----------------------------------
+	//CC_UTILS::SplitStrByLine(sTemp, &m_ForbiddenWords);
 	Log(CC_UTILS::FormatStr("收到过滤字(%d Bytes)：%d/%d 条", usBufLen, m_ForbiddenWords.size(), iCount), lmtMessage);
 }
 

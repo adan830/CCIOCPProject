@@ -18,6 +18,7 @@ CGSClientSocket::CGSClientSocket() : m_bShutDown(false), m_iPingCount(0), m_uiLa
 	m_OnDisConnect = std::bind(&CGSClientSocket::OnSocketDisconnect, this, std::placeholders::_1);
 	m_OnRead = std::bind(&CGSClientSocket::OnSocketRead, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 	m_OnError = std::bind(&CGSClientSocket::OnSocketError, this, std::placeholders::_1, std::placeholders::_2);
+	sDebugName = "CGSClientSocket";
 }
 
 CGSClientSocket::~CGSClientSocket()

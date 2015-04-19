@@ -53,8 +53,10 @@ const int SEVER_CLIENT_DIFF_TIME = 20;
 
 /************************Start Of CClientConnector******************************************/
 
-CPlayerClientConnector::CPlayerClientConnector() : m_OnSendToServer(nullptr), m_iObjectID(0), m_pFirst(nullptr), m_pLast(nullptr),
-	m_EnCodeFunc(nullptr), m_DeCodeFunc(nullptr), m_bDisconnected(false), m_bDeath(false), m_bNormalClose(false)
+CPlayerClientConnector::CPlayerClientConnector() : m_OnSendToServer(nullptr), m_uiPackageIdx(0), m_iObjectID(0), m_sRoleName(""), m_sAccount(""),
+	m_bTrace(false), m_bGM(false), m_usLastCMCmd(0), m_usLastSCMCmd(0), m_uiLastPackageTick(0), m_uiCloseTick(0), m_pFirst(nullptr), m_pLast(nullptr),
+	m_iQueueCount(0), m_EnCodeFunc(nullptr), m_DeCodeFunc(nullptr), m_bDisconnected(false), m_bDeath(false), m_bNormalClose(false), m_iMapID(0),
+	m_usHitSpeed(0), m_uiLastActionTick(0), m_usStiffTime(0)
 {
 }
 
@@ -886,7 +888,7 @@ void CPlayerClientConnector::SCMUpdateCDTime(char* pBuf, unsigned short usBufLen
 
 const int DISCONNET_BUF_LEN = 512 * 1024;     //系统中本身有260k缓存是不会计算的
 
-CClientServerSocket::CClientServerSocket()
+CClientServerSocket::CClientServerSocket() : m_bListenOK(false)
 {
 	SetMaxBlockSize(DISCONNET_BUF_LEN);
 	m_OnCreateClient = std::bind(&CClientServerSocket::OnCreateClientSocket, this, std::placeholders::_1);
@@ -1083,8 +1085,8 @@ void CClientServerSocket::DoActive()
 		if (!m_bListenOK)
 			return;
 
-		pG_GameServer->DoHeartBeat();
 		pG_DBServer->DoHeartBeat();
+		pG_GameServer->DoHeartBeat();		
 		pG_IMServer->DoHeartBeat();
 	}
 }
@@ -1134,10 +1136,10 @@ void CClientServerSocket::OnClientError(void* Sender, int& iErrorCode)
 
 void CClientServerSocket::OnListenReady(void* Sender)
 {
-	m_bListenOK = true;
 	Log("Connect To DBServer(" + m_sDBAddr + ":" + std::to_string(m_iDBPort) + ")");
 	pG_DBServer->ConnectToServer(m_sDBAddr, m_iDBPort);
 	UpdateLabel("Port:" + std::to_string(m_iListenPort), LABEL_PORT_ID);
+	m_bListenOK = true;
 }
 
 void CClientServerSocket::OnClientConnect(void* Sender)

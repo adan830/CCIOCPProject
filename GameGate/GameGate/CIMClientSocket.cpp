@@ -18,6 +18,7 @@ CIMClientSocket::CIMClientSocket() : m_iPingCount(0), m_uiLastPingTick(_ExGetTic
 	m_OnDisConnect = std::bind(&CIMClientSocket::OnSocketDisconnect, this, std::placeholders::_1);
 	m_OnRead = std::bind(&CIMClientSocket::OnSocketRead, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 	m_OnError = std::bind(&CIMClientSocket::OnSocketError, this, std::placeholders::_1, std::placeholders::_2);
+	sDebugName = "CIMClientSocket";
 }
 
 CIMClientSocket::~CIMClientSocket()

@@ -125,6 +125,7 @@ public:
 	void ProcServerMessage(unsigned short usIdent, unsigned short usHandle, char* pBuf, unsigned short usBufLen);
 	void ClientManage(unsigned short usIdent, unsigned short usHandle, char* pBuf, unsigned short usBufLen, bool bInGame);
 	void GameServerShutDown();
+	bool IsListenOK(){ return m_bListenOK; }
 public:	
 	std::string m_sInternetIP;
 protected:

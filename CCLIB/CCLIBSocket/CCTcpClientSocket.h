@@ -89,6 +89,8 @@ public:
 protected:
 	int ParseSocketReadData(int iType, const char* pBuf, int iCount);                                //由子类的onsocketread调用
 	virtual void ProcessReceiveMsg(PServerSocketHeader pHeader, char* pData, int iDataLen){};  //处理具体的消息包数据，子类实现
+protected:
+	std::string sDebugName;
 private:
 	bool DoInitialize();
 	bool DoError(TSocketErrorType seType);

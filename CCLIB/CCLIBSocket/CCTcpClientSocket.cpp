@@ -416,7 +416,7 @@ bool CIOCPClientSocketManager :: DoInitialize()
 bool CIOCPClientSocketManager :: Open()
 {
 	bool retflag = false;
-	if (DoInitialize()) 
+	if ((m_Address != "") && (m_Port > 0) && DoInitialize())
 	{
 		memset(&m_SocketAddr, 0, sizeof(m_SocketAddr));
 		m_SocketAddr.sin_family = AF_INET;

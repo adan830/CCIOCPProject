@@ -41,10 +41,15 @@ void CMainThread::DoExecute()
 {
 	m_pLogSocket->InitialWorkThread();
 	pG_ClientServerSocket->InitialWorkThread();
+	Log("GameGate Æô¶¯.");
+
+	while ((!IsTerminated()) && (!(pG_ClientServerSocket->IsListenOK())))
+	{
+		WaitForSingleObject(m_Event, 100);
+	}
 	pG_DBServer->InitialWorkThread();
 	pG_GameServer->InitialWorkThread();
 	pG_IMServer->InitialWorkThread();
-	Log("GameGate Æô¶¯.");
 
 	while (!IsTerminated())
 	{

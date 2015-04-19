@@ -6,6 +6,7 @@
 #include "CCUtils.h"
 #include <io.h>
 #include <direct.h>
+#include <iostream>
 #pragma comment(lib, "version.lib")
 #pragma comment(lib, "winmm.lib")
 
@@ -269,6 +270,7 @@ namespace CC_UTILS{
 	//----------------------------------
 	//-----功能检测效验????????????????
 	//-----功能检测效验????????????????
+	//有问题！！！！！！！！！！！！！！！！！！！！
 	void SplitStrByLine(std::string& s, std::vector<std::string>* ret)
 	{
 		if (s != "")
@@ -288,8 +290,13 @@ namespace CC_UTILS{
 					++iLen;
 					++p;
 				}
-				sTemp.assign(iStart, iLen);
+				sTemp.assign(p, iStart, iLen);
 				ret->push_back(sTemp);
+				if (((*p) == '\r') || ((*p) == '\n'))
+				{
+					++iCurr;
+					++p;
+				}
 			}
 		}		
 	}
@@ -626,33 +633,51 @@ namespace CC_UTILS{
 	//格式化字符串,返回unicode
 	std::wstring FormatWStr(LPCWSTR szFormat, ...)
 	{
-		va_list args;
-		va_start(args, szFormat);
-
-		int len = _vscwprintf(szFormat, args);
 		std::wstring str;
-		str.resize(len);
-		_vsnwprintf_s(&str[0], len, len, szFormat, args);
+		try
+		{
+			va_list args;
+			va_start(args, szFormat);
 
-		va_end(args);
+			int len = _vscwprintf(szFormat, args);
+			str.resize(len);
+			_vsnwprintf(&str[0], len, szFormat, args);
 
-		return str;
+			va_end(args);
+
+			return str;
+		}
+		catch (...)
+		{
+			std::cout << "Exception FormatWStr!" << std::endl;
+			str = L"";
+			return str;
+		}
 	}
 
 	//格式化字符串,返回普通字符串
 	std::string FormatStr(LPCSTR szFormat, ...)
 	{
-		va_list args;
-		va_start(args, szFormat);
-
-		int len = _vscprintf(szFormat, args);
 		std::string str;
-		str.resize(len);
-		_vsnprintf_s(&str[0], len, len, szFormat, args);
+		try
+		{
+			va_list args;
+			va_start(args, szFormat);
 
-		va_end(args);
+			int len = _vscprintf(szFormat, args);
+			str.resize(len);
+			_vsnprintf(&str[0], len, szFormat, args);
 
-		return str;
+			va_end(args);
+
+			return str;
+		}
+		catch (...)
+		{
+			std::cout << "Exception FormatWStr!" << std::endl;
+			str = "";
+			return str;
+		}
 	}
 
 	//宽字符串转化为大写
