@@ -130,4 +130,68 @@ void CGGConnector::Msg_Ping(int iParam, char* pBuf, unsigned short usBufLen)
 
 /************************Start Of CGGServerSocket******************************************/
 
+CGGServerSocket::CGGServerSocket() :m_sAllowIPs("")
+{
+  m_OnCreateClient = std::bind(&CGGServerSocket::OnCreateGGSocket, this, std::placeholders::_1);
+  m_OnClientError = std::bind(&CGGServerSocket::OnSocketError, this, std::placeholders::_1, std::placeholders::_2);
+  m_OnConnect = std::bind(&CGGServerSocket::OnGGConnect, this, std::placeholders::_1);
+  m_OnDisConnect = std::bind(&CGGServerSocket::OnGGDisconnect, this, std::placeholders::_1);
+  m_OnCheckAddress = std::bind(&CGGServerSocket::OnCheckConnectIP, this, std::placeholders::_1);
+}
+
+CGGServerSocket::~CGGServerSocket()
+{
+	m_OnCheckAddress = nullptr;
+}
+
+void CGGServerSocket::LoadConfig(CWgtIniFile* pIniFileParser)
+{
+
+}
+
+void CGGServerSocket::GetComfyGate(int &iAddr, int &iPort, unsigned char ucNetType)
+{}
+
+void CGGServerSocket::ProcGameGateMessage(PInnerMsgNode pNode)
+{}
+
+void CGGServerSocket::KickOutClient(unsigned char ucIdx, unsigned short usHandle, int iReason)
+{}
+
+void CGGServerSocketAddOnlineCount(unsigned char ucGGIdx, int iCount = 1)
+{}
+
+void CGGServerSocket::SendToClientPeer(unsigned char ucGGIdx, unsigned short usHandle, char* pBuf, unsigned short usBufLen)
+{}
+
+void CGGServerSocket::SetGameGateNet(unsigned char ucGGIdx, const std::string &sNetType)
+{}
+
+void CGGServerSocket::ResendFilterWords()
+{}
+
+std::string CGGServerSocket::GetAllowIPs()
+{}
+
+bool CGGServerSocket::OnCheckConnectIP(const std::string &sConnectIP)
+{}
+
+void CGGServerSocket::OnSocketError(void* Sender, int& iErrorCode)
+{}
+
+CClientConnector* CGGServerSocket::OnCreateGGSocket(const std::string &sIP)
+{}
+
+void CGGServerSocket::OnGGConnect(void* Sender)
+{}
+
+void CGGServerSocket::OnGGDisconnect(void* Sender)
+{}
+
+bool CGGServerSocket::RegisterGameGate(CGGConnector* Sender, const std::string &sAddr, int iPort)
+{}
+
+void CGGServerSocket::SMPlayerConnect(PInnerMsgNode pNode)
+{}
+
 /************************End Of CGGServerSocket******************************************/
