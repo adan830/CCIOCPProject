@@ -14,7 +14,7 @@ CMainThread* pG_MainThread;
 CMainThread::CMainThread(const std::string &sServerName) : m_uiSlowTick(0), m_pFirst(nullptr), m_pLast(nullptr), m_iNetBarIPFileAge(0), m_iConfigFileAge(0),
 m_iFilterFileAge(0), m_uiLastCheckTick(0), m_NoNeedActivateIPHash(3111), m_FilterWords(512), m_bAllowGuest(false), m_bDenyRecharge(false)
 {
-	m_NoNeedActivateIPHash.Remove = std::bind(&CMainThread::OnRemoveNetBarIP, this, std::placeholders::_1, std::placeholders::_2);	
+	m_NoNeedActivateIPHash.m_RemoveEvent = std::bind(&CMainThread::OnRemoveNetBarIP, this, std::placeholders::_1, std::placeholders::_2);	
 	/*
   FNoNeedActivateIPList.OnRemove := OnRemoveNetBarIP;
   m_LogSocket := TLogSocket.Create(ServiceName);

@@ -18,9 +18,11 @@ public:
 	CGGConnector();
 	virtual ~CGGConnector();
 	void SendToClientPeer(unsigned short usIdent, int iParam, char* pBuf, unsigned short usBufLen);
-	int GetServerIdx(){ return m_iServerIdx; }
 	int GetOnlineCount(){ return m_iOnlineCount; }
 	bool IsEnable(){ return m_bEnable; }
+public:
+	int m_iServerIdx;
+	std::string m_sNetType;
 protected:
 	virtual void SocketRead(const char* pBuf, int iCount);
 	virtual void ProcessReceiveMsg(char* pHeader, char* pData, int iDataLen);
@@ -28,8 +30,6 @@ private:
 	void Msg_Register(int iParam, char* pBuf, unsigned short usBufLen);
 	void Msg_Ping(int iParam, char* pBuf, unsigned short usBufLen);
 private:
-	std::string m_sNetType;
-	int m_iServerIdx;
 	int m_iOnlineCount;
 	bool m_bEnable;
 	CC_UTILS::CIntegerHash m_GamePlayerHash;

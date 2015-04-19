@@ -150,48 +150,168 @@ void CGGServerSocket::LoadConfig(CWgtIniFile* pIniFileParser)
 }
 
 void CGGServerSocket::GetComfyGate(int &iAddr, int &iPort, unsigned char ucNetType)
-{}
+{
+
+}
 
 void CGGServerSocket::ProcGameGateMessage(PInnerMsgNode pNode)
-{}
+{
+
+}
 
 void CGGServerSocket::KickOutClient(unsigned char ucIdx, unsigned short usHandle, int iReason)
-{}
+{
+
+}
 
 void CGGServerSocketAddOnlineCount(unsigned char ucGGIdx, int iCount = 1)
-{}
+{
+
+}
 
 void CGGServerSocket::SendToClientPeer(unsigned char ucGGIdx, unsigned short usHandle, char* pBuf, unsigned short usBufLen)
-{}
+{
+
+}
 
 void CGGServerSocket::SetGameGateNet(unsigned char ucGGIdx, const std::string &sNetType)
-{}
+{
+
+}
 
 void CGGServerSocket::ResendFilterWords()
-{}
+{
+
+}
 
 std::string CGGServerSocket::GetAllowIPs()
-{}
+{
+
+}
 
 bool CGGServerSocket::OnCheckConnectIP(const std::string &sConnectIP)
-{}
+{
+	bool bRetFlag = false;
+	if (!G_BoClose)
+	{
+		bRetFlag = sConnectIP.find(m_sAllowIPs) != std::string::npos;
+		if (!bRetFlag)
+		{
+			for (int i = 0; i < MAX_GAMEGATE_COUNT; i++)
+			{
+				if (sConnectIP.compare(m_ServerArray[i].Addr.IPAddress) == 0)
+				{
+					bRetFlag = true;
+					break;
+				}
+			}
+		}
+		if (!bRetFlag)
+			Log(CC_UTILS::FormatStr("GameGate[%s] 连接被禁止！！", sConnectIP), lmtWarning);
+	}
+	return bRetFlag;
+}
 
 void CGGServerSocket::OnSocketError(void* Sender, int& iErrorCode)
-{}
+{
+	Log(CC_UTILS::FormatStr("CGGServerSocket Socket Error, Code = %d", iErrorCode), lmtWarning);
+	iErrorCode = 0;
+}
 
 CClientConnector* CGGServerSocket::OnCreateGGSocket(const std::string &sIP)
-{}
+{
+	return new CGGConnector();
+}
 
 void CGGServerSocket::OnGGConnect(void* Sender)
-{}
+{
+	Log(CC_UTILS::FormatStr("GameGate %s Connected.", ((CGGConnector*)Sender)->GetRemoteAddress()), lmtWarning);
+}
 
 void CGGServerSocket::OnGGDisconnect(void* Sender)
-{}
+{
+	Log(CC_UTILS::FormatStr("GameGate %d Disconnected.", ((CGGConnector*)Sender)->m_iServerIdx), lmtWarning);
+	((CGGConnector*)Sender)->m_iServerIdx = 0;
+}
 
 bool CGGServerSocket::RegisterGameGate(CGGConnector* Sender, const std::string &sAddr, int iPort)
-{}
+{
+	bool bRetFlag = false;
+	if (iPort > 0)
+	{
+		for (int i = 0; i < MAX_GAMEGATE_COUNT; i++)
+		{
+			if ((iPort == m_ServerArray[i].Addr.iPort) && (sAddr.compare(m_ServerArray[i].Addr.IPAddress) == 0))
+			{
+				Sender->m_iServerIdx = i;
+				Sender->m_sNetType = m_ServerArray[i].sNetType;
+				bRetFlag = true;
+				break;
+			}
+		}
+	}
+	if (!bRetFlag)
+		Log(CC_UTILS::FormatStr("GameGate Register Error : %s : %d", sAddr, iPort), lmtError);
+
+	return bRetFlag;
+}
 
 void CGGServerSocket::SMPlayerConnect(PInnerMsgNode pNode)
-{}
+{
+	bool bSuccess = false;
+	if (sizeof(TPlayerConnectRec) == pNode->usBufLen)
+	{
+		PPlayerConnectRec pRec = (PPlayerConnectRec)(pNode->pBuf);
+		----
+	}
+	/*
+var
+  Success           : Boolean;
+  i, EnCodeIdx, ClientType, AreaId: integer;
+  Info              : TSessionInfo;
+  GG                : TGameGate;
+  P                 : PPlayerConnectRec;
+  Addr              : In_Addr;
+begin
+  Success := False;
+  if nNode^.wBufLen = sizeof(TPlayerConnectRec) then
+  begin
+    P := PPlayerConnectRec(nNode^.szBuf);
+    if G_DispatchGate.GetSession(P^.SessionID, @Info) then
+    begin
+      EnCodeIdx := Info.EncodeIdx;
+      ClientType := Info.ClientType;
+      AreaId := Info.AreaID;
+      Lock;
+      try
+        for i := 0 to ActiveConnects.Count - 1 do
+        begin
+          GG := TGameGate(ActiveConnects.Items[i]);
+          if GG.FServerIdx = nNode^.idx then
+          begin
+            GG.SendBuffer(SM_PLAYER_CONNECT, nNode^.Param, @EnCodeIdx, sizeof(integer));
+            Success := True;
+            Break;
+          end;
+        end;
+      finally
+        UnLock;
+      end;
+      if Success then
+      begin
+        with nNode^ do
+          G_UserManage.AddUser(idx, Param, ClientType, AreaId, EnCodeIdx, P^.IntAddr, Info.BoMasterIP);
+      end;
+    end
+    else
+    begin
+      Addr.S_addr := P^.IntAddr;
+      Log(Format('%s 连接被强行关闭，ErrCode=%d', [inet_ntoa(Addr), DISCONNECT_SESSION_TIMEOUT]), lmtWarning);
+      KickOutClient(nNode^.idx, nNode^.Param, DISCONNECT_SESSION_TIMEOUT);
+    end;
+  end;
+end;
+	*/
+}
 
 /************************End Of CGGServerSocket******************************************/
