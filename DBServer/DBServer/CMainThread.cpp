@@ -185,7 +185,11 @@ PNetBarIPInfo CMainThread::FindNetBarIP(const int iIP)
 
 void CMainThread::SendFilterWords(TOnSendToServer CallBack)
 {
-
+	//这里的参数还需要绑定对象成员方法
+	//----------------------------------
+	//----------------------------------
+	//----------------------------------
+	//----------------------------------
 }
 
 bool CMainThread::IsAllowGuest()

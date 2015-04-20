@@ -21,6 +21,7 @@ public:
 	int GetOnlineCount(){ return m_iOnlineCount; }
 	bool IsEnable(){ return m_bEnable; }
 public:
+	int m_iOnlineCount;
 	int m_iServerIdx;
 	std::string m_sNetType;
 protected:
@@ -30,7 +31,6 @@ private:
 	void Msg_Register(int iParam, char* pBuf, unsigned short usBufLen);
 	void Msg_Ping(int iParam, char* pBuf, unsigned short usBufLen);
 private:
-	int m_iOnlineCount;
 	bool m_bEnable;
 	CC_UTILS::CIntegerHash m_GamePlayerHash;
 };
