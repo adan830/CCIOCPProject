@@ -4,6 +4,7 @@
 **************************************************************************************/
 #include "stdafx.h"
 #include "CGGServerSocket.h"
+#include "CGSServerSocket.h"
 using namespace CC_UTILS;
 
 CGGServerSocket* pG_GameGateSocket;
@@ -151,7 +152,56 @@ void CGGServerSocket::LoadConfig(CWgtIniFile* pIniFileParser)
 
 void CGGServerSocket::GetComfyGate(int &iAddr, int &iPort, unsigned char ucNetType)
 {
+	iAddr = 0;
+	iPort = 0;
+	if (!pG_GameServerSocket->IsGameServerOK())
+	{
+		Log("服务器维护中,GS未连接DBServer.", lmtWarning);
+		return;
+	}
+	int idx = 0;
+	int iMinCount = MAXINT;
+	{
+		CGGConnector* gg = nullptr;
+		std::lock_guard<std::mutex> guard(m_LockCS);
+		if (ucNetType > 0)
+		{
+			std::string sNetType = std::to_string(ucNetType);
+			std::list<void*>::iterator vIter;
+			for (vIter = m_ActiveConnects.begin(); vIter != m_ActiveConnects.end(); ++vIter)
+			{
+				gg = (CGGConnector*)*vIter;
+				/*
+				if (GG.FServerIdx > 0) and GG.FBoEnable and (Pos(sNetType, GG.FNetType) > 0) and (MinCount > GG.FOnLineCount) then
+				begin
+				  Idx := GG.FServerIdx;
+				  MinCount := GG.OnLineCount;
+				end;
+				*/
+			}
 
+			// 找不到指定网络类型的GG
+			if (0 == idx)
+			{
+				for (vIter = m_ActiveConnects.begin(); vIter != m_ActiveConnects.end(); ++vIter)
+				{
+					gg = (CGGConnector*)*vIter;
+					if ((gg->m_iServerIdx > 0) && gg->IsEnable() && ("" == gg->m_sNetType) && (iMinCount > gg->GetOnlineCount()))
+					{
+						idx = gg->m_iServerIdx;
+						iMinCount = gg->GetOnlineCount();
+					}
+				}
+			}
+		}
+	}
+
+	if ((idx >= 0) && (idx < MAX_GAMEGATE_COUNT))
+	{
+		iAddr = inet_addr(m_ServerArray[idx].Addr.IPAddress);
+		iPort = m_ServerArray[idx].Addr.iPort;
+		AddOnlineCount(idx, 1);
+	}
 }
 
 void CGGServerSocket::ProcGameGateMessage(PInnerMsgNode pNode)

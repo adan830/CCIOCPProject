@@ -759,9 +759,9 @@ void CIOCPServerSocketManager :: DoSocketClose(void* Sender)
 	PDelayFreeNode pNode;
 	std::lock_guard<std::mutex> guard(m_LockCS);
 	std::list<void*>::iterator vIter;
-	for (vIter=m_ActiveConnects.begin(); vIter!=m_ActiveConnects.end(); ++vIter)
+	for (vIter=m_ActiveConnects.begin(); vIter!=m_ActiveConnects.end();)
 	{
-		if (*vIter == Sender)  
+		if (*vIter == Sender)
 		{
 			pNode = new TDelayFreeNode;
 			pNode->usHandle = ((CClientConnector*)Sender)->m_SocketHandle;
@@ -781,9 +781,11 @@ void CIOCPServerSocketManager :: DoSocketClose(void* Sender)
 				m_OnDisConnect(Sender);
 			((CClientConnector*)Sender)->Close();
 			((CClientConnector*)Sender)->Clear();
-			m_ActiveConnects.erase(vIter);
+			vIter = m_ActiveConnects.erase(vIter);
 			break;
 		}
+		else
+			++vIter;
 	}
 }
 
