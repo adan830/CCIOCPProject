@@ -14,7 +14,53 @@
 
 namespace CC_UTILS{
 
-	extern unsigned int _ExGetTickCount;           
+	extern unsigned int _ExGetTickCount;  
+
+	typedef vector<std::wstring> WStringList;
+
+	typedef vector<std::string> StringList;
+
+	/*
+		安全清空 wstring  或 string。（在内存的数据也清除，绝不残留）
+	*/
+	#ifndef SAFE_CLEAR_STR
+	#define SAFE_CLEAR_STR(str)	SafeClearStr(str)
+	#endif
+
+	/*
+		安全删除对象指针
+	*/
+	#ifndef SAFE_DELETE
+	#define SAFE_DELETE(p)	{ if (p) { delete (p); (p)=NULL; }}
+	#endif
+
+	/*
+		增加标志
+	*/
+	#ifndef ADD_FLAG
+	#define ADD_FLAG(body, flag) body|=(flag)
+	#endif
+	/*
+		删除标志
+	*/
+	#ifndef DEL_FLAG
+	#define DEL_FLAG(body, flag) body&=~(flag)
+	#endif
+
+	/*
+		是否包含标志
+	*/
+	#ifndef HAS_FLAG
+	#define HAS_FLAG(body, flag) ((body & (flag)) != 0)
+	#endif
+
+	/*
+		数组大小
+	*/
+	#ifndef	COUNT_OF_ARRAY
+		#define COUNT_OF_ARRAY(array) (sizeof(array)/sizeof(array[0]))
+	#endif
+
 
 	//简易的Hash结点
 	typedef struct _THashPortItem
