@@ -50,7 +50,7 @@ public:
 	void ProcGameGateMessage(PInnerMsgNode pNode);
 	void KickOutClient(unsigned char ucIdx, unsigned short usHandle, int iReason);
 	void AddOnlineCount(unsigned char ucGGIdx, int iCount=1);
-	void SendToClientPeer(unsigned char ucGGIdx, unsigned short usHandle, char* pBuf, unsigned short usBufLen);
+	void SendToGameGate(unsigned char ucGGIdx, unsigned short usHandle, char* pBuf, unsigned short usBufLen);
 	void SetGameGateNet(unsigned char ucGGIdx, const std::string &sNetType);
 	void ResendFilterWords();
 	std::string GetAllowIPs();

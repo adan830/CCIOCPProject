@@ -308,7 +308,7 @@ void CGGServerSocket::AddOnlineCount(unsigned char ucGGIdx, int iCount = 1)
 	}
 }
 
-void CGGServerSocket::SendToClientPeer(unsigned char ucGGIdx, unsigned short usHandle, char* pBuf, unsigned short usBufLen)
+void CGGServerSocket::SendToGameGate(unsigned char ucGGIdx, unsigned short usHandle, char* pBuf, unsigned short usBufLen)
 {
 	std::lock_guard<std::mutex> guard(m_LockCS);
 	std::list<void*>::iterator vIter;
