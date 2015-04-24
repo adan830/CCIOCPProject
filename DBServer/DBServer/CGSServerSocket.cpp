@@ -4,16 +4,178 @@
 **************************************************************************************/
 #include "stdafx.h"
 #include "CGSServerSocket.h"
+#include "CGGServerSocket.h"
+
 using namespace CC_UTILS;
 
 CGSServerSocket* pG_GameServerSocket;
 
 /************************Start Of CGSConnector******************************************/
 
+CGSConnector::CGSConnector() :m_iOnlineCount(0), m_bEnable(false)
+{}
+
+CGSConnector::~CGSConnector()
+{}
+
+void CGSConnector::SendToClientPeer(unsigned short usIdent, int iParam, char* pBuf, unsigned short usBufLen)
+{
+	int iDataLen = sizeof(TServerSocketHeader)+usBufLen;
+	char* pData = (char*)malloc(iDataLen);
+	if (pData != nullptr)
+	{
+		try
+		{
+			((PServerSocketHeader)pData)->uiSign = SS_SEGMENTATION_SIGN;
+			((PServerSocketHeader)pData)->usIdent = usIdent;
+			((PServerSocketHeader)pData)->iParam = iParam;
+			((PServerSocketHeader)pData)->usBehindLen = usBufLen;
+			if (usBufLen > 0)
+				memcpy(pData + sizeof(TServerSocketHeader), pBuf, usBufLen);
+
+			SendBuf(pData, iDataLen);
+			free(pData);
+		}
+		catch (...)
+		{
+			free(pData);
+		}
+	}
+}
+
+void CGSConnector::SocketRead(const char* pBuf, int iCount)
+{
+	//在基类解析外层数据包，并调用ProcessReceiveMsg完成逻辑消息处理
+	int iErrorCode = ParseSocketReadData(1, pBuf, iCount);
+	if (iErrorCode > 0)
+		Log("CGSConnector Socket Read Error, Code = " + std::to_string(iErrorCode), lmtError);
+}
+
+void CGSConnector::ProcessReceiveMsg(char* pHeader, char* pData, int iDataLen)
+{
+	PInnerMsgNode pNode;
+	PServerSocketHeader pH = (PServerSocketHeader)pHeader;
+	switch (pH->usIdent)
+	{
+	case SM_REGISTER:
+		Msg_Register(pH->iParam, pData, iDataLen);
+		break;
+	case SM_PING:
+		Msg_Ping(pH->iParam, pData, iDataLen);
+		break;
+	default:
+		//其它消息都重新回到主线程的队列中处理，保证线程安全
+		pNode = new TInnerMsgNode();
+		pNode->MsgFrom = fromGameServer;
+		pNode->iIdx = pH->usIdent;
+		pNode->iParam = pH->iParam;
+		pNode->usIdent = pH->usIdent;
+		if ((pData != nullptr) && (iDataLen > 0))
+		{
+			pNode->usBufLen = iDataLen;
+			pNode->pBuf = (char*)malloc(iDataLen);
+			memcpy_s(pNode->pBuf, iDataLen, pData, iDataLen);
+		}
+		else
+		{
+			pNode->pBuf = nullptr;
+			pNode->usBufLen = 0;
+		}
+		pG_MainThread->ReceiveMessage(pNode);
+		break;
+	}
+}
+
+void CGSConnector::Msg_Register(int iParam, char* pBuf, unsigned short usBufLen)
+{
+	if (pG_GameServerSocket->RegisterGameServer(GetRemoteAddress(), iParam))
+	{
+		m_bEnable = true;
+		std::string sAddr = pG_GameGateSocket->GetAllowIPs();
+		SendToClientPeer(SM_SERVER_CONFIG, G_DataBaseID, const_cast<char*>(sAddr.c_str()), sAddr.length());
+		Log(CC_UTILS::FormatStr("Invalid GameServer %s:%d", GetRemoteAddress(), iParam), lmtError);
+	}
+	else
+		Log(CC_UTILS::FormatStr("Invalid GameServer %s:%d", GetRemoteAddress(), iParam), lmtError);
+}
+
+void CGSConnector::Msg_Ping(int iParam, char* pBuf, unsigned short usBufLen)
+{
+	m_iOnlineCount = iParam;
+	SendToClientPeer(SM_PING, 0, nullptr, 0);
+}
+
 /************************End Of CGSConnector******************************************/
 
 
 
 /************************Start Of CGSServerSocket******************************************/
+
+CGSServerSocket::CGSServerSocket()
+{}
+
+CGSServerSocket::~CGSServerSocket()
+{}
+
+void CGSServerSocket::LoadConfig(CWgtIniFile* pIniFileParser)
+{}
+
+PServerAddress CGSServerSocket::GetGameServerInfo()
+{}
+
+bool CGSServerSocket::IsGameServerOK()
+{}
+
+void CGSServerSocket::GameServerShutDown()
+{}
+
+void CGSServerSocket::ProcGameServerMessage(PInnerMsgNode pNode)
+{}
+
+bool CGSServerSocket::SendToGameServer(unsigned short usIdent, int iParam, char* pBuf, unsigned short usBufLen)
+{}
+
+void CGSServerSocket::BroadcastToGS(unsigned short usIdent, int iParam, char* pBuf, unsigned short usBufLen)
+{}
+
+bool CGSServerSocket::CanClosed()
+{}
+
+int CGSServerSocket::GetHumanCount()
+{}
+
+CGSConnector* CGSServerSocket::GetActiveGameServer()
+{}
+
+bool CGSServerSocket::RegisterGameServer(const std::string &sGSAddr, int iGSPort)
+{}
+
+void CGSServerSocket::Msg_DataRead(int iSessionID, char* pBuf, unsigned short usBufLen)
+{}
+
+void CGSServerSocket::Msg_DataWrite(int iSessionID, char* pBuf, unsigned short usBufLen)
+{}
+
+void CGSServerSocket::Msg_GameActCode(int iSessionID, char* pBuf, unsigned short usBufLen)
+{}
+
+bool CGSServerSocket::OnCheckConnectIP(const std::string &sConnectIP)
+{}
+
+void CGSServerSocket::OnSocketError(void* Sender, int& iErrorCode)
+{}
+
+CClientConnector* CGSServerSocket::OnCreateGSSocket(const std::string &sIP)
+{}
+
+void CGSServerSocket::OnGSConnect(void* Sender)
+{}
+
+void CGSServerSocket::OnGSDisconnect(void* Sender)
+{}
+
+void CGSServerSocket::ProcGMCmd(int iSessionID, std::string &sCmdStr)
+{}
+
 
 /************************End Of CGSServerSocket******************************************/

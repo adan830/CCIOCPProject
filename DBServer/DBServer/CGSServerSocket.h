@@ -54,27 +54,26 @@ public:
 	CGSConnector* GetActiveGameServer();
 public:
     int m_iMaxOnlineCount;
-
 protected:
 private:
 	bool RegisterGameServer(const std::string &sGSAddr, int iGSPort);
 	void Msg_DataRead(int iSessionID, char* pBuf, unsigned short usBufLen);
 	void Msg_DataWrite(int iSessionID, char* pBuf, unsigned short usBufLen);
-	void Msg_GameActCode(int iSessionID, char* pBuf, unsigned short usBufLen);
-	/*
-	function CheckConnectIP(const ConnectIP : ansistring) : Boolean;
-	procedure SocketError(Sender: TObject; var ErrorCode : integer);
-	function CreateCustomSocket(const IP : ansistring) : TCustomClient;
-	procedure GSConnect(Sender: TObject);
-	procedure GSDisConnect(Sender: TObject);
-	procedure ProcGMCmd(SessionID: Integer; CmdStr: AnsiString);
-	*/
+	void Msg_GameActCode(int iSessionID, char* pBuf, unsigned short usBufLen);	
+	bool OnCheckConnectIP(const std::string &sConnectIP);
+	void OnSocketError(void* Sender, int& iErrorCode);
+	CClientConnector* OnCreateGSSocket(const std::string &sIP);
+	void OnGSConnect(void* Sender);
+	void OnGSDisconnect(void* Sender);
+	void ProcGMCmd(int iSessionID, std::string &sCmdStr);
 private:
 	std::string m_sAllowIPs;
 	TServerAddress m_ServerInfo;
 	char* m_pSendCache;
 	bool m_bShutDown;
 	unsigned int m_uiShutDownTick;
+
+	friend class CGSConnector;
 };
 
 extern CGSServerSocket* pG_GameServerSocket;
