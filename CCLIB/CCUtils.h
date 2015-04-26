@@ -16,9 +16,9 @@ namespace CC_UTILS{
 
 	extern unsigned int _ExGetTickCount;  
 
-	typedef vector<std::wstring> WStringList;
+	typedef std::vector<std::wstring> WStringList;
 
-	typedef vector<std::string> StringList;
+	typedef std::vector<std::string> StringList;
 
 	/*
 		安全清空 wstring  或 string。（在内存的数据也清除，绝不残留）

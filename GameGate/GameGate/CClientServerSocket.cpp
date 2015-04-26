@@ -58,6 +58,7 @@ CPlayerClientConnector::CPlayerClientConnector() : m_OnSendToServer(nullptr), m_
 	m_iQueueCount(0), m_EnCodeFunc(nullptr), m_DeCodeFunc(nullptr), m_bDisconnected(false), m_bDeath(false), m_bNormalClose(false), m_iMapID(0),
 	m_usHitSpeed(0), m_uiLastActionTick(0), m_usStiffTime(0)
 {
+	memset(m_LastCDTicks, 0, sizeof(int) * MAX_CD_ID);
 }
 
 CPlayerClientConnector::~CPlayerClientConnector()
