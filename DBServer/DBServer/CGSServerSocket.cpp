@@ -111,29 +111,118 @@ void CGSConnector::Msg_Ping(int iParam, char* pBuf, unsigned short usBufLen)
 
 /************************Start Of CGSServerSocket******************************************/
 
-CGSServerSocket::CGSServerSocket()
-{}
+CGSServerSocket::CGSServerSocket() :m_iMaxOnlineCount(0), m_sAllowIPs(""), m_bShutDown(false), m_uiShutDownTick(0)
+{
+	m_OnCreateClient = std::bind(&CGSServerSocket::OnCreateGSSocket, this, std::placeholders::_1);
+	m_OnClientError = std::bind(&CGSServerSocket::OnSocketError, this, std::placeholders::_1, std::placeholders::_2);
+	m_OnConnect = std::bind(&CGSServerSocket::OnGSConnect, this, std::placeholders::_1);
+	m_OnDisConnect = std::bind(&CGSServerSocket::OnGSDisconnect, this, std::placeholders::_1);
+	m_OnCheckAddress = std::bind(&CGSServerSocket::OnCheckConnectIP, this, std::placeholders::_1);
+
+	m_pSendCache = (char*)malloc(MAXWORD);
+	memset(&m_ServerInfo, 0, sizeof(TServerAddress));
+}
 
 CGSServerSocket::~CGSServerSocket()
-{}
+{
+	free(m_pSendCache);
+	m_OnCheckAddress = nullptr;
+}
 
 void CGSServerSocket::LoadConfig(CWgtIniFile* pIniFileParser)
-{}
+{
+
+	/*
+var
+  sServer, sIP, sPort: ansistring;
+  iPos, iPort       : integer;
+begin
+  FMaxOnline := IniFile.ReadInteger('Setup', 'MaxCount', 10000);
+  FAllowIPs := IniFile.ReadString('GameServer', 'AllowIP', '127.0.0.1|');
+  sServer := IniFile.ReadString('GameServer', 'Address', '127.0.0.1');
+  if sServer <> '' then
+  begin
+    iPort := DEFAULT_GameServer_PORT;
+    iPos := Pos(':', sServer);
+    if iPos > 0 then
+    begin
+      sIP := Copy(sServer, 1, iPos - 1);
+      sPort := Copy(sServer, iPos + 1, 4);
+      iPort := StrToIntDef(sPort, DEFAULT_GameServer_PORT);
+    end
+    else
+      sIP := sServer;
+    if iPort > 0 then
+    begin
+      with FServerInfo do
+      begin
+        StrPlCopy(IPAddress, sIP, 15);
+        nPort := iPort;
+      end;
+    end;
+  end;
+  iPort := IniFile.ReadInteger('GameServer', 'ListenPort', DEFAULT_DBServer_GS_PORT); // ÕìÌý¶Ë¿Ú
+  if not Active then
+  begin
+    Address := '0.0.0.0';
+    Port := iPort;
+    Open;
+    Log('GameServer Service Start.(Port: ' + IntToStr(iPort) + ')');
+  end;
+end;
+	*/
+
+}
 
 PServerAddress CGSServerSocket::GetGameServerInfo()
-{}
+{
+	return &m_ServerInfo;
+}
 
 bool CGSServerSocket::IsGameServerOK()
-{}
+{
+	bool bRetFlag = false;
+	std::lock_guard<std::mutex> guard(m_LockCS);
+	std::list<void*>::iterator vIter;
+	CGSConnector* gs = nullptr;
+	for (vIter = m_ActiveConnects.begin(); vIter != m_ActiveConnects.end(); ++vIter)
+	{
+		gs = (CGSConnector*)*vIter;
+		if (gs->IsEnable())
+		{
+			bRetFlag = true;
+			break;
+		}
+	}
+	return bRetFlag;
+}
 
 void CGSServerSocket::GameServerShutDown()
-{}
+{
+	m_uiShutDownTick = _ExGetTickCount;
+	m_bShutDown = true;
+}
 
 void CGSServerSocket::ProcGameServerMessage(PInnerMsgNode pNode)
 {}
 
 bool CGSServerSocket::SendToGameServer(unsigned short usIdent, int iParam, char* pBuf, unsigned short usBufLen)
-{}
+{
+	bool bRetFlag = false;
+	std::lock_guard<std::mutex> guard(m_LockCS);
+	std::list<void*>::iterator vIter;
+	CGSConnector* gs = nullptr;
+	for (vIter = m_ActiveConnects.begin(); vIter != m_ActiveConnects.end(); ++vIter)
+	{
+		gs = (CGSConnector*)*vIter;
+		if (gs->IsEnable())
+		{
+			bRetFlag = true;
+			gs->SendToClientPeer(usIdent, iParam, pBuf, usBufLen);
+		}
+	}
+	return bRetFlag;
+}
 
 void CGSServerSocket::BroadcastToGS(unsigned short usIdent, int iParam, char* pBuf, unsigned short usBufLen)
 {}
