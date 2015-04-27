@@ -523,7 +523,15 @@ void CClientConnector :: DoActive(unsigned int uiTick)
 
 bool CClientConnector :: IsCorpse(unsigned int uiTick, unsigned int uiMaxCorpseTime)
 {
-	return ((uiTick > m_uiActiveTick) && (uiTick - m_uiActiveTick > uiMaxCorpseTime));
+	if (uiTick >= m_uiActiveTick)
+	{
+		return ((uiTick > m_uiActiveTick) && (uiTick - m_uiActiveTick > uiMaxCorpseTime));
+	}
+	else
+	{
+		UpdateActive;
+		return true;
+	}	
 }
 
 bool CClientConnector :: IsBlock(int iMaxBlockSize)
