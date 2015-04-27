@@ -131,47 +131,42 @@ CGSServerSocket::~CGSServerSocket()
 
 void CGSServerSocket::LoadConfig(CWgtIniFile* pIniFileParser)
 {
+	m_iMaxOnlineCount = pIniFileParser->getInteger("Setup", "MaxCount", 10000);
+	m_sAllowIPs = pIniFileParser->getString("GameServer", "AllowIP", "127.0.0.1|");
+	std::string sServer = pIniFileParser->getString("GameServer", "Address", "127.0.0.1");
+	int iPort = 0;
+	if (sServer != "")
+	{
+		iPort = DEFAULT_GameServer_PORT;
 
-	/*
-var
-  sServer, sIP, sPort: ansistring;
-  iPos, iPort       : integer;
-begin
-  FMaxOnline := IniFile.ReadInteger('Setup', 'MaxCount', 10000);
-  FAllowIPs := IniFile.ReadString('GameServer', 'AllowIP', '127.0.0.1|');
-  sServer := IniFile.ReadString('GameServer', 'Address', '127.0.0.1');
-  if sServer <> '' then
-  begin
-    iPort := DEFAULT_GameServer_PORT;
-    iPos := Pos(':', sServer);
-    if iPos > 0 then
-    begin
-      sIP := Copy(sServer, 1, iPos - 1);
-      sPort := Copy(sServer, iPos + 1, 4);
-      iPort := StrToIntDef(sPort, DEFAULT_GameServer_PORT);
-    end
-    else
-      sIP := sServer;
-    if iPort > 0 then
-    begin
-      with FServerInfo do
-      begin
-        StrPlCopy(IPAddress, sIP, 15);
-        nPort := iPort;
-      end;
-    end;
-  end;
-  iPort := IniFile.ReadInteger('GameServer', 'ListenPort', DEFAULT_DBServer_GS_PORT); // 侦听端口
-  if not Active then
-  begin
-    Address := '0.0.0.0';
-    Port := iPort;
-    Open;
-    Log('GameServer Service Start.(Port: ' + IntToStr(iPort) + ')');
-  end;
-end;
-	*/
+		std::vector<std::string> strVec;
+		SplitStr(sServer, ":", &strVec);
+		std::string sIP;
+		std::string sPort;
+		if (1 == strVec.size())
+			sIP = sServer;
+		else
+		{
+			sIP = strVec[0];
+			sPort = strVec[1];
+			iPort = StrToIntDef(sPort, DEFAULT_GameServer_PORT);
+		}
+		
+		if (iPort > 0)
+		{
+			memcpy_s(m_ServerInfo.IPAddress, IP_ADDRESS_MAX_LEN + 1, sIP.c_str(), IP_ADDRESS_MAX_LEN + 1);
+			m_ServerInfo.iPort = iPort;
+		}
+	}
 
+	iPort = pIniFileParser->getInteger("GameServer", "ListenPort", DEFAULT_DBServer_GS_PORT);
+	if (!IsActive())
+	{
+		m_sLocalIP = "0.0.0.0";
+		m_iListenPort = iPort;
+		Open();
+		Log("GameServer Service Start.(Port: " + std::to_string(iPort) + ")");
+	}
 }
 
 PServerAddress CGSServerSocket::GetGameServerInfo()
@@ -205,7 +200,98 @@ void CGSServerSocket::GameServerShutDown()
 
 void CGSServerSocket::ProcGameServerMessage(PInnerMsgNode pNode)
 {
-
+	/*
+var
+  RoleName, sCmdStr : AnsiString;
+begin
+  with nNode^ do
+    case wIdent of
+      SM_SHUTDOWN: GameServerShutDown;
+      SM_PLAYER_DISCONNECT: G_UserManage.RemoveUser(Param);
+      SM_PLAYER_DATA_READ: Msg_DataRead(Param, szBuf, wBufLen);
+      SM_PLAYER_DATA_WRITE: Msg_DataWrite(Param, szBuf, wBufLen);
+      SM_YB_CRUSH_RSP:
+        begin
+          if wBufLen >= SizeOf(TYBCrushInfoRsp) then
+          begin
+            with PYBCrushInfoRsp(szBuf)^ do
+            begin
+              G_AuthenSocket.OnCrushRsp(szOrderID, szRoleName, nRetCode);
+            end;
+          end;
+        end;
+      SM_GIVE_ITEM_RSP:
+        begin
+          if wBufLen >= SizeOf(TYBCrushInfoRsp) then
+          begin
+            with PYBCrushInfoRsp(szBuf)^ do
+            begin
+              G_AuthenSocket.OnGiveItemRsp(szOrderID, szRoleName, nRetCode);
+            end;
+          end;
+        end;
+      SM_PLAYER_DENYLOGIN: if wBufLen >= SizeOf(TDenyLoginRole) then
+          G_DBSecurity.AddDenyRole(PDenyLoginRole(szBuf)^.RoleName, PDenyLoginRole(szBuf)^.KickTick);
+      SM_PLAYER_DATA_UNLOCK:
+        begin
+          RoleName := '';
+          if Assigned(szBuf) and (wBufLen > 0) then
+          begin
+            SetString(RoleName, szBuf, wBufLen);
+            G_HumanDB.DBPlayer_UnLock(Param, RoleName);
+          end;
+        end;
+      SM_PLAYER_ONLINE:
+        begin
+          RoleName := '';
+          if Assigned(szBuf) and (wBufLen > 0) then
+          begin
+            SetString(RoleName, szBuf, wBufLen);
+            G_UserManage.PlayerOnLine(RoleName, Param);
+          end;
+        end;
+      SM_PLAYER_OFFLINE:
+        begin
+          RoleName := '';
+          if Assigned(szBuf) and (wBufLen > 0) then
+          begin
+            SetString(RoleName, szBuf, wBufLen);
+            G_UserManage.PlayerOffLine(RoleName);
+          end;
+        end;
+      SM_SET_ONLINE_LIMIT:
+        begin
+          if Assigned(szBuf) and (wBufLen = Sizeof(TRoleInfo)) then
+          begin
+            FMaxOnline := PRoleInfo(szBuf)^.Flag;
+            if FMaxOnline < 1 then
+              FMaxOnline := 1;
+            Log(PRoleInfo(szBuf)^.szRoleName + ' 设置人数上限：' + inttostr(FMaxOnLine), lmtWarning);
+            PRoleInfo(szBuf)^.Flag := G_UserManage.QueueCount;
+            SendToGameServer(Param, SM_SET_ONLINE_LIMIT, szBuf, wBufLen);
+          end;
+        end;
+      SM_DBSERVER_GMCMD:
+        begin
+          if Assigned(szBuf) and (wBufLen > 0) then
+          begin
+            SetString(sCmdStr, szBuf, wBufLen);
+            sCmdStr := PAnsiChar(sCmdStr);
+            ProcGMCmd(Param, sCmdStr);
+          end;
+        end;
+      SM_PLAYER_RENAME:                 //GS发起角色重命名
+        begin
+          G_UserManage.PlayerReName(szBuf, wBufLen, Param);
+        end;
+      SM_GAME_ACT_CODE_REQ:             // GS发起玩家的激活码验证
+        begin
+          Msg_GameActCode(Param, szBuf, wBufLen);
+        end;        
+    else
+    end;
+end;
+	*/
 }
 
 bool CGSServerSocket::SendToGameServer(unsigned short usIdent, int iParam, char* pBuf, unsigned short usBufLen)
