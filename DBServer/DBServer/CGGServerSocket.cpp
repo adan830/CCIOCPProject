@@ -193,6 +193,7 @@ begin
   if (OldAllIPs <> '') and (CompareText(FAllowIPs, OldAllIPs) <> 0) then
   begin
     G_GSSocket.BroadCastToServer(SM_SERVER_CONFIG, 0, PAnsiChar(FAllowIPs), Length(FAllowIPs));
+	//G_GSSocket.SendToGameServer(SM_SERVER_CONFIG, 0, PAnsiChar(FAllowIPs), Length(FAllowIPs));
   end;
 end;
 	*/

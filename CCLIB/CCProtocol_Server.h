@@ -166,6 +166,31 @@ typedef struct _TJsonJobNode
 	_TJsonJobNode* pNext;
 }TJsonJobNode, *PJsonJobNode;
 
+typedef struct _TRoleDetail
+{
+	unsigned char ucJob;
+	unsigned char ucGender;
+	unsigned short usLevel;
+	int iAreaID;
+	int iDBIndex;
+	int iLastOnlineTime;						                  // 上次的在线时长，与nOnLineTime的差即为当天的在线时长
+    int iOnLineTime;											  // 在线时长，秒
+	char szAccount[ACCOUNT_MAX_LEN];							  // 帐号
+	char szRoleName[ACTOR_NAME_MAX_LEN];						  // 角色名
+    unsigned int uiCreateTime;								      // 创建时间
+}TRoleDetail, *PRoleDetail;
+
+//此结构只能往后扩
+typedef struct _TSavePlayerRec
+{
+	TRoleDetail Detail;					//职业数据
+	unsigned short usShareBlobLen;      //共享数据长度
+	unsigned short usJobBlobLen;        //职业数据长度
+    unsigned char ucSaveMode;           //保存模式
+    unsigned char ucChgJob;             //切换职业
+}TSavePlayerRec, *PSavePlayerRec;
+
+
 const int SS_SEGMENTATION_SIGN = 0XFFEEDDCC;                        // 服务器之间通信协议起始标志
 
 // 服务器间协议

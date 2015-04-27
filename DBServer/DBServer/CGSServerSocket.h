@@ -29,6 +29,8 @@ private:
 	void Msg_Ping(int iParam, char* pBuf, unsigned short usBufLen);
 private:
 	bool m_bEnable;
+
+	friend class CGSServerSocket;
 };
 
 /**
@@ -47,7 +49,6 @@ public:
 	void GameServerShutDown();
 	void ProcGameServerMessage(PInnerMsgNode pNode);
 	bool SendToGameServer(unsigned short usIdent, int iParam, char* pBuf, unsigned short usBufLen);
-	void BroadcastToGS(unsigned short usIdent, int iParam, char* pBuf, unsigned short usBufLen);
 	bool CanClosed();
 	bool IsOnlineFull(int iAddCount = 0);
 	int GetHumanCount();

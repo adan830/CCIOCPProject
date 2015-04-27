@@ -204,7 +204,9 @@ void CGSServerSocket::GameServerShutDown()
 }
 
 void CGSServerSocket::ProcGameServerMessage(PInnerMsgNode pNode)
-{}
+{
+
+}
 
 bool CGSServerSocket::SendToGameServer(unsigned short usIdent, int iParam, char* pBuf, unsigned short usBufLen)
 {
@@ -224,47 +226,126 @@ bool CGSServerSocket::SendToGameServer(unsigned short usIdent, int iParam, char*
 	return bRetFlag;
 }
 
-void CGSServerSocket::BroadcastToGS(unsigned short usIdent, int iParam, char* pBuf, unsigned short usBufLen)
-{}
-
 bool CGSServerSocket::CanClosed()
-{}
+{
+	bool bRetFlag = false;
+	if (m_bShutDown && ((m_uiShutDownTick > 0) && (_ExGetTickCount > m_uiShutDownTick + 1000)))
+		bRetFlag = true;
+
+	return bRetFlag;
+}
 
 int CGSServerSocket::GetHumanCount()
-{}
+{
+	int iHumCount = 0;
+	std::lock_guard<std::mutex> guard(m_LockCS);
+	std::list<void*>::iterator vIter;
+	CGSConnector* gs = nullptr;
+	for (vIter = m_ActiveConnects.begin(); vIter != m_ActiveConnects.end(); ++vIter)
+	{
+		gs = (CGSConnector*)*vIter;
+		if (gs->IsEnable())
+			iHumCount += gs->m_iOnlineCount;
+	}
+	return iHumCount;
+}
 
 CGSConnector* CGSServerSocket::GetActiveGameServer()
-{}
+{
+	CGSConnector* gs = nullptr;
+	std::lock_guard<std::mutex> guard(m_LockCS);
+	std::list<void*>::iterator vIter;
+	for (vIter = m_ActiveConnects.begin(); vIter != m_ActiveConnects.end(); ++vIter)
+	{
+		gs = (CGSConnector*)*vIter;
+		if (gs->IsEnable())
+			break;
+		else
+			gs = nullptr;
+	}
+	return gs;
+}
 
 bool CGSServerSocket::RegisterGameServer(const std::string &sGSAddr, int iGSPort)
-{}
+{
+	return ((iGSPort == m_ServerInfo.iPort) && (sGSAddr.compare(m_ServerInfo.IPAddress) == 0));
+}
 
 void CGSServerSocket::Msg_DataRead(int iSessionID, char* pBuf, unsigned short usBufLen)
 {}
 
 void CGSServerSocket::Msg_DataWrite(int iSessionID, char* pBuf, unsigned short usBufLen)
-{}
+{
+	if (usBufLen > sizeof(TSavePlayerRec))
+		;
+	    //--------------------------------------
+		//--------------------------------------
+		//G_HumanDB.DBPlayer_Save(SessionID, buf, bufLen);
+}
 
 void CGSServerSocket::Msg_GameActCode(int iSessionID, char* pBuf, unsigned short usBufLen)
-{}
+{
+	/*
+var
+  PInfo             : PActCodeInfo absolute Buf;
+  js                : TlkJSONobject;
+  s                 : AnsiString;
+begin
+  if bufLen >= SizeOf(TActCodeInfo) then
+  begin
+    js := TlkJSONobject.Create();
+    with PInfo^ do
+    try
+      js.Add('UniqueID', szAccount);
+      js.Add('RoleName', szRoleName);
+      js.Add('Code', szOrderID);
+      js.Add('ServerID', dwAreaID);
+      s := TlkJSON.GenerateText(js);
+      G_AuthenSocket.SendToServer(SM_GAME_ACT_CODE_REQ, SessionID, PansiChar(s), Length(s));
+    finally
+      js.Free;
+    end;
+  end;
+end;
+	*/
+}
 
 bool CGSServerSocket::OnCheckConnectIP(const std::string &sConnectIP)
-{}
+{
+	bool bRetFlag = ((sConnectIP.find(m_sAllowIPs) != std::string::npos) || (sConnectIP.compare(m_ServerInfo.IPAddress) == 0));
+	if (!bRetFlag)
+		Log(CC_UTILS::FormatStr("GameServer[%s] Á¬½Ó±»½ûÖ¹£¡£¡", sConnectIP), lmtWarning);
+	return bRetFlag;
+}
 
 void CGSServerSocket::OnSocketError(void* Sender, int& iErrorCode)
-{}
+{
+	Log(CC_UTILS::FormatStr("CGSServerSocket Socket Error, Code = %d", iErrorCode), lmtWarning);
+	iErrorCode = 0;
+}
 
 CClientConnector* CGSServerSocket::OnCreateGSSocket(const std::string &sIP)
-{}
+{
+	return new CGSConnector();
+}
 
 void CGSServerSocket::OnGSConnect(void* Sender)
-{}
+{
+	Log(CC_UTILS::FormatStr("GameServer %s Connected.", ((CGGConnector*)Sender)->GetRemoteAddress()), lmtWarning);
+	m_bShutDown = false;
+	m_uiShutDownTick = 0;
+}
 
 void CGSServerSocket::OnGSDisconnect(void* Sender)
-{}
+{
+	Log("GameServer Disconnected.", lmtWarning);
+	((CGSConnector*)Sender)->m_bEnable = false;
+}
 
 void CGSServerSocket::ProcGMCmd(int iSessionID, std::string &sCmdStr)
-{}
+{
+
+}
 
 
 /************************End Of CGSServerSocket******************************************/
