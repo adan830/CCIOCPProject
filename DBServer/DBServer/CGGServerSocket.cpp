@@ -91,30 +91,30 @@ void CGGConnector::ProcessReceiveMsg(char* pHeader, char* pData, int iDataLen)
 
 void CGGConnector::Msg_Register(int iParam, char* pBuf, unsigned short usBufLen)
 {
-	/*
-var
-  P                 : PServerAddress;
-begin
-  if BufLen = sizeof(TServerAddress) then
-  begin
-    P := PServerAddress(Buf);
-    if G_GGSocket.RegisterGameGate(Self, P^.IPAddress, P^.nPort) then
-    begin
-      if FNetType <> '' then
-        Log(Format('GameGate %d %s:%d Enabled. NetType=%s', [FServerIdx, p^.IPAddress, p^.nPort, FNetType]), lmtMessage)
-      else
-        Log(Format('GameGate %d %s:%d Enabled.', [FServerIdx, p^.IPAddress, p^.nPort]), lmtMessage);
-      P := G_GSSocket.GetGameServerInfo;
-      SendBuffer(SM_SERVER_CONFIG, FServerIdx, PAnsiChar(P), sizeof(TServerAddress));
-      G_MainThread.SendFilterWords(SendBuffer);
-    end
-    else
-      Log(Format('Invalid GameGate %s:%d', [P^.IPAddress, P^.nPort]), lmtError);
-  end
-  else
-    Log('Invalid GameGate(' + RemoteAddress + ') Data. BufLen = ' + IntToStr(BufLen), lmtError);
-end;
-	*/
+	if (sizeof(TServerAddress) == usBufLen)
+	{
+		PServerAddress pAddr = (PServerAddress)pBuf;
+		if (pG_GameGateSocket->RegisterGameGate(this, pAddr->IPAddress, pAddr->iPort))
+		{
+			if (m_sNetType != "")
+				Log(CC_UTILS::FormatStr("GameGate %d %s:%d Enabled. NetType=%s", m_iServerIdx, pAddr->IPAddress, pAddr->iPort, m_sNetType), lmtMessage);
+			else
+				Log(CC_UTILS::FormatStr("GameGate %d %s:%d Enabled.", m_iServerIdx, pAddr->IPAddress, pAddr->iPort), lmtMessage);
+
+			pAddr = pG_GameServerSocket->GetGameServerInfo();
+			SendToClientPeer(SM_SERVER_CONFIG, m_iServerIdx, (char*)pAddr, sizeof(TServerAddress));
+			//--------------------------------------------------
+			//--------------------------------------------------
+			//--------------------------------------------------
+			//--------------------------------------------------
+			//需要带对象一起
+			pG_MainThread->SendFilterWords(SendToClientPeer);
+		}
+		else
+			Log(CC_UTILS::FormatStr("Invalid GameGate %s:%d", pAddr->IPAddress, pAddr->iPort), lmtError);
+	}
+	else
+		Log(CC_UTILS::FormatStr("Invalid GameGate(%s) Data. BufLen = %d", GetRemoteAddress(), usBufLen), lmtError);
 }
 
 void CGGConnector::Msg_Ping(int iParam, char* pBuf, unsigned short usBufLen)
@@ -148,6 +148,56 @@ CGGServerSocket::~CGGServerSocket()
 
 void CGGServerSocket::LoadConfig(CWgtIniFile* pIniFileParser)
 {
+	std::string sOldAllIPs = m_sAllowIPs;
+	m_sAllowIPs = pIniFileParser->getString("GameGate", "AllowIP", "127.0.0.1|");
+	std::string sServer, sIP, sPort, sNetType;
+	int iPos;
+	int iPort = 0;
+	for (int i = 0; i < MAX_GAMEGATE_COUNT; i++)
+	{
+		sServer = pIniFileParser->getString("GameGate", "Server" + std::to_string(i), "");
+		if ("" == sServer)
+			break;
+
+		if (sServer.find(":") != std::string::npos)
+		{
+			std::vector<std::string> strVec;
+			SplitStr(sServer, ":", &strVec);
+			if (strVec.size() >= 3)
+			{
+				sIP = strVec[0];
+				sPort = strVec[1];
+				sNetType = strVec[2];
+				iPort = StrToIntDef(sPort, 0);
+				if (0 == iPort)
+					break;
+			/*
+			with FServerArray[i].Addr do
+			begin
+			StrPlCopy(IPAddress, sIP, 15);
+			nPort := iPort;
+			end;
+			if (FServerArray[i].NetType <> sNetType) then
+			SetGameGateNet(i, sNetType);
+			FServerArray[i].NetType := sNetType;
+			*/
+			}
+		}
+		else
+			break;
+	}
+
+	iPort = pIniFileParser->getInteger("GameGate", "ListenPort", DEFAULT_DBServer_GG_PORT);
+	if (!IsActive())
+	{
+		m_sLocalIP = "0.0.0.0";
+		m_iListenPort = iPort;
+		Open();
+		Log("GameGate Service Start.(Port: " + std::to_string(iPort) + ")");
+	}
+	if ((sOldAllIPs != "") && (sOldAllIPs.compare(m_sAllowIPs) != 0))
+		pG_GameServerSocket->SendToGameServer(SM_SERVER_CONFIG, 0, const_cast<char*>(m_sAllowIPs.c_str()), m_sAllowIPs.length());
+
 	/*
 var
   sServer, sIP, sPort, sNetType: ansistring;
@@ -161,26 +211,7 @@ begin
     sServer := IniFile.ReadString('GameGate', 'Server' + inttostr(i), '');
     if sServer = '' then
       Break;
-    iPos := Pos(':', sServer);
-    if iPos > 0 then
-    begin
-      sIP := Copy(sServer, 1, iPos - 1);
-      sPort := Copy(sServer, iPos + 1, 4);
-      sNetType := Copy(sServer, iPos + 6, 9);               // 所支持的网络类型
-      iPort := StrToIntDef(sPort, 0);
-      if iPort = 0 then
-        Break;
-      with FServerArray[i].Addr do
-      begin
-        StrPlCopy(IPAddress, sIP, 15);
-        nPort := iPort;
-      end;
-      if (FServerArray[i].NetType <> sNetType) then
-        SetGameGateNet(i, sNetType);
-      FServerArray[i].NetType := sNetType;
-    end
-    else
-      Break;
+
   end;
   iPort := IniFile.ReadInteger('GameGate', 'ListenPort', DEFAULT_DBServer_GG_PORT); // 侦听端口
   if not Active then

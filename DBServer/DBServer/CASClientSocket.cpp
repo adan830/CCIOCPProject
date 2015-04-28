@@ -275,7 +275,7 @@ void CASClientSocket::SendHeartbeat()
 {
 	int iCount = 0;
 	if (pG_GameServerSocket != nullptr)
-		iCount = pG_GameServerSocket->HumanCount;
+		iCount = pG_GameServerSocket->GetHumanCount();
 	SendToServerPeer(SM_PING, iCount, nullptr, 0);
 }
 

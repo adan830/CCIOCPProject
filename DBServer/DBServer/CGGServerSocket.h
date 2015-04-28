@@ -65,6 +65,8 @@ private:
 private:
 	std::string m_sAllowIPs;
 	TServerAddressEx m_ServerArray[MAX_GAMEGATE_COUNT];
+
+	friend class CGGConnector;
 };
 
 extern CGGServerSocket* pG_GameGateSocket;
