@@ -42,6 +42,9 @@
     <ClInclude Include="CGSServerSocket.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="CHumanDBManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -84,6 +87,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\..\CCLIB\CCGameCommon.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CHumanDBManager.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

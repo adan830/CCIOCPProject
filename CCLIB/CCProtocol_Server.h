@@ -166,6 +166,23 @@ typedef struct _TJsonJobNode
 	_TJsonJobNode* pNext;
 }TJsonJobNode, *PJsonJobNode;
 
+typedef struct _TYBCrushInfo
+{
+    char szAccount[ACCOUNT_MAX_LEN];					   // 账号
+    char szRoleName[ACTOR_NAME_MAX_LEN];				   // 角色名
+    char szOrderID[ORDER_ID_MAX_LEN];					   // 单号
+    unsigned int uiAreaID;                                 // 区号
+    int iAmount;	                                       // 元宝数
+    int iBindAmount;									   // 绑定元宝数
+}TYBCrushInfo, *PYBCrushInfo;
+
+typedef struct _TYBCrushInfoRsp
+{
+	char szOrderID[ORDER_ID_MAX_LEN];						//单号
+	char szRoleName[ACTOR_NAME_MAX_LEN];					//角色名
+	int iRetCode;	                                        //返回码
+}TYBCrushInfoRsp, *PYBCrushInfoRsp;
+
 typedef struct _TRoleDetail
 {
 	unsigned char ucJob;
@@ -189,6 +206,24 @@ typedef struct _TSavePlayerRec
     unsigned char ucSaveMode;           //保存模式
     unsigned char ucChgJob;             //切换职业
 }TSavePlayerRec, *PSavePlayerRec;
+
+typedef struct _TReadPlayerDataErr
+{
+    int iErrCode;
+    int iDBIdx;
+    char szRoleName[ACTOR_NAME_MAX_LEN];
+}TReadPlayerDataErr, *PReadPlayerDataErr;
+
+// 游戏内验证激活码
+typedef struct _TActCodeInfo
+{
+	char szOrderID[ORDER_ID_MAX_LEN];		//单号
+	char szAccount[ACCOUNT_MAX_LEN];		//账号
+	char szRoleName[ACTOR_NAME_MAX_LEN];	//角色名
+	unsigned int uiAreaID;
+	int iRetCode;
+	char szRetInfo[100];					// 回应的信息
+}TActCodeInfo, *PActCodeInfo;
 
 
 const int SS_SEGMENTATION_SIGN = 0XFFEEDDCC;                        // 服务器之间通信协议起始标志
@@ -226,17 +261,32 @@ const int SM_PLAYER_DISCONNECT = 0x2003;                            // 玩家断线
 const int SM_PLAYER_MSG = 0x2004;                                   // 玩家的消息
 const int SM_MULPLAYER_MSG = 0x2005;                                // 群发的消息
 
+const int SM_PLAYER_DATA_READ = 0x2008;                             // 读取玩家的数据
+const int SM_PLAYER_DATA_BACK = 0x2009;                             // 返回玩家的数据
+const int SM_SET_ONLINE_LIMIT = 0x200A;                             // 设置人数上限
+const int SM_PLAYER_DATA_WRITE = 0x2010;                            // 写玩家的数据
+const int SM_PLAYER_DATA_UNLOCK = 0x2011;                           // 玩家数据解锁
+
 const int SM_PLAYER_UPDATE_IDX = 0x2012;                            // 更新玩家数据在DB中的索引
 const int SM_BROADCAST_MSG = 0x2013;                                // 全服数据广播
 
 const int SM_FILTER_WORD = 0x2019;                                  // 过滤字信息
+const int SM_YB_CRUSH = 0x2020;                                     // 元宝冲值
+const int SM_YB_CRUSH_RSP = 0x2021;                                 // 元宝冲值返回
 
+const int SM_PLAYER_DENYLOGIN = 0x2024;                             // 禁止登录
 
+const int SM_PLAYER_ONLINE = 0x2028;								// 上线
+const int SM_PLAYER_OFFLINE = 0x2029;								// 下线
 
+const int SM_GIVE_ITEM = 0x2042;	                                // 平台送道具
+const int SM_GIVE_ITEM_RSP = 0x2043;                                // 平台送道具返回
 const int SM_GIVEITEM_QUERY = 0x2044;                               // 按照虚拟区号自动轮询推送道具信息
 const int SM_GIVEITEM_DB_REQ = 0x2045;                              // 认证服务器向db发送送道具请求
 const int SM_GIVEITEM_DB_ACK = 0x2046;								// db返回给认证服务器送道具结果
 const int SM_SHUTDOWN = 0x2052;                                     // 关闭服务
+const int SM_PLAYER_RENAME = 0x2053;                                // 角色更名
+const int SM_DBSERVER_GMCMD = 0x2054;                               // GM号设置DBSERVER参数
 const int SM_REFRESH_RECHARGE = 0x2056;								// 通知认证服务立即查询充值
 
 const int SM_GAME_ACT_CODE_REQ = 0x2069;                            // 游戏内激活CPS，领取媒体礼包活动码请求
@@ -276,6 +326,9 @@ const std::string DB_PROTOCOL = "mysql-5";
 const std::string DB_USERNAME = "gamemaster";
 const std::string DB_PASSWORD = "WByjUrYaYCt]HODoDl";                 //编码后的，具体解码见Decodestring
 const std::string DB_DATABASE = "";
+const int DB_SAVE_NORMAL = 0;
+const int DB_SAVE_QUIT = 1;
+const int DB_SAVE_CHG_JOB = 2;
 
 const std::string DEFAULT_MQ_SERVER_IP = "222.73.123.112";
 

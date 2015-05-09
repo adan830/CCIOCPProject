@@ -5,6 +5,8 @@
 #include "stdafx.h"
 #include "CGSServerSocket.h"
 #include "CGGServerSocket.h"
+#include "CASClientSocket.h"
+#include "CHumanDBManager.h"
 
 using namespace CC_UTILS;
 
@@ -200,98 +202,110 @@ void CGSServerSocket::GameServerShutDown()
 
 void CGSServerSocket::ProcGameServerMessage(PInnerMsgNode pNode)
 {
-	/*
-var
-  RoleName, sCmdStr : AnsiString;
-begin
-  with nNode^ do
-    case wIdent of
-      SM_SHUTDOWN: GameServerShutDown;
-      SM_PLAYER_DISCONNECT: G_UserManage.RemoveUser(Param);
-      SM_PLAYER_DATA_READ: Msg_DataRead(Param, szBuf, wBufLen);
-      SM_PLAYER_DATA_WRITE: Msg_DataWrite(Param, szBuf, wBufLen);
-      SM_YB_CRUSH_RSP:
-        begin
-          if wBufLen >= SizeOf(TYBCrushInfoRsp) then
-          begin
-            with PYBCrushInfoRsp(szBuf)^ do
-            begin
-              G_AuthenSocket.OnCrushRsp(szOrderID, szRoleName, nRetCode);
-            end;
-          end;
-        end;
-      SM_GIVE_ITEM_RSP:
-        begin
-          if wBufLen >= SizeOf(TYBCrushInfoRsp) then
-          begin
-            with PYBCrushInfoRsp(szBuf)^ do
-            begin
-              G_AuthenSocket.OnGiveItemRsp(szOrderID, szRoleName, nRetCode);
-            end;
-          end;
-        end;
-      SM_PLAYER_DENYLOGIN: if wBufLen >= SizeOf(TDenyLoginRole) then
-          G_DBSecurity.AddDenyRole(PDenyLoginRole(szBuf)^.RoleName, PDenyLoginRole(szBuf)^.KickTick);
-      SM_PLAYER_DATA_UNLOCK:
-        begin
-          RoleName := '';
-          if Assigned(szBuf) and (wBufLen > 0) then
-          begin
-            SetString(RoleName, szBuf, wBufLen);
-            G_HumanDB.DBPlayer_UnLock(Param, RoleName);
-          end;
-        end;
-      SM_PLAYER_ONLINE:
-        begin
-          RoleName := '';
-          if Assigned(szBuf) and (wBufLen > 0) then
-          begin
-            SetString(RoleName, szBuf, wBufLen);
-            G_UserManage.PlayerOnLine(RoleName, Param);
-          end;
-        end;
-      SM_PLAYER_OFFLINE:
-        begin
-          RoleName := '';
-          if Assigned(szBuf) and (wBufLen > 0) then
-          begin
-            SetString(RoleName, szBuf, wBufLen);
-            G_UserManage.PlayerOffLine(RoleName);
-          end;
-        end;
-      SM_SET_ONLINE_LIMIT:
-        begin
-          if Assigned(szBuf) and (wBufLen = Sizeof(TRoleInfo)) then
-          begin
-            FMaxOnline := PRoleInfo(szBuf)^.Flag;
-            if FMaxOnline < 1 then
-              FMaxOnline := 1;
-            Log(PRoleInfo(szBuf)^.szRoleName + ' 设置人数上限：' + inttostr(FMaxOnLine), lmtWarning);
-            PRoleInfo(szBuf)^.Flag := G_UserManage.QueueCount;
-            SendToGameServer(Param, SM_SET_ONLINE_LIMIT, szBuf, wBufLen);
-          end;
-        end;
-      SM_DBSERVER_GMCMD:
-        begin
-          if Assigned(szBuf) and (wBufLen > 0) then
-          begin
-            SetString(sCmdStr, szBuf, wBufLen);
-            sCmdStr := PAnsiChar(sCmdStr);
-            ProcGMCmd(Param, sCmdStr);
-          end;
-        end;
-      SM_PLAYER_RENAME:                 //GS发起角色重命名
-        begin
-          G_UserManage.PlayerReName(szBuf, wBufLen, Param);
-        end;
-      SM_GAME_ACT_CODE_REQ:             // GS发起玩家的激活码验证
-        begin
-          Msg_GameActCode(Param, szBuf, wBufLen);
-        end;        
-    else
-    end;
-end;
-	*/
+	std::string sRoleName("");
+	std::string sCmdStr("");
+	switch (pNode->usIdent)
+	{
+	case SM_SHUTDOWN:
+		GameServerShutDown();
+		break;
+	case SM_PLAYER_DISCONNECT:
+		//-----------------------
+		//-----------------------
+		//-----------------------
+		//G_UserManage.RemoveUser(Param);
+		break;
+	case SM_PLAYER_DATA_READ:
+		Msg_DataRead(pNode->iParam, pNode->pBuf, pNode->usBufLen);
+		break;
+	case SM_PLAYER_DATA_WRITE:
+		Msg_DataWrite(pNode->iParam, pNode->pBuf, pNode->usBufLen);
+		break;
+	case SM_YB_CRUSH_RSP:
+		if (pNode->usBufLen >= sizeof(TYBCrushInfoRsp))
+		{
+			PYBCrushInfoRsp pInfo = (PYBCrushInfoRsp)(pNode->pBuf);
+			pG_AuthenServerSocket->OnYBCrushRsp(pInfo->szOrderID, pInfo->szRoleName, pInfo->iRetCode);
+		}
+		break;
+	case SM_GIVE_ITEM_RSP:
+		if (pNode->usBufLen >= sizeof(TYBCrushInfoRsp))
+		{
+			PYBCrushInfoRsp pInfo = (PYBCrushInfoRsp)(pNode->pBuf);
+			pG_AuthenServerSocket->OnGiveItemRsp(pInfo->szOrderID, pInfo->szRoleName, pInfo->iRetCode);
+		}
+		break;
+	case SM_PLAYER_DENYLOGIN:
+		/*
+		if wBufLen >= SizeOf(TDenyLoginRole) then
+			G_DBSecurity.AddDenyRole(PDenyLoginRole(szBuf)^.RoleName, PDenyLoginRole(szBuf)^.KickTick);
+		*/
+		break;
+	case SM_PLAYER_DATA_UNLOCK:
+		if ((pNode->pBuf != nullptr) && (pNode->usBufLen > 0))
+		{
+			/*
+			SetString(RoleName, szBuf, wBufLen);
+			G_HumanDB.DBPlayer_UnLock(Param, RoleName);
+			*/
+		}
+		break;
+	case SM_PLAYER_ONLINE:
+		if ((pNode->pBuf != nullptr) && (pNode->usBufLen > 0))
+		{
+			/*
+			SetString(RoleName, szBuf, wBufLen);
+			G_UserManage.PlayerOnLine(RoleName, Param);
+			*/
+		}
+		break;
+	case SM_PLAYER_OFFLINE:
+		if ((pNode->pBuf != nullptr) && (pNode->usBufLen > 0))
+		{
+			/*
+			SetString(RoleName, szBuf, wBufLen);
+			G_UserManage.PlayerOffLine(RoleName);
+			*/
+		}
+		break;
+	case SM_SET_ONLINE_LIMIT:
+		if ((pNode->pBuf != nullptr) && (sizeof(TRoleInfo) == pNode->usBufLen))
+		{
+			PRoleInfo pInfo = (PRoleInfo)(pNode->pBuf);
+			m_iMaxOnlineCount = pInfo->iFlag;
+			if (m_iMaxOnlineCount < 1)
+				m_iMaxOnlineCount = 1;
+			Log(CC_UTILS::FormatStr("%s 设置人数上限：%d", pInfo->szRoleName, m_iMaxOnlineCount), lmtWarning);
+			//---------------------------
+			//---------------------------
+			//---------------------------
+			//pInfo->iFlag = G_UserManage.QueueCount;
+			SendToGameServer(pNode->iParam, SM_SET_ONLINE_LIMIT, pNode->pBuf, pNode->usBufLen);
+		}
+		break;
+    case SM_DBSERVER_GMCMD:
+		if ((pNode->pBuf != nullptr) && (sizeof(TRoleInfo) == pNode->usBufLen))
+		{
+			//-------------------------------
+			//-------------------------------
+			//-------------------------------
+			//SetString(sCmdStr, szBuf, wBufLen);
+			//sCmdStr: = PAnsiChar(sCmdStr);
+			sCmdStr.assign(pNode->pBuf, pNode->usBufLen);
+			ProcGMCmd(pNode->iParam, sCmdStr);
+		}
+		break;
+    case SM_PLAYER_RENAME:   
+		//---------------------------------
+		//---------------------------------
+		//G_UserManage.PlayerReName(szBuf, wBufLen, Param);
+		break;
+    case SM_GAME_ACT_CODE_REQ:   
+		Msg_GameActCode(pNode->iParam, pNode->pBuf, pNode->usBufLen);
+		break;
+	default:
+		break;
+	}
 }
 
 bool CGSServerSocket::SendToGameServer(unsigned short usIdent, int iParam, char* pBuf, unsigned short usBufLen)
@@ -358,7 +372,72 @@ bool CGSServerSocket::RegisterGameServer(const std::string &sGSAddr, int iGSPort
 }
 
 void CGSServerSocket::Msg_DataRead(int iSessionID, char* pBuf, unsigned short usBufLen)
-{}
+{
+	if (sizeof(TRoleDetail) == usBufLen)
+	{
+		PRoleDetail pInfo = (PRoleDetail)pBuf;
+		TDBDetailRec dbDetail;
+		memset(&dbDetail, 0, sizeof(TDBDetailRec));
+		//---------------------------------
+		int iRef = 0;		
+		//int iRef : = G_HumanDB.DBPlayer_Read(SessionID, P^.DBIndex, P^.bJob, @DBDetail);
+		if (1 == iRef)
+		{
+			std::string sTempAccount(pInfo->szAccount);
+			std::string sTempRoleName(pInfo->szRoleName);
+			if ((pInfo->iAreaID == dbDetail.RoleInfo.iAreaID) && (sTempAccount.compare(dbDetail.RoleInfo.szAccount) == 0) &&
+				(sTempRoleName.compare(dbDetail.RoleInfo.szRoleName) == 0))
+			{
+				memset(m_pSendCache, 0, sizeof(TSavePlayerRec));
+				((PSavePlayerRec)m_pSendCache)->Detail = dbDetail.RoleInfo;
+				int iSendLen = sizeof(TSavePlayerRec);
+				((PSavePlayerRec)m_pSendCache)->usShareBlobLen = dbDetail.usShareBlobSize;
+				if ((dbDetail.pShareBlobData != nullptr) && (dbDetail.usShareBlobSize > 0))
+					memcpy_s(m_pSendCache+iSendLen, MAXWORD-iSendLen, dbDetail.pShareBlobData, dbDetail.usShareBlobSize);
+				iSendLen += sizeof(dbDetail.usShareBlobSize);
+
+				PJobDataRec pJobData = &(dbDetail.JobDataList[pInfo->ucJob]);
+				if ((pJobData->pBlobData != nullptr) && (pJobData->usBlobSize > 0))
+				{
+					memcpy_s(m_pSendCache + iSendLen, MAXWORD - iSendLen, pJobData->pBlobData, pJobData->usBlobSize);
+					((PSavePlayerRec)m_pSendCache)->usJobBlobLen = pJobData->usBlobSize;
+					iSendLen += pJobData->usBlobSize;
+				}
+				SendToGameServer(iSessionID, SM_PLAYER_DATA_BACK, m_pSendCache, iSendLen);
+				return;
+			}
+			else
+			{
+				Log(CC_UTILS::FormatStr("Msg_DataRead 数据不一致: %s/%s %s/%s %d/%d - %d",
+				sTempAccount, pInfo->szAccount, sTempRoleName, pInfo->szRoleName, dbDetail.RoleInfo.iAreaID, pInfo->iAreaID, iRef), lmtError);
+				iRef = 4;                 // 所指的DBIndex与角色名不匹配
+			}
+		}
+
+		//处理读取错误
+		TReadPlayerDataErr readErr;
+		memset(&readErr, 0, sizeof(TReadPlayerDataErr));
+		readErr.iErrCode = iRef;
+		readErr.iDBIdx = pInfo->iDBIndex;
+		memcpy_s(readErr.szRoleName, ACTOR_NAME_MAX_LEN, pInfo->szRoleName, ACTOR_NAME_MAX_LEN);
+		SendToGameServer(iSessionID, SM_PLAYER_DATA_BACK, (char*)&readErr, sizeof(TReadPlayerDataErr));
+		/*
+		//--------------------------------------------
+		//--------------------------------------------
+		//--------------------------------------------
+      User := G_UserManage.FindUser(SessionID);
+      if Assigned(User) then
+      begin
+        case iRef of
+          2: HintMsg := '您的角色被锁，请稍候再试';
+          3: HintMsg := '您的角色数据读取错误，请稍候再试';
+          4: HintMsg := '您所选区组不正确';
+        end;
+        User.OpenWindow(cwMessageBox, 0, HintMsg);
+      end;
+		*/
+	}
+}
 
 void CGSServerSocket::Msg_DataWrite(int iSessionID, char* pBuf, unsigned short usBufLen)
 {
@@ -371,29 +450,18 @@ void CGSServerSocket::Msg_DataWrite(int iSessionID, char* pBuf, unsigned short u
 
 void CGSServerSocket::Msg_GameActCode(int iSessionID, char* pBuf, unsigned short usBufLen)
 {
-	/*
-var
-  PInfo             : PActCodeInfo absolute Buf;
-  js                : TlkJSONobject;
-  s                 : AnsiString;
-begin
-  if bufLen >= SizeOf(TActCodeInfo) then
-  begin
-    js := TlkJSONobject.Create();
-    with PInfo^ do
-    try
-      js.Add('UniqueID', szAccount);
-      js.Add('RoleName', szRoleName);
-      js.Add('Code', szOrderID);
-      js.Add('ServerID', dwAreaID);
-      s := TlkJSON.GenerateText(js);
-      G_AuthenSocket.SendToServer(SM_GAME_ACT_CODE_REQ, SessionID, PansiChar(s), Length(s));
-    finally
-      js.Free;
-    end;
-  end;
-end;
-	*/
+	if (usBufLen >= sizeof(TActCodeInfo))
+	{
+		PActCodeInfo pInfo = (PActCodeInfo)pBuf;
+		Json::FastWriter writer;
+		Json::Value root;
+		root["UniqueID"] = pInfo->szAccount;
+		root["RoleName"] = pInfo->szRoleName;
+		root["Code"] = pInfo->szOrderID;
+		root["ServerID"] = pInfo->uiAreaID;
+		std::string sJsonStr = writer.write(root);
+		pG_AuthenServerSocket->SendToServerPeer(SM_GAME_ACT_CODE_REQ, iSessionID, const_cast<char*>(sJsonStr.c_str()), sJsonStr.length());
+	}
 }
 
 bool CGSServerSocket::OnCheckConnectIP(const std::string &sConnectIP)
@@ -430,7 +498,115 @@ void CGSServerSocket::OnGSDisconnect(void* Sender)
 
 void CGSServerSocket::ProcGMCmd(int iSessionID, std::string &sCmdStr)
 {
-
+	/*
+var
+  Par1, Par2, Par3, TempStr: AnsiString;
+  User              : TUser;
+  Hint              : AnsiString;
+  nParam, nTimeOut  : Integer;
+begin
+  CmdStr := GetValidStr(CmdStr, Par1, ' ');
+  CmdStr := GetValidStr(CmdStr, Par2, ' ');
+  Par3 := CmdStr;
+  if CompareText(Par1, 'MaxLimit') = 0 then
+  begin
+    FMaxOnline := StrToIntDef(Par2, MAX_QUEUE_COUNT);
+    if FMaxOnline < 1 then
+      FMaxOnline := 1;
+    Hint := Format('设置人数上限：%d 当前排队：%d', [FMaxOnLine, G_UserManage.QueueCount]);
+  end
+  else if CompareText(Par1, 'DenyRecharge') = 0 then
+  begin
+    G_MainThread.DenyRecharge := (CompareText(Par2, 'true') = 0);
+    if G_MainThread.DenyRecharge then
+      Hint := '充值、送道具通道关闭'
+    else
+      Hint := '充值、送道具通道开启';
+  end
+  else if CompareText(Par1, 'BanIP') = 0 then
+  begin
+    if Par2 = '' then
+      Exit;
+    if CompareText(Par2, 'Look') = 0 then
+    begin
+      Hint := G_DBSecurity.GetBadIPInfo;
+    end
+    else
+    begin
+      nParam := StrToIntDef(Par3, KICKOUT_TIMEOUT);
+      G_DBSecurity.AddBandIP(inet_addr(PAnsiChar(Par2)), nParam);
+      Hint := Format('IP:%s %d秒内被禁止登陆', [Par2, nParam]);
+    end;
+  end
+  else if CompareText(Par1, 'KickOut') = 0 then
+  begin
+    if Par2 = '' then
+      Exit;
+    if CompareText(Par2, 'Look') = 0 then
+    begin
+      Hint := G_DBSecurity.GetDenyRoleInfo;
+    end
+    else
+    begin
+      nParam := StrToIntDef(Par3, KICKOUT_TIMEOUT);
+      G_DBSecurity.AddDenyRole(Par2, nParam);
+      Hint := Format('%s %d秒内被禁止登陆', [Par2, nParam]);
+    end;
+  end
+  else if CompareText(Par1, 'Login') = 0 then
+  begin
+    if (Par2 <> '') and (Par3 <> '') then
+    begin
+      TempStr := Trim(Par3);
+      TempStr := Trim(GetValidStr(TempStr, Par3, ' '));
+      nTimeOut := StrToIntDef(TempStr, TEMP_LOGIN_TIMEOUT);
+      G_UserManage.AddTempLogin(Par3, MD5Print(MD5String(LowerCase(Par2)), True), nTimeOut);
+      Hint := Format('成功添加临时登录账号%s，%d秒后过期', [Par3, nTimeOut]);
+    end
+    else
+      Hint := '@DBServer Login 临时密码 角色名 [有效秒数]'
+  end
+  else if CompareText(Par1, 'rename') = 0 then
+  begin
+    if (Par2 <> '') and (Par3 <> '') then
+    begin
+      if CompareText(Par3, 'look') = 0 then
+      begin
+        if G_HumanDB.IsNeedReName(Par2, TempStr) then
+          Hint := Par2 + '已申请更名，原角色名为：' + TempStr
+        else
+          Hint := Par2 + '未申请更名'
+      end
+      else if CompareText(Par3, 'add') = 0 then
+      begin
+        if G_HumanDB.IsNeedReName(Par2, TempStr) then
+          Hint := Par2 + '已申请更名，原角色名为：' + TempStr
+        else if G_HumanDB.AddReNameToList(Par2, Par2, G_ServerID) then
+          Hint := Par2 + '申请更名成功'
+        else
+          Hint := Par2 + ' 申请更名失败';
+      end
+      else if CompareText(Par3, 'del') = 0 then
+      begin
+        if G_HumanDB.DelReNameFromList(Par2) then
+          Hint := Format('成功取消%s更名申请', [Par2])
+        else
+          Hint := Format('取消%s更名申请失败', [Par2]);
+      end;
+    end
+    else
+      Hint := '@DBServer rename 角色名 add[del|look]'
+  end
+  else
+    G_DispatchGate.ProcGMCmd(SessionID, Par1, Par2, Par3);
+  if Hint <> '' then
+  begin
+    User := G_UserManage.FindUser(SessionID);
+    if Assigned(User) then
+      User.SendMsg(Hint);
+  end;
+end;
+	*/
 }
 
 

@@ -29,5 +29,6 @@
 #include "CCServerEnDeCode.h"
 #include "CDBGlobal.h"
 #include "CCGameCommon.h"
+#include "json\json.h"
 
 #include "CMainThread.h"

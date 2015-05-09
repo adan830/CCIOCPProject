@@ -29,6 +29,7 @@ const int ACTOR_NAME_MAX_LEN = 32;                        //角色最大长度
 const int MON_NAME_MAX_LEN = 32;                          //怪物名最大长度
 const int MAP_NAME_MAX_LEN = 20;                          //地图名最大长度
 const int SKILL_NAME_MAX_LEN = 20;                        //技能名最大长度
+const int ORDER_ID_MAX_LEN = 33;                          //单号最大长度
 
 const int IP_ADDRESS_MAX_LEN = 15;		   				  //ip地址长度
 const int SERVER_NAME_MAX_LEN = 50;                       //服务器名最大长度

@@ -171,16 +171,12 @@ void CGGServerSocket::LoadConfig(CWgtIniFile* pIniFileParser)
 				iPort = StrToIntDef(sPort, 0);
 				if (0 == iPort)
 					break;
-			/*
-			with FServerArray[i].Addr do
-			begin
-			StrPlCopy(IPAddress, sIP, 15);
-			nPort := iPort;
-			end;
-			if (FServerArray[i].NetType <> sNetType) then
-			SetGameGateNet(i, sNetType);
-			FServerArray[i].NetType := sNetType;
-			*/
+
+				memcpy_s(m_ServerArray[i].Addr.IPAddress, IP_ADDRESS_MAX_LEN + 1, sIP.c_str(), IP_ADDRESS_MAX_LEN + 1);
+				m_ServerArray[i].Addr.iPort = iPort;
+				if (m_ServerArray[i].sNetType != sNetType)
+					SetGameGateNet(i, sNetType);
+				m_ServerArray[i].sNetType = sNetType;
 			}
 		}
 		else
@@ -197,37 +193,6 @@ void CGGServerSocket::LoadConfig(CWgtIniFile* pIniFileParser)
 	}
 	if ((sOldAllIPs != "") && (sOldAllIPs.compare(m_sAllowIPs) != 0))
 		pG_GameServerSocket->SendToGameServer(SM_SERVER_CONFIG, 0, const_cast<char*>(m_sAllowIPs.c_str()), m_sAllowIPs.length());
-
-	/*
-var
-  sServer, sIP, sPort, sNetType: ansistring;
-  i, iPos, iPort    : integer;
-  OldAllIPs         : AnsiString;
-begin
-  OldAllIPs := FAllowIPs;
-  FAllowIPs := IniFile.ReadString('GameGate', 'AllowIP', '127.0.0.1|');
-  for i := Low(FServerArray) to High(FServerArray) do
-  begin
-    sServer := IniFile.ReadString('GameGate', 'Server' + inttostr(i), '');
-    if sServer = '' then
-      Break;
-
-  end;
-  iPort := IniFile.ReadInteger('GameGate', 'ListenPort', DEFAULT_DBServer_GG_PORT); // 侦听端口
-  if not Active then
-  begin
-    Address := '0.0.0.0';
-    Port := iPort;
-    Open;
-    Log('GameGate Service Start.(Port: ' + IntToStr(iPort) + ')');
-  end;
-  if (OldAllIPs <> '') and (CompareText(FAllowIPs, OldAllIPs) <> 0) then
-  begin
-    G_GSSocket.BroadCastToServer(SM_SERVER_CONFIG, 0, PAnsiChar(FAllowIPs), Length(FAllowIPs));
-	//G_GSSocket.SendToGameServer(SM_SERVER_CONFIG, 0, PAnsiChar(FAllowIPs), Length(FAllowIPs));
-  end;
-end;
-	*/
 }
 
 void CGGServerSocket::GetComfyGate(int &iAddr, int &iPort, unsigned char ucNetType)
@@ -251,13 +216,11 @@ void CGGServerSocket::GetComfyGate(int &iAddr, int &iPort, unsigned char ucNetTy
 			for (vIter = m_ActiveConnects.begin(); vIter != m_ActiveConnects.end(); ++vIter)
 			{
 				gg = (CGGConnector*)*vIter;
-				/*
-				if (GG.FServerIdx > 0) and GG.FBoEnable and (Pos(sNetType, GG.FNetType) > 0) and (MinCount > GG.FOnLineCount) then
-				begin
-				  Idx := GG.FServerIdx;
-				  MinCount := GG.OnLineCount;
-				end;
-				*/
+				if ((gg->m_iServerIdx > 0) && gg->IsEnable() && (sNetType.find(gg->m_sNetType) != std::string::npos) && (iMinCount > gg->m_iOnlineCount))
+				{
+					idx = gg->m_iServerIdx;
+					iMinCount = gg->m_iOnlineCount;
+				}
 			}
 
 			// 找不到指定网络类型的GG
