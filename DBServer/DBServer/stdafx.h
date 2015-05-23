@@ -28,6 +28,7 @@
 #include "CCProtocol_Server.h"
 #include "CCServerEnDeCode.h"
 #include "CDBGlobal.h"
+#include "CCMySQLEngn.h"
 #include "CCGameCommon.h"
 #include "json\json.h"
 

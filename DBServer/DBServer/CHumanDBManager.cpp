@@ -106,7 +106,151 @@ void CDBPlayer::Update(PSavePlayerRec pInfo, char* pShareBlob, unsigned short us
 /************************End Of CDBPlayer******************************************/
 
 
-
 /************************Start Of CHumanDBManager******************************************/
+
+CHumanDBManager::CHumanDBManager()
+{
+}
+
+CHumanDBManager::~CHumanDBManager()
+{
+}
+
+void CHumanDBManager::LoadConfig(CWgtIniFile* pIniFileParser)
+{
+}
+
+void CHumanDBManager::Execute()
+{
+}
+
+void CHumanDBManager::AddNewPlayer(TRoleDetail RoleDetail)
+{
+}
+
+int CHumanDBManager::DBPlayer_Read(int iSessionID, int iDBIdx, unsigned char ucJob, PDBDetailRec pData)
+{
+}
+
+int CHumanDBManager::DBPlayer_Save(int iSessionID, char* pBuf, unsigned short usBufLen)
+{
+}
+
+void CHumanDBManager::DBPlayer_Guest(PRoleDetail pDetail)
+{
+}
+
+int CHumanDBManager::DBPlayer_New(PRoleDetail pDetail, bool bForce)
+{
+}
+
+int CHumanDBManager::DBPlayer_Logon(PRoleDetail pDetail, unsigned char ucSelJob, bool bGM)
+{
+}
+
+void CHumanDBManager::DBPlayer_UpdateAddress(int iAreaID, const std::string &sAccount, const std::string &sIP, const std::string &sMAC)
+{
+}
+
+void CHumanDBManager::DBPlayer_UnLock(int iDBIdx, const std::string &sRoleName)
+{
+}
+
+int CHumanDBManager::DBPlayer_QueryAccount(const std::string &sRoleName, PRoleDetail pDetail, int iAreaID)
+{
+}
+
+int CHumanDBManager::DBPlayer_ReName(const std::string &sOldName, const std::string &sNewName)
+{
+}
+
+PGMRoleInfo CHumanDBManager::FindGMInfo(const std::string &sAccount, const std::string &sRoleName)
+{
+}
+
+PGMRoleInfo CHumanDBManager::FindGMByRoleName(const std::string &sRoleName)
+{
+}
+
+bool CHumanDBManager::IsNeedReName(const std::string &sRoleName, std::string &sOldName)
+{
+}
+
+bool CHumanDBManager::AddReNameToList(const std::string &sOldName, const std::string &sNewName, const int iAreaID)
+{
+}
+
+bool CHumanDBManager::DelReNameFromList(const std::string &sRoleName)
+{
+}
+
+void CHumanDBManager::OnRoleReName(int iDBIdx)
+{
+}
+
+void CHumanDBManager::UpdatePlayerDBIdx(int iOldIdx, int iNewIdx)
+{
+}
+
+bool CHumanDBManager::ProcYBRecharge(PYBCrushInfo pInfo)
+{
+}
+
+bool CHumanDBManager::ProcGiveItem(PGiveItemInfo pInfo)
+{
+}
+
+bool CHumanDBManager::GetMySQLConnected()
+{
+}
+
+void CHumanDBManager::MakeGameMaster()
+{
+}
+
+void CHumanDBManager::CheckTables()
+{
+}
+
+void CHumanDBManager::LoadGMList()
+{
+}
+
+void CHumanDBManager::LoadReNameList()
+{
+}
+
+void CHumanDBManager::GMListClear()
+{
+}
+
+void CHumanDBManager::SaveRenameList()
+{
+}
+
+void CHumanDBManager::OnDBError(unsigned int uiErrorCode, const std::string &sStr)
+{
+}
+
+bool CHumanDBManager::DBPlayerExecute(void* p, unsigned int uiParam, int &iResult)
+{
+}
+
+void CHumanDBManager::OnRemovePlayer(void* p, int iKey)
+{
+}
+
+void CHumanDBManager::OnRemoveRename(void* p, const std::string &sKey)
+{
+}
+
+bool CHumanDBManager::BeUsable(const std::string &sRoleName)
+{
+}
+
+int CHumanDBManager::_ReadData(int iDbIdx, unsigned char ucSelJob, CDBPlayer* pPlayer)
+{
+}
+
 
 /************************End Of CHumanDBManager******************************************/

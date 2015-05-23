@@ -183,6 +183,19 @@ typedef struct _TYBCrushInfoRsp
 	int iRetCode;	                                        //返回码
 }TYBCrushInfoRsp, *PYBCrushInfoRsp;
 
+//离线给予物品
+typedef struct _TGiveItemInfo
+{
+	char szAccount[ACCOUNT_MAX_LEN];					   // 账号
+	char szRoleName[ACTOR_NAME_MAX_LEN];				   // 角色名
+	char szOrderID[ORDER_ID_MAX_LEN];					   // 单号
+	unsigned int uiAreaID;                                 // 区号
+    int iCount;                                            // 数量
+	char szItemName[ITEM_NAME_MAX_LEN];					   // 物品名
+    unsigned char ucBindFlag;                              // 绑定标示
+    unsigned char ucDescLen;                               // 描述数据长度
+}TGiveItemInfo, *PGiveItemInfo;
+
 typedef struct _TRoleDetail
 {
 	unsigned char ucJob;
