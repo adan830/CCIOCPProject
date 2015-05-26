@@ -43,10 +43,10 @@ public:
 	virtual ~CDBPlayer();
 	PDBDetailRec GetData();
 	void UnlockData();
+	void Update(PSavePlayerRec pInfo, char* pShareBlob, unsigned short usShareBlobLen, char* pJobBlob, unsigned short usJobBlobLen);
 private:
 	void Clear();
 	bool Execute(unsigned int uiTick);
-	void Update(PSavePlayerRec pInfo, char* pShareBlob, unsigned short usShareBlobLen, char* pJobBlob, unsigned short usJobBlobLen);
 private:
 	bool m_bOnline;	
 	int m_iSession;
@@ -110,8 +110,7 @@ private:
 	CC_UTILS::CIntegerHash m_OnlinePlayers;   // 以DBIDX为Key
 	CC_UTILS::CStringHash m_RenameList;		  // 需要更名玩家列表
 	unsigned int m_uiLastSaveTick;  
-
-    m_GMList: TThreadList;    
+	std::list<PGMRoleInfo> m_GMList; 
 };
 
 

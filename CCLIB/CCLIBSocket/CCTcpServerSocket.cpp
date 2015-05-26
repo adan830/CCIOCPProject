@@ -529,7 +529,7 @@ bool CClientConnector :: IsCorpse(unsigned int uiTick, unsigned int uiMaxCorpseT
 	}
 	else
 	{
-		UpdateActive;
+		UpdateActive();
 		return true;
 	}	
 }
