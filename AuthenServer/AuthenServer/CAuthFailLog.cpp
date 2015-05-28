@@ -14,7 +14,7 @@ const int WRITE_INTERVAL = 1000 * 300;
 /************************Start Of CAuthFailFileLog**************************************************/
 CAuthFailFileLog::CAuthFailFileLog() : m_uiLastWriteTick(0), m_iCacheLen(0)
 {
-	m_sPath = G_CurrentExeDir + "logs\\AuthFailLog\\";
+	m_sPath = GetAppPathA() + "logs\\AuthFailLog\\";
 	m_pCache = (char*)malloc(MAX_FILE_CACHE_SIZE);
 	m_iLastDay = CC_UTILS::GetTodayNum();
 	try

@@ -5,6 +5,9 @@
 #include "stdafx.h"
 #include "CHumanDBManager.h"
 
+using namespace CC_UTILS;
+const std::string GUEST_HUMAN_NAME = "游客";
+
 /************************Start Of CDBPlayer******************************************/
 
 CDBPlayer::CDBPlayer() : m_bOnline(true), m_iSession(0), m_uiLastReadTick(0), m_uiDelayUnlockTick(0)
@@ -150,7 +153,7 @@ void CHumanDBManager::Execute()
 {
 	//-----------------------------
 	//-----------------这里的绑定方法有问题，需要本对象 
-	m_OnlinePlayers.Touch(DBPlayerExecute, GetTickCount);
+	m_OnlinePlayers.Touch(DBPlayerExecute, GetTickCount());
 	if ((m_uiLastSaveTick > 0) && (GetTickCount() > m_uiLastSaveTick + 1000 * 60))
 	{
 		SaveRenameList();
@@ -182,66 +185,221 @@ int CHumanDBManager::DBPlayer_Read(int iSessionID, int iDBIdx, unsigned char ucJ
 	int iRetCode = -1;
 	if (ucJob > 0)
 	{
-		iRetCode = 1;
 		CDBPlayer* pPlayer = (CDBPlayer*)m_OnlinePlayers.ValueOf(iDBIdx);
-		if (pPlayer != nullptr)
+		if (nullptr == pPlayer)
 		{
+			_ReadData(iDBIdx, ucJob, pPlayer);
+			if (nullptr == pPlayer)
+			{
+				//DB数据读取错误
+				iRetCode = 3;
+				return iRetCode;
+			}
+			else
+			{
+				m_OnlinePlayers.Add(iDBIdx, pPlayer);
+			}
 		}
-		
+		else if (pPlayer->m_bOnline)
+		{
+			//已在线
+			iRetCode = 2;
+			return iRetCode;
+		}
+		else if ((nullptr == pPlayer->m_Data.JobDataList[ucJob].pBlobData) || (0 == pPlayer->m_Data.JobDataList[ucJob].usBlobSize))
+		{
+			_ReadData(iDBIdx, ucJob, pPlayer);
+		}
+
+		pData = pPlayer->GetData();
+		pPlayer->m_iSession = iSessionID;
+		iRetCode = 1;
 	}
-	/*
-var
-  Player            : TDBPlayer;
-begin
-  if bJob > 0 then
-  begin
-    Player := TDBPlayer(FonLinePlayers.ValueOf(DBIdx));
-    if not Assigned(Player) then                            // 不在线
-    begin
-      _ReadData(DBIdx, bJob, Player);
-      if not Assigned(Player) then
-      begin
-        Result := 3;                                        // DB数据读取错误
-        Exit;
-      end
-      else
-      begin
-        FOnLinePlayers.Add(DBIdx, Player);
-      end;
-    end
-    else if Player.FBoOnline then
-    begin
-      Result := 2;                                          //当前用户在线
-      Exit;
-    end                                                     //在线再判断所选职业是否有数据
-    else if not Assigned(Player.FData.JobDataList[bJob].szBlobData) or (Player.FData.JobDataList[bJob].wBlobSize < 1) then
-    begin
-      _ReadData(DBIdx, bJob, Player);
-    end;
-    PData^ := Player.GetData^;
-    Player.FSessionID := SessionID;
-    Result := 1;
-  end
-  else
-    Result := -1;
-end;
-	*/
+	else
+		iRetCode = -1;
+
+	return iRetCode;
 }
 
 int CHumanDBManager::DBPlayer_Save(int iSessionID, char* pBuf, unsigned short usBufLen)
 {
+	int iRetCode = 0;
+	PSavePlayerRec pData = nullptr;
+	__try
+	{
+		if (usBufLen > sizeof(TSavePlayerRec))
+		{
+			pData = (PSavePlayerRec)pBuf;
+			int iDBIndex = pData->Detail.iDBIndex;
+			if (0 == iDBIndex)
+			{
+				int iRet = DBPlayer_New(&(pData->Detail), false);
+				if ((iRet != 1) && (iRet != 3))
+				{
+					Log("PData^.DBIndex = 0", lmtWarning);
+					return iRetCode;
+				}				
+			}
+			iRetCode = 3;
+			if (usBufLen >= sizeof(TSavePlayerRec)+pData->usShareBlobLen + pData->usJobBlobLen)
+			{
+				if (iDBIndex > 0)
+				{
+					CDBPlayer* pPlayer = (CDBPlayer*)m_OnlinePlayers.ValueOf(pData->Detail.iDBIndex);
+					if (nullptr == pPlayer)
+					{
+						//不在线
+						_ReadData(iDBIndex, pData->Detail.ucJob, pPlayer);
+						if (nullptr == pPlayer)
+						{
+							//读取失败
+							iRetCode = 2;
+							return iRetCode;
+						}
+						m_OnlinePlayers.Add(iDBIndex, pPlayer);
+					}
+
+					char* pShareData = pBuf + sizeof(TSavePlayerRec);
+					char* pJobData = pBuf + sizeof(TSavePlayerRec) + pData->usShareBlobLen;
+					pPlayer->Update(pData, pShareData, pData->usShareBlobLen, pJobData, pData->usJobBlobLen);
+
+					//---------------------------
+					//---------------------------
+					//---------------------------
+					//if G_SaveThread.AddSaveNode(@PData^.Detail, ShareData, PData^.ShareBlobLen, JobData, PData^.JobBlobLen) then
+					{
+						iRetCode = 1;
+						if ((DB_SAVE_CHG_JOB == pData->ucSaveMode) && (pData->ucChgJob > 0))
+						{
+							/*
+							User := G_UserManage.FindUser(SessionID);
+							if Assigned(User) then
+								User.EnterIntoGame(PData^.ChgJob, True)
+							else
+								Log(Format('切换职业无法找到User对象,RoleName: %s DBIndex: %d ChgJob：%d !', [PData^.Detail.szRoleName, PData^.Detail.DBIndex, PData^.ChgJob]), lmtError);
+							*/
+						}
+					}
+				}
+			}
+		}
+	}
+	__finally
+	{
+		if ((iRetCode != 1) && (pData != nullptr))
+			Log(CC_UTILS::FormatStr("RoleName: %s DBIndex: %d ErrCode=%d write Error.", pData->Detail.szRoleName, pData->Detail.iDBIndex, iRetCode), lmtError);
+		return iRetCode;
+	}
 }
 
 void CHumanDBManager::DBPlayer_Guest(PRoleDetail pDetail)
 {
+	/*
+var
+  GuestName         : ansistring;
+begin
+  inc(FGuestIndex);
+  GuestName := GUEST_HUMAN_NAME + IntToHex(FGuestIndex, 10);
+  StrPLCopy(P^.szRoleName, GuestName, ACTOR_NAME_MAX_LEN - 1);
+  GuestName := '#' + inttoHex(FGuestIndex, 10);
+  StrPLCopy(P^.szAccount, GuestName, ACCOUNT_MAX_LEN - 1);
+  P^.DBIndex := 0;
+end;
+	*/
 }
 
+//1:成功 2：创建失败 3：每个区只能创建1个角色 4：角色名已经存在 
+//-1:所选区组错误 -2：角色名长度不足 -3：角色名包含非法字符 -4:角色名长度太长 -5：数据库操作异常
 int CHumanDBManager::DBPlayer_New(PRoleDetail pDetail, bool bForce)
 {
+	int iRetCode = 0;
+	int iLen = strlen(pDetail->szRoleName);
+	if (pDetail->iAreaID < 1)
+		iRetCode = -1;
+	else if (iLen < 4)
+		iRetCode = -2;
+	else if (iLen > 14)
+		iRetCode = -4;
+	else if ((!bForce) && (!BeUsable(pDetail->szRoleName)))
+		iRetCode = -3;
+	else
+	{
+		IMySQLFields* pDataSet = nullptr;
+		IMySQLFields** ppDataSet = &pDataSet;
+		int iAffectNum = 0;
+		std::string sSQL = CC_UTILS::FormatStr("call sp_insertuser(\"%s\", \"%s\", %d, %d, %d);", pDetail->szAccount, pDetail->szRoleName, pDetail->ucJob, pDetail->ucGender, pDetail->iAreaID);
+		if (m_pMySQLProc->Exec(sSQL, ppDataSet, iAffectNum) && (1 == iAffectNum))
+		{
+			iRetCode = pDataSet->FieldByName("retcode")->AsInteger();
+			pDetail->iDBIndex = pDataSet->FieldByName("dbindex")->AsInteger();
+		}
+		else
+			iRetCode = -5;
+	}
+	return iRetCode;
 }
 
 int CHumanDBManager::DBPlayer_Logon(PRoleDetail pDetail, unsigned char ucSelJob, bool bGM)
 {
+	int iRetCode = -1;
+
+	return iRetCode;
+	/*
+var
+  SQL, RoleName, FieldName: ansistring;
+  RecCount          : Integer;
+  ErrorCode         : Cardinal;
+  DataSet           : IMySQLFields;
+  Player            : TDBPlayer;
+begin
+  Result := -1;                                             // Error or IsaNewbie
+  with P^ do
+  begin
+    if AreaID > 0 then
+    begin
+      if bGM then                                           //GM则不限制区组，只根据帐号获取即可
+        SQL := Format('select idx, Job, sex, RoleName,AreaID,warriorLv,wizardLv,paladinLv,LastOnLineTime,OnLineTime,CreateTime from user_detail where IsDelete=0 and Account="%s" limit 1;',
+          [szAccount])
+      else
+        SQL := Format('select idx, Job, sex, RoleName,AreaID,warriorLv,wizardLv,paladinLv,LastOnLineTime,OnLineTime,CreateTime from user_detail where IsDelete=0 and AreaId=%d and Account="%s";',
+          [AreaID, szAccount]);
+      if FMySQLBase.Exec(SQL, DataSet, RecCount) then
+      begin
+        if RecCount > 0 then
+        begin
+          DBIndex := DataSet.FieldByName('Idx').AsInteger;
+          bGender := DataSet.FieldByName('sex').AsInteger;
+          RoleName := DataSet.FieldByName('RoleName').AsString;
+          nLastOnLineTime := DataSet.FieldByName('LastOnLineTime').AsInteger;
+          nOnLineTime := DataSet.FieldByName('OnLineTime').AsInteger;
+          dwCreateTime := TimeToSecond(DataSet.FieldByName('CreateTime').AsDateTime);
+          StrPLCopy(szRoleName, RoleName, ACTOR_NAME_MAX_LEN - 1);
+          if bGM then                                       //GM ip则纠正其区号
+            AreaID := DataSet.FieldByName('AreaID').AsInteger;
+          Player := FonLinePlayers.ValueOf(DBIndex);
+          if bSelJob = 0 then
+          begin
+            //存在缓存则使用缓存
+            if Assigned(Player) then
+              bJob := Player.FData.RoleInfo.bJob
+            else
+              bJob := DataSet.FieldByName('Job').AsInteger;
+          end
+          else
+            bJob := bSelJob;
+          wLevel := DataSet.FieldByName(GetJobLvFieldName(bJob)).AsInteger;
+          FieldName := GetJobDataFieldName(bJob);
+          Result := 1;
+        end
+        else if RecCount = 0 then
+          Result := 0;
+      end
+      else
+        Log(FMySQLBase.GetLastError(ErrorCode), lmtError);
+    end;
+  end;
+end;
+	*/
 }
 
 void CHumanDBManager::DBPlayer_UpdateAddress(int iAreaID, const std::string &sAccount, const std::string &sIP, const std::string &sMAC)

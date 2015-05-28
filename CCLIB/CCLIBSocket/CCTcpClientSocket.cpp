@@ -233,7 +233,7 @@ void CNetworkEventClientSocketManager :: DoSend()
 	std::lock_guard<std::mutex> guard(m_SendCS); 
 	if (m_Count > 0)
 	{
-		//注：这里的 wsaBuffers是否需要在外部创建一个大的池子，不用这样每次new
+		//注：内存管理策略。。。
 		WSABUF* wsaBuffers = new WSABUF[m_Count];
 		PSendBufferNode nNode;
 		nNode = m_First;
@@ -293,7 +293,6 @@ bool CNetworkEventClientSocketManager :: DoInitialize()
 				Addr.sin_family = PF_INET;
 				Addr.sin_port = htons(INADDR_ANY);           
 				Addr.sin_addr.s_addr = inet_addr(m_LocalAddress.c_str()); 
-				//注释：std命名空间下面也有 bind函数，具体的使用再研究？？？？
 				retflag = ((bind(m_CSocket, (sockaddr *)&Addr, sizeof(Addr)) == 0));
 			}
 		}
@@ -647,14 +646,7 @@ void CIOCPClientSocketManager :: PrepareSend(int iUntreated, int iTransfered)
 			memset(&m_SendBlock.Overlapped, 0, sizeof(m_SendBlock.Overlapped));
 			if (WSASend(m_CSocket, &m_SendBlock.wsaBuffer, 1, (LPDWORD)&iTransfered, 0, &m_SendBlock.Overlapped, nullptr) == SOCKET_ERROR)
 			{
-				/*
-				//----------------------------------------
-				//----------------------------------------
-				//----------------------------------------
-				//seSend状态下，如果是ERROR_IO_PENDING报错，表示 等待I/O，稍后就会返回 
-				这时m_Sending状态应该为true
-				//但之前这里出现错误，回头还需要再调试！！！！！！！！！！！！！！！！！
-				*/
+				//seSend状态下，如果是ERROR_IO_PENDING报错，表示 等待I/O，稍后就会返回 这时m_Sending状态应该为true
 				if (DoError(seSend))
 					return;
 			}
@@ -697,20 +689,9 @@ bool CIOCPClientSocketManager :: IocpReadback(int Transfered)
 	bool retflag = false;
 	if (Transfered > 0)
 	{
-		try
-		{
-			if (nullptr != m_OnRead)
-				m_OnRead(this, m_RecvBlock.Buffer, Transfered);
-			//顺利操作后尝试再次投递
-			if (m_CSocket != INVALID_SOCKET)
-				retflag = PrepareRecv();
-		}
-		catch(...)
-		{
-			//捕获异常后也尝试再次投递
-			if (m_CSocket != INVALID_SOCKET)
-				retflag = PrepareRecv();
-		}
+		CC_UTILS::ON_SCOPE_EXIT([&]{ if (m_CSocket != INVALID_SOCKET) retflag = PrepareRecv(); });
+		if (nullptr != m_OnRead)
+			m_OnRead(this, m_RecvBlock.Buffer, Transfered);
 	}
 	return retflag;
 }

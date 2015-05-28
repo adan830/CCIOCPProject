@@ -11,6 +11,7 @@
 
 #define _WINSOCKAPI_
 #include <Windows.h>
+#include <functional>
 
 namespace CC_UTILS{
 
@@ -119,6 +120,48 @@ namespace CC_UTILS{
 		unsigned int m_uiAccuracy;
 	}TMMTimer;
 
+
+	/****************************************************************************************************************
+	* 使用该类来管理资源对象的释放
+	* 代码示例：
+	*
+		HANDLE h = CreateFile(...);
+		ON_SCOPE_EXIT([&] { CloseHandle(h); });
+	*
+	*/
+	class ScopeGuard
+	{
+	public:
+		explicit ScopeGuard(std::function<void()> onExitScope) : onExitScope_(onExitScope), dismissed_(false)
+		{ }
+
+		~ScopeGuard()
+		{
+			if (!dismissed_)
+			{
+				onExitScope_();
+			}
+		}
+
+		void Dismiss()
+		{
+			dismissed_ = true;
+		}
+
+	private:
+		std::function<void()> onExitScope_;
+		bool dismissed_;
+	private:
+		ScopeGuard(ScopeGuard const&);
+		ScopeGuard& operator=(ScopeGuard const&);
+	};
+
+	#define SCOPEGUARD_LINENAME(name, line) name##line
+	#define ON_SCOPE_EXIT(callback) ScopeGuard SCOPEGUARD_LINENAME(EXIT, __LINE__)(callback)
+	/****************************************************************************************************************/
+
+
+
 	//返回文件的最后修改时间转化成的整数，用以检测文件是否修改
 	int GetFileAge(const std::string &sFileName);
 
@@ -191,35 +234,9 @@ namespace CC_UTILS{
 
 	//普通字符串转化为小写
 	std::string StrLower(const std::string& str);
-
 	
 }
 
-/*
-安全删除对象指针
-*/
-#ifndef SAFE_DELETE
-#define SAFE_DELETE(p)	{ if (p) { delete (p); (p)=NULL; }}
-#endif
 
-/*
-增加标志
-*/
-#ifndef ADD_FLAG
-#define ADD_FLAG(body, flag) body|=(flag)
-#endif
-/*
-删除标志
-*/
-#ifndef DEL_FLAG
-#define DEL_FLAG(body, flag) body&=~(flag)
-#endif
-
-/*
-是否包含标志
-*/
-#ifndef HAS_FLAG
-#define HAS_FLAG(body, flag) ((body & (flag)) != 0)
-#endif
 
 #endif //__CC_UTILS_H__

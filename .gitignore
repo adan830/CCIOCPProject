@@ -54,3 +54,5 @@ Temporary Items
 *.sdf
 *.pch
 *.ipch
+*.vsp
+*.psess

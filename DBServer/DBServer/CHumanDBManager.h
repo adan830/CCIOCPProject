@@ -53,6 +53,7 @@ private:
 	TDBDetailRec m_Data;
 	unsigned int m_uiLastReadTick;
 	unsigned int m_uiDelayUnlockTick;
+	friend class CHumanDBManager;
 };
 
 /**
