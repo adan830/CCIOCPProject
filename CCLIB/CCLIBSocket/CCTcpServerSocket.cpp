@@ -401,7 +401,9 @@ void CClientConnector :: PrepareSend(int iUntreated, int iTransfered)
 		m_iTotalBufferLen = 0;
 	iUntreated = m_SendList.GetBufferFromList(m_SendBlock.Buffer, MAX_IOCP_BUFFER_SIZE, iUntreated);
 
-	m_bSending = false;
+	//注意：这里的m_bSending标记要后置
+	//DoActive中 对于 m_bSending的判断
+
 	if (iUntreated > 0)
 	{
 		UpdateActive();
@@ -425,7 +427,11 @@ void CClientConnector :: PrepareSend(int iUntreated, int iTransfered)
 			}
 			m_bSending = true;
 		}
+		else
+			m_bSending = false;
 	}
+	else
+		m_bSending = false;
 }
 
 bool CClientConnector :: PrepareRecv()
@@ -509,14 +515,8 @@ void CClientConnector :: DoActive(unsigned int uiTick)
 	if ((uiTick - m_uiLastSendTick >= 40) || (m_iTotalBufferLen >= MAX_IOCP_BUFFER_SIZE))
 	{
 		m_uiLastSendTick = uiTick;
-		{
-			//------------------------------------------
-			//------------------------------------------
-			//std::lock_guard<std::mutex> guard(m_LockCS);
-			//------------------引发异常-------------------
-			if (!m_bSending)
-				PrepareSend(0, 0);
-		}
+		if (!m_bSending)
+			PrepareSend(0, 0);
 	}
 	Execute(uiTick);
 }
